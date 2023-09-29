@@ -9,6 +9,7 @@ package com.hwq.bi.controller;
 import cn.hutool.core.io.FileUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
+import com.hwq.bi.annotation.BiService;
 import com.hwq.bi.annotation.CheckPoint;
 import com.hwq.bi.annotation.ReduceRewardPoint;
 import com.hwq.bi.bizmq.BiMessageProducer;
@@ -45,6 +46,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import com.hwq.bi.utils.ExcelUtils;
+import com.hwq.bi.websocket.BudgeWebSocket;
 import com.hwq.bi.websocket.UserWebSocket;
 import com.hwq.bi.websocket.WebSocketMsgVO;
 import lombok.extern.slf4j.Slf4j;
@@ -89,6 +91,9 @@ public class ChartController {
     @Resource
     private UserWebSocket userWebSocket;
 
+    @Resource
+    private BudgeWebSocket budgeWebSocket;
+
     private final static Gson GSON = new Gson();
 
 
@@ -100,7 +105,9 @@ public class ChartController {
      * @return
      */
     @PostMapping("/gen")
-    @ReduceRewardPoint
+    @ReduceRewardPoint(reducePoint = 2)
+    @CheckPoint(needPoint = 2)
+    @BiService
     public BaseResponse<BiResponse> genChartByAi(@RequestPart("file") MultipartFile multipartFile,
                                              GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
@@ -164,6 +171,7 @@ public class ChartController {
     @PostMapping("/gen/async")
     @ReduceRewardPoint(reducePoint = 2)
     @CheckPoint(needPoint = 2)
+    @BiService
     public BaseResponse<BiResponse> genChartByAiAsync(@RequestPart("file") MultipartFile multipartFile,
                                                  GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) {
         String name = genChartByAiRequest.getName();
@@ -252,10 +260,11 @@ public class ChartController {
             webSocketMsgVO.setTitle("分析图表已生成");
             webSocketMsgVO.setDescription("点击查看详情");
             webSocketMsgVO.setType(WebSocketMsgTypeEnum.SUCCESS.getValue());
+            userWebSocket.sendOneMessage(loginUser.getId(), webSocketMsgVO);
+            // 显示徽标
+            budgeWebSocket.sendOneMessage(loginUser.getId(), "用户有新的消息");
             // 将chart.getId()变为字符串是为了防止大数精度丢失问题
             webSocketMsgVO.setChartId(chart.getId() + "");
-            log.error(chart.getId() + "");
-            userWebSocket.sendOneMessage(loginUser.getId(), webSocketMsgVO);
         }, threadPoolExecutor);
 
         BiResponse biResponse = new BiResponse();
@@ -266,6 +275,7 @@ public class ChartController {
 
     @PostMapping("/gen/async/mq")
     @ReduceRewardPoint(reducePoint = 2)
+    @BiService
     @CheckPoint(needPoint = 2)
     public BaseResponse<BiResponse> genChartByAiAsyncMq(@RequestPart("file") MultipartFile multipartFile,
                                                         GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) {
@@ -285,7 +295,6 @@ public class ChartController {
         String suffix = FileUtil.getSuffix(originalFilename);
         final List<String> validFileSuffixList = Arrays.asList("xlsx", "xls");
         ThrowUtils.throwIf(!validFileSuffixList.contains(suffix), ErrorCode.PARAMS_ERROR, "文件后缀非法");
-
         User loginUser = userService.getLoginUser(request);
         // 判断用户积分是否充足
         Integer totalRewardPoints = loginUser.getTotalRewardPoints();

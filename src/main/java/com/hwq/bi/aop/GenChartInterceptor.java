@@ -1,5 +1,6 @@
 package com.hwq.bi.aop;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.hwq.bi.annotation.CheckPoint;
 import com.hwq.bi.annotation.ReduceRewardPoint;
@@ -44,9 +45,17 @@ public class GenChartInterceptor {
         User loginUser = userService.getLoginUser(request);
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
         // 扣减用户积分
+        QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
+        userQueryWrapper.eq("id", loginUser.getId());
+        User user = userService.getOne(userQueryWrapper);
+        ThrowUtils.throwIf(user == null, ErrorCode.PARAMS_ERROR);
+        Integer preRewardPoint = user.getTotalRewardPoints();
+
         UpdateWrapper<User> userUpdateWrapper = new UpdateWrapper<>();
+        // 在扣减库存的时候，确保数据前后一直
         userUpdateWrapper
                 .eq("id", loginUser.getId())
+                .eq("totalRewardPoints", preRewardPoint)
                 .setSql("totalRewardPoints = totalRewardPoints - " + reduceNum);
         boolean update = userService.update(userUpdateWrapper);
         ThrowUtils.throwIf(!update, ErrorCode.SYSTEM_ERROR);

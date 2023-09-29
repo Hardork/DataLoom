@@ -43,7 +43,7 @@ public class BiMessageConsumer {
     public void receiveMessage(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
         log.info("receiveMessage message = {}", message);
         if (StringUtils.isBlank(message)) {
-            // 如果失败，消息拒绝
+            // 如果失败，消息拒绝, 并且不返回队列中
             channel.basicNack(deliveryTag, false, false);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "消息为空");
         }
@@ -135,6 +135,55 @@ public class BiMessageConsumer {
         webSocketMsgVO.setDescription("点击查看详情");
         webSocketMsgVO.setChartId(chartId + "");
         userWebSocket.sendOneMessage(chart.getUserId(), webSocketMsgVO);
+    }
+
+    /**
+     * 监听死信队列
+     * 进入死信队列的一般是队列达到最长长度（队列满了)
+     * 消息TTL到了（消息过期）
+     * 分析原因：一般是当前提问的用户太多
+     * 解决措施：
+     * 1.告诉用户当前正忙，稍后再试，返还用户积分
+     * 2.等队列不忙了，再去消费
+     * @param message
+     * @param channel
+     * @param deliveryTag
+     */
+    @SneakyThrows
+    @RabbitListener(queues = {BiMqConstant.BI_DEAD_QUEUE_NAME}, ackMode = "MANUAL")
+    public void receiveDeadMessage(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
+        if (StringUtils.isBlank(message)) {
+            // 如果失败，消息拒绝
+            channel.basicAck(deliveryTag, false);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "消息为空");
+        }
+        long chartId = Long.parseLong(message);
+        Chart chart = chartService.getById(chartId);
+        if (chart == null) {
+            channel.basicAck(deliveryTag, false);
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "图表为空");
+        }
+
+        // 更新图表的信息为失败
+        Chart updateChartStatus = new Chart();
+        updateChartStatus.setId(chart.getId());
+        updateChartStatus.setStatus(ChartStatusEnum.FAILED.getValue());
+        updateChartStatus.setExecMessage("系统繁忙");
+        boolean update = chartService.updateById(updateChartStatus);
+        ThrowUtils.throwIf(!update, ErrorCode.SYSTEM_ERROR);
+
+        //todo: 失败信息入库 给管理员看
+
+
+        // 通知用户
+        log.error("分析超时" + chart.getId());
+        WebSocketMsgVO webSocketMsgVO = new WebSocketMsgVO();
+        webSocketMsgVO.setType(WebSocketMsgTypeEnum.ERROR.getValue());
+        webSocketMsgVO.setTitle("生成图表失败");
+        webSocketMsgVO.setDescription("失败原因：系统正忙，请稍后再试");
+        userWebSocket.sendOneMessage(chart.getUserId(), webSocketMsgVO);
+        // 消息确认
+        channel.basicAck(deliveryTag, false);
     }
 
 

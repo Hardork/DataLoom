@@ -8,6 +8,7 @@ import lombok.Data;
  * @Description:
  **/
 @Data
-public class AiTalkRequest {
+public class AiChatRequest {
     private String text;
+    private Long assistantId;
 }

@@ -42,7 +42,6 @@ public class RewardRecordServiceImpl extends ServiceImpl<RewardRecordMapper, Rew
         QueryWrapper<RewardRecord> qw = new QueryWrapper<>();
         Long userId = loginUser.getId();
         LocalDateTime now = LocalDateTime.now();
-
         List<RewardRecord> rewardRecords = rewardRecordMapper.judgeTodayHasAdd(userId, now);
         if (!rewardRecords.isEmpty()) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "今日已领取");

@@ -107,7 +107,7 @@ public class SparkAiManager extends WebSocketListener {
                 JSONObject chat=new JSONObject();
                 chat.put("domain","generalv2");
                 chat.put("temperature",0.5);
-                chat.put("max_tokens",4096);
+                chat.put("max_tokens",1024);
                 parameter.put("chat",chat);
 
                 JSONObject payload=new JSONObject(); // payload参数
@@ -115,7 +115,7 @@ public class SparkAiManager extends WebSocketListener {
                 JSONArray text=new JSONArray();
 
                 // 历史问题获取
-                if(historyList.size()>0){
+                if(historyList.size() > 0){
                     for(RoleContent tempRoleContent:historyList){
                         text.add(JSON.toJSON(tempRoleContent));
                     }
@@ -178,7 +178,7 @@ public class SparkAiManager extends WebSocketListener {
             aiWebSocketVO.setContent(temp.content);
             aiWebSocketVO.setType("running");
             aiWebSocket.sendOneMessage(userId, aiWebSocketVO);
-            totalAnswer=totalAnswer+temp.content;
+            totalAnswer = totalAnswer + temp.content;
         }
         if (myJsonParse.header.status == 2) {
             // 可以关闭连接，释放资源
