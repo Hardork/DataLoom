@@ -2,6 +2,7 @@ package com.hwq.bi.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.hwq.bi.model.dto.user.UserEmailRegisterRequest;
 import com.hwq.bi.model.dto.user.UserQueryRequest;
 import com.hwq.bi.model.entity.User;
 import com.hwq.bi.model.vo.LoginUserVO;
@@ -14,8 +15,6 @@ import me.chanjar.weixin.common.bean.WxOAuth2UserInfo;
 /**
  * 用户服务
  *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://yupi.icu">编程导航知识星球</a>
  */
 public interface UserService extends IService<User> {
 
@@ -111,4 +110,10 @@ public interface UserService extends IService<User> {
      */
     QueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest);
 
+    /**
+     * 用户邮箱注册
+     * @param userEmailRegisterRequest
+     * @return
+     */
+    long userEmailRegister(UserEmailRegisterRequest userEmailRegisterRequest);
 }

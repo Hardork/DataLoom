@@ -74,4 +74,10 @@ public class AiRoleQueryRequest extends PageRequest {
      */
     @TableField(value = "otherRequire")
     private String otherRequire;
+
+    /**
+     * 0-助手市场 1-我的助手
+     */
+    private Integer selectKey;
+
 }

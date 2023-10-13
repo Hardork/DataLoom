@@ -9,6 +9,8 @@
             <result property="userAccount" column="userAccount" jdbcType="VARCHAR"/>
             <result property="userPassword" column="userPassword" jdbcType="VARCHAR"/>
             <result property="userName" column="userName" jdbcType="VARCHAR"/>
+            <result property="email" column="email" jdbcType="VARCHAR"/>
+            <result property="invitationCode" column="invitationCode" jdbcType="VARCHAR"/>
             <result property="userAvatar" column="userAvatar" jdbcType="VARCHAR"/>
             <result property="userRole" column="userRole" jdbcType="VARCHAR"/>
             <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>

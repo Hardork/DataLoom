@@ -29,6 +29,15 @@ public class UserVO implements Serializable {
     private String userAvatar;
 
     /**
+     * 用户邮箱
+     */
+    private String email;
+
+    /**
+     * 用户邀请码
+     */
+    private String invitationCode;
+    /**
      * 用户简介
      */
     private String userProfile;

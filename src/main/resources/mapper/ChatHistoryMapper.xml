@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hwq.bi.mapper.ChatHistoryMapper">
+
+    <resultMap id="BaseResultMap" type="com.hwq.bi.model.entity.ChatHistory">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="chatRole" column="chatRole" jdbcType="TINYINT"/>
+            <result property="chatId" column="chatId" jdbcType="BIGINT"/>
+            <result property="modelId" column="modelId" jdbcType="BIGINT"/>
+            <result property="content" column="content" jdbcType="VARCHAR"/>
+            <result property="execMessage" column="execMessage" jdbcType="VARCHAR"/>
+            <result property="status" column="status" jdbcType="TINYINT"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+            <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,chatRole,chatId,
+        modelId,content,execMessage,
+        status,createTime,updateTime,
+        isDelete
+    </sql>
+</mapper>

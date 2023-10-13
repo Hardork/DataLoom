@@ -33,6 +33,7 @@ public class ServiceRecordServiceImpl extends ServiceImpl<ServiceRecordMapper, S
         QueryWrapper<ServiceRecord> queryWrapper = new QueryWrapper<>();
         queryWrapper.lambda()
                 .eq(ServiceRecord::getType, ServiceTypeEnums.BI.getValue())
+                .eq(ServiceRecord::getUserId, loginUser.getId())
                 .ge(ServiceRecord::getCreateTime, startOfMonth)
                 .le(ServiceRecord::getCreateTime, endOfMonth)
                 .orderByAsc(ServiceRecord::getCreateTime)
@@ -68,6 +69,7 @@ public class ServiceRecordServiceImpl extends ServiceImpl<ServiceRecordMapper, S
         QueryWrapper<ServiceRecord> queryWrapper = new QueryWrapper<>();
         queryWrapper.lambda()
                 .eq(ServiceRecord::getType, ServiceTypeEnums.AI.getValue())
+                .eq(ServiceRecord::getUserId, loginUser.getId())
                 .ge(ServiceRecord::getCreateTime, startOfMonth)
                 .le(ServiceRecord::getCreateTime, endOfMonth)
                 .orderByAsc(ServiceRecord::getCreateTime)

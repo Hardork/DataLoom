@@ -44,6 +44,18 @@ public class User implements Serializable {
     private String userName;
 
     /**
+     * 邮箱
+     */
+    @TableField(value = "email")
+    private String email;
+
+    /**
+     * 邀请码
+     */
+    @TableField(value = "invitationCode")
+    private String invitationCode;
+
+    /**
      * 用户头像
      */
     @TableField(value = "userAvatar")

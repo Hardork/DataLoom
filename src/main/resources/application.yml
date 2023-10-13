@@ -31,6 +31,16 @@ spring:
     host: localhost
     port: 6379
     timeout: 5000
+  mail:
+    host: smtp.qq.com
+    username: 1602370456@qq.com
+    password: fzzfwwfoembojhci
+    emailFrom: 1602370456@qq.com
+    properties:
+      mail:
+        smtp:
+          ssl:
+            enable: true
 
   rabbitmq:
     host: 192.168.200.131

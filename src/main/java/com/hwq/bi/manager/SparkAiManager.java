@@ -4,6 +4,13 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
+import com.hwq.bi.common.ErrorCode;
+import com.hwq.bi.exception.ThrowUtils;
+import com.hwq.bi.model.entity.Chat;
+import com.hwq.bi.model.entity.ChatHistory;
+import com.hwq.bi.model.enums.ChatHistoryRoleEnum;
+import com.hwq.bi.model.enums.ChatHistoryStatusEnum;
+import com.hwq.bi.service.ChatHistoryService;
 import com.hwq.bi.websocket.AiWebSocket;
 import com.hwq.bi.websocket.AiWebSocketVO;
 import com.hwq.bi.websocket.UserWebSocket;
@@ -43,8 +50,15 @@ public class SparkAiManager extends WebSocketListener {
     @Resource
     private AiWebSocket aiWebSocket;
 
+    @Resource
+    private ChatHistoryService chatHistoryService;
+
     // 个性化参数
     private Long userId;
+    private Long chatId;
+    private Long modelId;
+
+    private Boolean unSave = false;
 
     private Boolean wsCloseFlag = false;
 
@@ -65,7 +79,7 @@ public class SparkAiManager extends WebSocketListener {
         String url = authUrl.toString().replace("http://", "ws://").replace("https://", "wss://");
         Request request = new Request.Builder().url(url).build();
         for (int i = 0; i < 1; i++) {
-            totalAnswer="";
+            totalAnswer = "";
             WebSocket webSocket = client.newWebSocket(request, this);
         }
     }
@@ -104,7 +118,7 @@ public class SparkAiManager extends WebSocketListener {
                 header.put("uid",UUID.randomUUID().toString().substring(0, 10));
 
                 JSONObject parameter=new JSONObject(); // parameter参数
-                JSONObject chat=new JSONObject();
+                JSONObject chat = new JSONObject();
                 chat.put("domain","generalv2");
                 chat.put("temperature",0.5);
                 chat.put("max_tokens",1024);
@@ -122,17 +136,13 @@ public class SparkAiManager extends WebSocketListener {
                 }
 
                 // 最新问题
-                RoleContent roleContent=new RoleContent();
+                RoleContent roleContent = new RoleContent();
                 roleContent.role="user";
                 roleContent.content = NewQuestion;
                 text.add(JSON.toJSON(roleContent));
                 historyList.add(roleContent);
-
-
                 message.put("text",text);
                 payload.put("message",message);
-
-
                 requestJson.put("header",header);
                 requestJson.put("parameter",parameter);
                 requestJson.put("payload",payload);
@@ -157,6 +167,11 @@ public class SparkAiManager extends WebSocketListener {
     public void onOpen(WebSocket webSocket, Response response) {
         super.onOpen(webSocket, response);
         System.out.print("大模型：");
+        // 通知前端当前会话结束
+        AiWebSocketVO aiWebSocketVO = new AiWebSocketVO();
+        aiWebSocketVO.setContent("");
+        aiWebSocketVO.setType("start");
+        aiWebSocket.sendOneMessage(userId, aiWebSocketVO);
         MyThread myThread = new MyThread(webSocket);
         myThread.start();
     }
@@ -184,13 +199,13 @@ public class SparkAiManager extends WebSocketListener {
             // 可以关闭连接，释放资源
             System.out.println("*************************************************************************************");
             if(canAddHistory()){
-                RoleContent roleContent=new RoleContent();
+                RoleContent roleContent = new RoleContent();
                 roleContent.setRole("assistant");
                 roleContent.setContent(totalAnswer);
                 historyList.add(roleContent);
             }else{
                 historyList.remove(0);
-                RoleContent roleContent=new RoleContent();
+                RoleContent roleContent = new RoleContent();
                 roleContent.setRole("assistant");
                 roleContent.setContent(totalAnswer);
                 historyList.add(roleContent);
@@ -200,9 +215,26 @@ public class SparkAiManager extends WebSocketListener {
             aiWebSocketVO.setContent("close");
             aiWebSocketVO.setType("end");
             aiWebSocket.sendOneMessage(userId, aiWebSocketVO);
+            // 将本次会话内容写道数据库中
+            if (!unSave) {
+                saveAiResponseMessage(totalAnswer);
+            }
             wsCloseFlag = true;
             totalFlag=true;
         }
+    }
+
+    // 保存AI回复的消息到数据库
+    public void saveAiResponseMessage(String content) {
+        ChatHistory chatHistory = new ChatHistory();
+        chatHistory.setChatRole(ChatHistoryRoleEnum.MODEL.getValue());
+        chatHistory.setChatId(chatId);
+        chatHistory.setModelId(modelId);
+        chatHistory.setContent(content);
+        chatHistory.setExecMessage("");
+        chatHistory.setStatus(ChatHistoryStatusEnum.SUCCESS.getValue());
+        boolean save = chatHistoryService.save(chatHistory);
+        ThrowUtils.throwIf(!save, ErrorCode.SYSTEM_ERROR);
     }
 
     @Override
@@ -219,7 +251,6 @@ public class SparkAiManager extends WebSocketListener {
                 }
             }
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }

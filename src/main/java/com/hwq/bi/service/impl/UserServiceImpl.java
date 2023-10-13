@@ -1,14 +1,21 @@
 package com.hwq.bi.service.impl;
 
+import static com.hwq.bi.constant.EmailConstant.CAPTCHA_CACHE_KEY;
 import static com.hwq.bi.constant.UserConstant.USER_LOGIN_STATE;
+import static org.bouncycastle.asn1.x500.style.RFC4519Style.userPassword;
 
+import cn.hutool.core.util.RandomUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hwq.bi.common.ErrorCode;
+import com.hwq.bi.model.dto.user.UserEmailRegisterRequest;
 import com.hwq.bi.model.dto.user.UserQueryRequest;
 import com.hwq.bi.model.entity.User;
 import com.hwq.bi.model.enums.UserRoleEnum;
+import com.hwq.bi.utils.RedissonLockUtil;
 import com.hwq.bi.utils.SqlUtils;
 import com.hwq.bi.constant.CommonConstant;
 import com.hwq.bi.exception.BusinessException;
@@ -18,20 +25,23 @@ import com.hwq.bi.model.vo.UserVO;
 import com.hwq.bi.service.UserService;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 /**
  * 用户服务实现
  *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://yupi.icu">编程导航知识星球</a>
  */
 @Service
 @Slf4j
@@ -41,6 +51,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * 盐值，混淆密码
      */
     private static final String SALT = "yupi";
+
+    @Resource
+    private RedisTemplate<String, String> redisTemplate;
+
+    @Resource
+    private RedissonLockUtil redissonLockUtil;
 
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
@@ -72,6 +88,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             // 3. 插入数据
             User user = new User();
             user.setUserAccount(userAccount);
+            user.setUserName(userAccount);
+            user.setUserAvatar("https://tse2-mm.cn.bing.net/th/id/OIP-C.GcH5tncpMBmeWkfM0SkTfwHaHa?pid=ImgDet&rs=1");
             user.setUserPassword(encryptPassword);
             boolean saveResult = this.save(user);
             if (!saveResult) {
@@ -238,5 +256,117 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
                 sortField);
         return queryWrapper;
+    }
+
+    @Override
+    public long userEmailRegister(UserEmailRegisterRequest userEmailRegisterRequest) {
+        String emailAccount = userEmailRegisterRequest.getEmailAccount();
+        String captcha = userEmailRegisterRequest.getCaptcha();
+        String userName = userEmailRegisterRequest.getUserName();
+        String userAccount = userEmailRegisterRequest.getUserAccount();
+        String invitationCode = userEmailRegisterRequest.getInvitationCode();
+        String userPassword = userEmailRegisterRequest.getUserPassword();
+        String checkPassword = userEmailRegisterRequest.getCheckPassword();
+
+
+        if (!userPassword.equals(checkPassword)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "校验密码与密码不一致");
+        }
+
+        if (StringUtils.isAnyBlank(emailAccount, captcha, userAccount)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        if (userName.length() > 40) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "昵称过长");
+        }
+        String emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
+        if (!Pattern.matches(emailPattern, emailAccount)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "不合法的邮箱地址！");
+        }
+        String cacheCaptcha = redisTemplate.opsForValue().get(CAPTCHA_CACHE_KEY + emailAccount);
+        if (StringUtils.isBlank(cacheCaptcha)) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "验证码已过期,请重新获取");
+        }
+        captcha = captcha.trim();
+        if (!cacheCaptcha.equals(captcha)) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "验证码输入有误");
+        }
+        String redissonLock = ("userEmailRegister_" + userAccount).intern();
+        return redissonLockUtil.redissonDistributedLocks(redissonLock, () -> {
+            // 账户不能重复
+            QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("userAccount", userAccount);
+            long count = this.count(queryWrapper);
+            if (count > 0) {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号或重复");
+            }
+            queryWrapper = new QueryWrapper<User>();
+            queryWrapper.eq("email", emailAccount);
+            long emailRepeat = this.count(queryWrapper);
+            if (emailRepeat > 0) {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "邮箱重复");
+            }
+            User invitationCodeUser = null;
+            if (StringUtils.isNotBlank(invitationCode)) {
+                LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                userLambdaQueryWrapper.eq(User::getInvitationCode, invitationCode);
+                // 可能出现重复invitationCode,查出的不是一条
+                invitationCodeUser = this.getOne(userLambdaQueryWrapper);
+                if (invitationCodeUser == null) {
+                    throw new BusinessException(ErrorCode.OPERATION_ERROR, "该邀请码无效");
+                }
+            }
+
+            // 3. 插入数据
+            // 2. 加密
+            String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
+            User user = new User();
+            user.setUserAccount(userAccount);
+            user.setUserName(userName);
+            user.setEmail(emailAccount);
+            user.setUserAvatar("https://tse2-mm.cn.bing.net/th/id/OIP-C.GcH5tncpMBmeWkfM0SkTfwHaHa?pid=ImgDet&rs=1");
+            user.setUserPassword(encryptPassword);
+
+            if (invitationCodeUser != null) {
+                user.setTotalRewardPoints(100);
+                this.addUserTotalRewards(invitationCodeUser.getId(), 100);
+            }
+            // 给用户随机生成邀请码
+            user.setInvitationCode(generateRandomString(8));
+            boolean saveResult = this.save(user);
+            if (!saveResult) {
+                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "注册失败，数据库错误");
+            }
+            return user.getId();
+        }, "邮箱账号注册失败");
+    }
+
+    /**
+     * 给用户添加积分
+     * @param userId
+     * @param addPoints
+     */
+    public void addUserTotalRewards(long userId, int addPoints) {
+        LambdaUpdateWrapper<User> userLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        userLambdaUpdateWrapper.eq(User::getId, userId);
+        userLambdaUpdateWrapper.setSql("totalRewardPoints = totalRewardPoints + " + addPoints);
+    }
+
+    /**
+     * 生成随机字符串
+     *
+     * @param length 长
+     * @return {@link String}
+     */
+    public String generateRandomString(int length) {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder sb = new StringBuilder(length);
+        Random random = new Random();
+        for (int i = 0; i < length; i++) {
+            int index = random.nextInt(characters.length());
+            char randomChar = characters.charAt(index);
+            sb.append(randomChar);
+        }
+        return sb.toString();
     }
 }

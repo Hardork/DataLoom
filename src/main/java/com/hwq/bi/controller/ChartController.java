@@ -257,14 +257,15 @@ public class ChartController {
 
             // 通知用户图表已生成
             WebSocketMsgVO webSocketMsgVO = new WebSocketMsgVO();
+            // 将chart.getId()变为字符串是为了防止大数精度丢失问题
+            webSocketMsgVO.setChartId(chart.getId() + "");
             webSocketMsgVO.setTitle("分析图表已生成");
             webSocketMsgVO.setDescription("点击查看详情");
             webSocketMsgVO.setType(WebSocketMsgTypeEnum.SUCCESS.getValue());
             userWebSocket.sendOneMessage(loginUser.getId(), webSocketMsgVO);
             // 显示徽标
             budgeWebSocket.sendOneMessage(loginUser.getId(), "用户有新的消息");
-            // 将chart.getId()变为字符串是为了防止大数精度丢失问题
-            webSocketMsgVO.setChartId(chart.getId() + "");
+
         }, threadPoolExecutor);
 
         BiResponse biResponse = new BiResponse();

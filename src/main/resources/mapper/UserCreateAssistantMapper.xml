@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hwq.bi.mapper.UserCreateAssistantMapper">
+
+    <resultMap id="BaseResultMap" type="com.hwq.bi.model.entity.UserCreateAssistant">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="assistantName" column="assistantName" jdbcType="VARCHAR"/>
+            <result property="userId" column="userId" jdbcType="BIGINT"/>
+            <result property="type" column="type" jdbcType="VARCHAR"/>
+            <result property="historyTalk" column="historyTalk" jdbcType="TINYINT"/>
+            <result property="functionDes" column="functionDes" jdbcType="VARCHAR"/>
+            <result property="inputModel" column="inputModel" jdbcType="VARCHAR"/>
+            <result property="roleDesign" column="roleDesign" jdbcType="VARCHAR"/>
+            <result property="targetWork" column="targetWork" jdbcType="VARCHAR"/>
+            <result property="requirement" column="requirement" jdbcType="VARCHAR"/>
+            <result property="style" column="style" jdbcType="VARCHAR"/>
+            <result property="otherRequire" column="otherRequire" jdbcType="VARCHAR"/>
+            <result property="isOnline" column="isOnline" jdbcType="TINYINT"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+            <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,assistantName,userId,
+        type,historyTalk,functionDes,
+        inputModel,roleDesign,targetWork,
+        requirement,style,otherRequire,
+        isOnline,createTime,updateTime,
+        isDelete
+    </sql>
+</mapper>

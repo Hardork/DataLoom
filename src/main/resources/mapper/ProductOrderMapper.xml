@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hwq.bi.mapper.ProductOrderMapper">
+
+    <resultMap id="BaseResultMap" type="com.hwq.bi.model.entity.ProductOrder">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="orderNo" column="orderNo" jdbcType="VARCHAR"/>
+            <result property="codeUrl" column="codeUrl" jdbcType="VARCHAR"/>
+            <result property="userId" column="userId" jdbcType="BIGINT"/>
+            <result property="productId" column="productId" jdbcType="BIGINT"/>
+            <result property="orderName" column="orderName" jdbcType="VARCHAR"/>
+            <result property="total" column="total" jdbcType="BIGINT"/>
+            <result property="productType" column="productType" jdbcType="TINYINT"/>
+            <result property="status" column="status" jdbcType="VARCHAR"/>
+            <result property="payType" column="payType" jdbcType="VARCHAR"/>
+            <result property="productInfo" column="productInfo" jdbcType="VARCHAR"/>
+            <result property="addPoints" column="addPoints" jdbcType="BIGINT"/>
+            <result property="expirationTime" column="expirationTime" jdbcType="TIMESTAMP"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,orderNo,codeUrl,
+        userId,productId,orderName,
+        total,productType,status,
+        payType,productInfo,addPoints,
+        expirationTime,createTime,updateTime
+    </sql>
+</mapper>

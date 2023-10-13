@@ -49,8 +49,6 @@ public class AiRoleController {
     @Resource
     private UserService userService;
 
-    private final static Gson GSON = new Gson();
-
     /**
      * 创建
      *

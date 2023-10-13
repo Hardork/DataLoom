@@ -7,9 +7,12 @@ import com.hwq.bi.exception.BusinessException;
 import com.hwq.bi.exception.ThrowUtils;
 import com.hwq.bi.manager.AiManager;
 import com.hwq.bi.model.entity.Chart;
+import com.hwq.bi.model.entity.ProductOrder;
 import com.hwq.bi.model.enums.ChartStatusEnum;
+import com.hwq.bi.model.enums.OrderStatusEnum;
 import com.hwq.bi.model.enums.WebSocketMsgTypeEnum;
 import com.hwq.bi.service.ChartService;
+import com.hwq.bi.service.ProductOrderService;
 import com.hwq.bi.websocket.UserWebSocket;
 import com.hwq.bi.websocket.WebSocketMsgVO;
 import com.rabbitmq.client.Channel;
@@ -36,6 +39,9 @@ public class BiMessageConsumer {
 
     @Resource
     private UserWebSocket userWebSocket;
+
+    @Resource
+    private ProductOrderService productOrderService;
 
     // 指定程序监听的消息队列和确认机制
     @SneakyThrows
@@ -174,7 +180,6 @@ public class BiMessageConsumer {
 
         //todo: 失败信息入库 给管理员看
 
-
         // 通知用户
         log.error("分析超时" + chart.getId());
         WebSocketMsgVO webSocketMsgVO = new WebSocketMsgVO();
@@ -182,6 +187,40 @@ public class BiMessageConsumer {
         webSocketMsgVO.setTitle("生成图表失败");
         webSocketMsgVO.setDescription("失败原因：系统正忙，请稍后再试");
         userWebSocket.sendOneMessage(chart.getUserId(), webSocketMsgVO);
+        // 消息确认
+        channel.basicAck(deliveryTag, false);
+    }
+
+    @SneakyThrows
+    @RabbitListener(queues = {BiMqConstant.ORDER_DEAD_QUEUE_NAME}, ackMode = "MANUAL")
+    public void receiveOrderMessage(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
+        if (StringUtils.isBlank(message)) {
+            // 如果失败，消息拒绝
+            channel.basicAck(deliveryTag, false);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "消息为空");
+        }
+        long orderId = Long.parseLong(message);
+        ProductOrder order = productOrderService.getById(orderId);
+        if (order == null) {
+            channel.basicAck(deliveryTag, false);
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "订单不存在");
+        }
+
+        // 更新订单信息为超时（前提是订单的状态为未支付）
+        OrderStatusEnum orderStatusEnum = OrderStatusEnum.getEnumByValue(order.getStatus());
+        ThrowUtils.throwIf(orderStatusEnum == null, ErrorCode.SYSTEM_ERROR);
+        if (orderStatusEnum.equals(OrderStatusEnum.NOT_PAY)) { // 改为超时
+            order.setStatus(OrderStatusEnum.TIMEOUT.getValue());
+            boolean update = productOrderService.updateById(order);
+            ThrowUtils.throwIf(!update, ErrorCode.SYSTEM_ERROR);
+        }
+        log.error("用户订单超时");
+        // 通知用户
+        WebSocketMsgVO webSocketMsgVO = new WebSocketMsgVO();
+        webSocketMsgVO.setType(WebSocketMsgTypeEnum.ERROR.getValue());
+        webSocketMsgVO.setTitle("订单超时");
+        webSocketMsgVO.setDescription("失败原因：超时未支付");
+        userWebSocket.sendOneMessage(order.getUserId(), webSocketMsgVO);
         // 消息确认
         channel.basicAck(deliveryTag, false);
     }

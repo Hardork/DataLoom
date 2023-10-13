@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hwq.bi.mapper.ProductVipMapper">
+
+    <resultMap id="BaseResultMap" type="com.hwq.bi.model.entity.ProductVip">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="description" column="description" jdbcType="VARCHAR"/>
+            <result property="userId" column="userId" jdbcType="BIGINT"/>
+            <result property="total" column="total" jdbcType="BIGINT"/>
+            <result property="originalTotal" column="originalTotal" jdbcType="BIGINT"/>
+            <result property="addPoints" column="addPoints" jdbcType="BIGINT"/>
+            <result property="productType" column="productType" jdbcType="TINYINT"/>
+            <result property="duration" column="duration" jdbcType="INTEGER"/>
+            <result property="status" column="status" jdbcType="TINYINT"/>
+            <result property="expirationTime" column="expirationTime" jdbcType="TIMESTAMP"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+            <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,name,description,
+        userId,total,originalTotal,addPoints,duration,
+        productType,status,expirationTime,
+        createTime,updateTime,isDelete
+    </sql>
+</mapper>

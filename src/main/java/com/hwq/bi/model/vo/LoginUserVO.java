@@ -44,6 +44,16 @@ public class LoginUserVO implements Serializable {
     private Integer totalRewardPoints;
 
     /**
+     * 邮箱
+     */
+    private String email;
+
+    /**
+     * 邀请码
+     */
+    private String invitationCode;
+
+    /**
      * 创建时间
      */
     private Date createTime;
