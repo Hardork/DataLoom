@@ -73,6 +73,12 @@ public class User implements Serializable {
     @TableField(value = "totalRewardPoints")
     private Integer totalRewardPoints;
 
+    @TableField(value = "VIPExpirationTime")
+    private Date VIPExpirationTime;
+
+    @TableField(value = "SVIPExpirationTime")
+    private Date SVIPExpirationTime;
+
     /**
      * 创建时间
      */

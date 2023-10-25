@@ -10,6 +10,8 @@ import com.hwq.bi.model.enums.FileUploadBizEnum;
 import com.hwq.bi.constant.FileConstant;
 import com.hwq.bi.exception.BusinessException;
 import com.hwq.bi.manager.CosManager;
+import com.hwq.bi.model.enums.ImageStatusEnum;
+import com.hwq.bi.model.vo.ImageVo;
 import com.hwq.bi.service.UserService;
 import java.io.File;
 import java.util.Arrays;
@@ -49,7 +51,7 @@ public class FileController {
      * @return
      */
     @PostMapping("/upload")
-    public BaseResponse<String> uploadFile(@RequestPart("file") MultipartFile multipartFile,
+    public BaseResponse<ImageVo> uploadFile(@RequestPart("file") MultipartFile multipartFile,
                                            UploadFileRequest uploadFileRequest, HttpServletRequest request) {
         String biz = uploadFileRequest.getBiz();
         FileUploadBizEnum fileUploadBizEnum = FileUploadBizEnum.getEnumByValue(biz);
@@ -63,13 +65,18 @@ public class FileController {
         String filename = uuid + "-" + multipartFile.getOriginalFilename();
         String filepath = String.format("/%s/%s/%s", fileUploadBizEnum.getValue(), loginUser.getId(), filename);
         File file = null;
+        ImageVo imageVo = new ImageVo();
         try {
             // 上传文件
             file = File.createTempFile(filepath, null);
             multipartFile.transferTo(file);
             cosManager.putObject(filepath, file);
+            imageVo.setName(multipartFile.getOriginalFilename());
+            imageVo.setUid(RandomStringUtils.randomAlphanumeric(8));
+            imageVo.setStatus(ImageStatusEnum.SUCCESS.getValue());
+            imageVo.setUrl(FileConstant.COS_HOST + filepath);
             // 返回可访问地址
-            return ResultUtils.success(FileConstant.COS_HOST + filepath);
+            return ResultUtils.success(imageVo);
         } catch (Exception e) {
             log.error("file upload error, filepath = " + filepath, e);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "上传失败");

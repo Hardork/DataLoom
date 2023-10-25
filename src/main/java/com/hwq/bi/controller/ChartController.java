@@ -7,6 +7,7 @@ package com.hwq.bi.controller;
  **/
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
 import com.hwq.bi.annotation.BiService;
@@ -18,6 +19,7 @@ import com.hwq.bi.common.DeleteRequest;
 import com.hwq.bi.common.ErrorCode;
 import com.hwq.bi.common.ResultUtils;
 
+import com.hwq.bi.constant.ChartConstant;
 import com.hwq.bi.constant.CommonConstant;
 import com.hwq.bi.constant.MessageRouteConstant;
 import com.hwq.bi.manager.AiManager;
@@ -52,6 +54,7 @@ import com.hwq.bi.websocket.WebSocketMsgVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -93,6 +96,9 @@ public class ChartController {
 
     @Resource
     private BudgeWebSocket budgeWebSocket;
+
+    @Resource
+    private RedisTemplate<String, String> redisTemplate;
 
     private final static Gson GSON = new Gson();
 
@@ -294,7 +300,7 @@ public class ChartController {
         ThrowUtils.throwIf(size > ONE_MB, ErrorCode.PARAMS_ERROR, "文件超过 1M");
         // 校验文件后缀 aaa.png
         String suffix = FileUtil.getSuffix(originalFilename);
-        final List<String> validFileSuffixList = Arrays.asList("xlsx", "xls");
+        final List<String> validFileSuffixList = Arrays.asList("xlsx", "xls", "csv");
         ThrowUtils.throwIf(!validFileSuffixList.contains(suffix), ErrorCode.PARAMS_ERROR, "文件后缀非法");
         User loginUser = userService.getLoginUser(request);
         // 判断用户积分是否充足
@@ -316,6 +322,8 @@ public class ChartController {
         long biModelId = 1659171950288818178L;
         // 压缩后的数据
         String csvData = ExcelUtils.excelToCsv(multipartFile);
+        // 防止投喂给AI的数据太大
+        ThrowUtils.throwIf(csvData.length() > 2048, ErrorCode.PARAMS_ERROR, "文件字数超过2048字");
 
         // 插入到数据库
         Chart chart = new Chart();
@@ -342,58 +350,21 @@ public class ChartController {
     public BaseResponse<BiResponse> ReGenChartByAiAsync(@RequestBody ReGenChartRequest reGenChartRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(reGenChartRequest == null , ErrorCode.PARAMS_ERROR);
         Long chartId = reGenChartRequest.getChartId();
-
         ThrowUtils.throwIf( chartId == null , ErrorCode.PARAMS_ERROR);
+
 
         // 获取用户信息
         User loginUser = userService.getLoginUser(request);
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
         // 限流判断，每个用户一个限流器
         redisLimiterManager.doRateLimit("reGenChartByAi_" + loginUser.getId());
-        long biModelId = 1659171950288818178L;
-        // 根据chartId查询chart
+        // 获取原来图表的信息 并且只有失败图表才能重试
         Chart chartInfo = chartService.getById(chartId);
         ThrowUtils.throwIf(chartInfo == null, ErrorCode.NOT_FOUND_ERROR);
-        // todo  获取之前请求的数据
-        Long id = chartInfo.getId();
-        String goal = chartInfo.getGoal();
-        String csvData = chartInfo.getChartData();
-        String chartType = chartInfo.getChartType();
-        // 构造用户输入
-        String userInput = buildUserInput(goal, chartType, csvData);
-
-        // todo 建议处理任务队列满了后，抛异常的情况
-        CompletableFuture.runAsync(() -> {
-            // 先修改图表任务状态为 “执行中”。等执行成功后，修改为 “已完成”、保存执行结果；执行失败后，状态修改为 “失败”，记录任务失败信息。
-            Chart updateChart = new Chart();
-            updateChart.setId(chartId);
-            updateChart.setStatus(ChartStatusEnum.RUNNING.getValue());
-            boolean b = chartService.updateById(updateChart);
-            if (!b) {
-                handleChartUpdateError(chartId, "更新图表执行中状态失败");
-                return;
-            }
-            // 调用 AI
-            String result = aiManager.doChat(biModelId, userInput);
-            String[] splits = result.split("【【【【【");
-            if (splits.length < 3) {
-                handleChartUpdateError(chartId, "AI 生成错误");
-                return;
-            }
-            String genChart = splits[1].trim();
-            String genResult = splits[2].trim();
-            Chart updateChartResult = new Chart();
-            updateChartResult.setId(chartId);
-            updateChartResult.setGenChart(genChart);
-            updateChartResult.setGenResult(genResult);
-            // todo 建议定义状态为枚举值
-            updateChartResult.setStatus(ChartStatusEnum.SUCCEED.getValue());
-            boolean updateResult = chartService.updateById(updateChartResult);
-            if (!updateResult) {
-                handleChartUpdateError(chartId, "更新图表成功状态失败");
-            }
-        }, threadPoolExecutor);
-
+        ThrowUtils.throwIf(!chartInfo.getStatus().equals(ChartStatusEnum.FAILED.getValue()), ErrorCode.PARAMS_ERROR, "仅失败图表可重试");
+        // 发送信息给消息队列
+        biMessageProducer.sendMessage(String.valueOf(chartId));
+        // 分析成功
         BiResponse biResponse = new BiResponse();
         biResponse.setChartId(chartId);
         return ResultUtils.success(biResponse);
@@ -529,7 +500,16 @@ public class ChartController {
         if (id <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        Chart chart = chartService.getById(id);
+        // 查询redis中对应的缓存
+        String chartJson = redisTemplate.opsForValue().get(ChartConstant.CHART_PREFIX + id);
+        Chart chart = null;
+
+        if (StringUtils.isNotEmpty(chartJson)) { //缓存命中
+            chart = JSONUtil.toBean(chartJson, Chart.class);
+        } else {
+            chart = chartService.getById(id);
+        }
+
         if (chart == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }

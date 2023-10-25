@@ -1,17 +1,21 @@
 package com.hwq.bi.bizmq;
 
+import cn.hutool.json.JSONUtil;
 import com.hwq.bi.common.ErrorCode;
+import com.hwq.bi.constant.ChartConstant;
 import com.hwq.bi.constant.CommonConstant;
 import com.hwq.bi.constant.ExecuteAIServiceConstant;
 import com.hwq.bi.exception.BusinessException;
 import com.hwq.bi.exception.ThrowUtils;
 import com.hwq.bi.manager.AiManager;
 import com.hwq.bi.model.entity.Chart;
+import com.hwq.bi.model.entity.FailedChart;
 import com.hwq.bi.model.entity.ProductOrder;
 import com.hwq.bi.model.enums.ChartStatusEnum;
 import com.hwq.bi.model.enums.OrderStatusEnum;
 import com.hwq.bi.model.enums.WebSocketMsgTypeEnum;
 import com.hwq.bi.service.ChartService;
+import com.hwq.bi.service.FailedChartService;
 import com.hwq.bi.service.ProductOrderService;
 import com.hwq.bi.websocket.UserWebSocket;
 import com.hwq.bi.websocket.WebSocketMsgVO;
@@ -21,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.support.AmqpHeaders;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
@@ -43,6 +48,12 @@ public class BiMessageConsumer {
     @Resource
     private ProductOrderService productOrderService;
 
+    @Resource
+    private FailedChartService failedChartService;
+
+    @Resource
+    private RedisTemplate<String, String> redisTemplate;
+
     // 指定程序监听的消息队列和确认机制
     @SneakyThrows
     @RabbitListener(queues = {BiMqConstant.BI_QUEUE_NAME}, ackMode = "MANUAL")
@@ -53,6 +64,7 @@ public class BiMessageConsumer {
             channel.basicNack(deliveryTag, false, false);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "消息为空");
         }
+        // 消息确认
         long chartId = Long.parseLong(message);
         Chart chart = chartService.getById(chartId);
         if (chart == null) {
@@ -82,7 +94,7 @@ public class BiMessageConsumer {
         });
         String result = "";
         try {
-            // 设置超时时间为10秒
+            // 设置超时时间为2MIN
             result = future.get(ExecuteAIServiceConstant.LIMIT_TIME, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
             // 更新图表的信息为失败
@@ -106,7 +118,6 @@ public class BiMessageConsumer {
             // 关闭线程
             executor.shutdown();
         }
-
         // 校验返回的参数
         if (StringUtils.isEmpty(result)) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR);
@@ -125,14 +136,23 @@ public class BiMessageConsumer {
         updateChartResult.setId(chart.getId());
         updateChartResult.setGenChart(genChart);
         updateChartResult.setGenResult(genResult);
-        // todo 建议定义状态为枚举值
-        updateChartResult.setStatus("succeed");
+        updateChartResult.setStatus(ChartStatusEnum.SUCCEED.getValue());
         boolean updateResult = chartService.updateById(updateChartResult);
+
+        // 讲数据缓存到redis中去
+        String key = ChartConstant.CHART_PREFIX + chartId;
+        chart.setGenChart(genChart);
+        chart.setGenResult(genResult);
+        chart.setStatus(ChartStatusEnum.SUCCEED.getValue());
+        String chartJson = JSONUtil.toJsonStr(chart);
+
+        // 缓存时间1h
+        redisTemplate.opsForValue().set(key, chartJson, 60*60, TimeUnit.SECONDS);
+
         if (!updateResult) {
             channel.basicNack(deliveryTag, false, false);
             handleChartUpdateError(chart.getId(), "更新图表成功状态失败");
         }
-        // 消息确认
         channel.basicAck(deliveryTag, false);
         // 通知用户操作成功
         WebSocketMsgVO webSocketMsgVO = new WebSocketMsgVO();
@@ -178,9 +198,16 @@ public class BiMessageConsumer {
         boolean update = chartService.updateById(updateChartStatus);
         ThrowUtils.throwIf(!update, ErrorCode.SYSTEM_ERROR);
 
-        //todo: 失败信息入库 给管理员看
+        // 失败信息入库 给管理员看
+        FailedChart failedChart = new FailedChart();
+        failedChart.setChartId(chartId);
+        failedChart.setStatus(ChartStatusEnum.FAILED.getValue());
+        failedChart.setExecMessage("系统繁忙");
+        failedChart.setUserId(chart.getUserId());
+        failedChartService.save(failedChart);
 
-        // 通知用户
+
+        // 通知用户分析失败
         log.error("分析超时" + chart.getId());
         WebSocketMsgVO webSocketMsgVO = new WebSocketMsgVO();
         webSocketMsgVO.setType(WebSocketMsgTypeEnum.ERROR.getValue());
@@ -190,6 +217,8 @@ public class BiMessageConsumer {
         // 消息确认
         channel.basicAck(deliveryTag, false);
     }
+
+
 
     @SneakyThrows
     @RabbitListener(queues = {BiMqConstant.ORDER_DEAD_QUEUE_NAME}, ackMode = "MANUAL")

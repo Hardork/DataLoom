@@ -1,8 +1,7 @@
 package com.hwq.bi.controller;
 
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.hwq.bi.bizmq.BiMessageProducer;
 import com.hwq.bi.common.BaseResponse;
 import com.hwq.bi.common.ErrorCode;
 import com.hwq.bi.common.ResultUtils;
@@ -55,8 +54,9 @@ public class OrderController {
                                                    HttpServletRequest request) {
         long current = orderQueryRequest.getCurrent();
         long size = orderQueryRequest.getPageSize();
-        Page<ProductOrder> orderPage = productOrderService.page(new Page<>(current, size),
-                productOrderService.getQueryWrapper(orderQueryRequest));
+        QueryWrapper<ProductOrder> queryWrapper = productOrderService.getQueryWrapper(orderQueryRequest);
+        queryWrapper.eq("userId", userService.getLoginUser(request).getId());
+        Page<ProductOrder> orderPage = productOrderService.page(new Page<>(current, size),queryWrapper);
         return ResultUtils.success(orderPage);
     }
 

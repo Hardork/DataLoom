@@ -16,7 +16,7 @@ public class OrderInitMain {
     public static void main(String[] args) {
         try {
             ConnectionFactory factory = new ConnectionFactory();
-            factory.setHost("192.168.200.131");
+            factory.setHost("47.98.240.155");
             factory.setUsername("admin");
             factory.setPassword("123");
             Connection connection = factory.newConnection();
@@ -38,8 +38,9 @@ public class OrderInitMain {
             // 创建死信队列
             channel.queueDeclare(BiMqConstant.ORDER_DEAD_QUEUE_NAME, true, false,false, null);
             channel.queueBind(BiMqConstant.ORDER_DEAD_QUEUE_NAME, BiMqConstant.ORDER_DEAD_EXCHANGE_NAME, BiMqConstant.ORDER_DEAD_ROUTING_KEY);
+            System.out.println("创建完毕");
         } catch (Exception e) {
-
+            System.out.println(e);
         }
     }
 }

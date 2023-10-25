@@ -34,7 +34,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 
 /**
 * @author HWQ
@@ -93,7 +95,7 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
         productOrder.setStatus(OrderStatusEnum.NOT_PAY.getValue());
         productOrder.setExpirationTime(expirationTime);
         ThrowUtils.throwIf(!this.save(productOrder), ErrorCode.SYSTEM_ERROR);
-        // todo：将用户的订单放入延迟队列中（）
+        // todo：将用户的订单放入延迟队列中
         biMessageProducer.sendOrderMessage(productOrder.getId().toString());
         return productOrder.getId();
     }
@@ -113,9 +115,8 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
         qw.eq(StringUtils.isNotEmpty(orderName), "orderName", orderName);
         qw.eq(StringUtils.isNotEmpty(status), "status", status);
         qw.eq(StringUtils.isNotEmpty(payType), "payType", payType);
-        qw.eq(StringUtils.isNotEmpty(payType), "payType", payType);
         qw.eq(ObjectUtils.isNotEmpty(productId), "productId", productId);
-        qw.eq(ObjectUtils.isNotEmpty(total), "total", total);
+        qw.eq(ObjectUtils.isNotEmpty(total), "total", MoneyUtils.saveToDatabaseMoney(total));
         qw.eq(ObjectUtils.isNotEmpty(productType), "productType", productType);
         qw.eq(ObjectUtils.isNotEmpty(addPoints), "addPoints", addPoints);
         qw.eq(ObjectUtils.isNotEmpty(addPoints), "addPoints", addPoints);
@@ -138,10 +139,12 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
         ThrowUtils.throwIf(!update, ErrorCode.SYSTEM_ERROR);
 
         ProductInfo productInfo = getProductInfoByTypeAndId(order.getProductId(), order.getProductType());
+        Long userId = order.getUserId();
+        User userInfo = userService.getById(userId);
+        ThrowUtils.throwIf(userInfo == null, ErrorCode.NOT_LOGIN_ERROR);
+
         // 如果订单是积分服务，就给用户添加积分
         if (OrderTypeEnum.POINT_TYPE.equals(OrderTypeEnum.getEnumByValue(order.getProductType()))) {
-            Long userId = order.getUserId();
-            User userInfo = userService.getById(userId);
             UpdateWrapper<User> userUpdateWrapper = new UpdateWrapper<>();
             userUpdateWrapper.eq("id", userId);
             userUpdateWrapper.set("totalRewardPoints", (userInfo.getTotalRewardPoints() + productInfo.getAddPoints()));
@@ -149,20 +152,39 @@ public class ProductOrderServiceImpl extends ServiceImpl<ProductOrderMapper, Pro
             ThrowUtils.throwIf(!updateUser, ErrorCode.SYSTEM_ERROR);
         }
 
+        // 管理员不需要经过VIP服务
+        if (UserRoleEnum.ADMIN.equals(UserRoleEnum.getEnumByValue(userInfo.getUserRole()))) {
+            return true;
+        }
+
         // 如果订单是会员服务，就给用更换会员身份
         if (OrderTypeEnum.VIP_TYPE.equals(OrderTypeEnum.getEnumByValue(order.getProductType()))) {
-            Long userId = order.getUserId();
-            User userInfo = userService.getById(userId);
-            ThrowUtils.throwIf(userInfo == null, ErrorCode.SYSTEM_ERROR);
             UpdateWrapper<User> userUpdateWrapper = new UpdateWrapper<>();
-            if (!UserRoleEnum.ADMIN.equals(UserRoleEnum.getEnumByValue(userInfo.getUserRole()))) { // 用户不是管理员才可以更新
-                userUpdateWrapper.eq("id", userId);
-                userUpdateWrapper.setSql("userRole = " + UserRoleEnum.VIP.getValue());
-                boolean updateUser = userService.update(userUpdateWrapper);
-                ThrowUtils.throwIf(!updateUser, ErrorCode.SYSTEM_ERROR);
+            userUpdateWrapper.eq("id", userId);
+            userUpdateWrapper.set("userRole", UserRoleEnum.VIP.getValue());
+            Date vipExpirationTime = userInfo.getVIPExpirationTime();
+            if (ObjectUtils.isNotEmpty(vipExpirationTime)) { // 判断用户当前是否是VIP
+                boolean isVIP = new Date().before(vipExpirationTime);
+                // 是VIP在原有基础上添加
+                userUpdateWrapper.set(isVIP, "VIPExpirationTime", addDate(vipExpirationTime, 30));
+                // 不是VIP在当前时间添加
+                userUpdateWrapper.set(!isVIP, "VIPExpirationTime", addDate(new Date(), 30));
+            } else {
+                // 不是VIP在当前时间添加
+                userUpdateWrapper.set("VIPExpirationTime", addDate(new Date(), 30));
             }
+            boolean updateUser = userService.update(userUpdateWrapper);
+            ThrowUtils.throwIf(!updateUser, ErrorCode.SYSTEM_ERROR);
         }
         return true;
+    }
+
+    private Date addDate(Date date, int i){
+        Calendar calendar = new GregorianCalendar();
+        calendar.setTime(date);
+        calendar.add(Calendar.DAY_OF_MONTH ,i); //把日期往后增加i天,整数  往后推,负数往前移动
+        date = calendar.getTime(); //这个时间就是日期往后推i天的结果
+        return date;
     }
 
 

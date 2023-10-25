@@ -15,7 +15,7 @@ public class BiInitMain {
     public static void main(String[] args) {
         try {
             ConnectionFactory factory = new ConnectionFactory();
-            factory.setHost("192.168.200.131");
+            factory.setHost("47.98.240.155");
             factory.setUsername("admin");
             factory.setPassword("123");
             Connection connection = factory.newConnection();
@@ -30,6 +30,8 @@ public class BiInitMain {
             Map<String, Object> arguments = new HashMap<>();
             arguments.put("x-dead-letter-exchange", BiMqConstant.BI_DEAD_EXCHANGE_NAME);
             arguments.put("x-dead-letter-routing-key", BiMqConstant.DEAD_ROUTING_KEY);
+            // 设置延迟队列的ttl 也就是延迟消息的时间 5min
+            arguments.put("x-message-ttl", 5*60*1000);
             // 声明普通队列
             channel.queueDeclare(queueName, true, false, false, arguments);
             channel.queueBind(queueName, EXCHANGE_NAME,  BiMqConstant.BI_ROUTING_KEY);
@@ -42,6 +44,8 @@ public class BiInitMain {
             String deadQueueName = BiMqConstant.BI_DEAD_QUEUE_NAME;
             channel.queueDeclare(deadQueueName, true, false,false, null);
             channel.queueBind(deadQueueName, DEAD_EXCHANGE_NAME, BiMqConstant.DEAD_ROUTING_KEY);
+            System.out.println("创建完毕");
+            return;
         } catch (Exception e) {
             System.out.println(e);
         }

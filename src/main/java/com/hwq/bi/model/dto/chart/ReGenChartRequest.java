@@ -9,5 +9,6 @@ import lombok.Data;
  **/
 @Data
 public class ReGenChartRequest {
+    // 失败图表的id
     private Long chartId;
 }

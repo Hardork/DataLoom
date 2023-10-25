@@ -75,6 +75,8 @@ public class ProductInfoController {
         productPointService.validProductInfo(productPoint, true);
         User loginUser = userService.getLoginUser(request);
         productPoint.setUserId(loginUser.getId());
+        productPoint.setTotal(MoneyUtils.saveToDatabaseMoney(productInfoAddRequest.getTotal()));
+        productPoint.setOriginalTotal(MoneyUtils.saveToDatabaseMoney(productInfoAddRequest.getOriginalTotal()));
         boolean result = productPointService.save(productPoint);
         if (!result) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR);
@@ -95,6 +97,8 @@ public class ProductInfoController {
         productVipService.validProductInfo(productVip, true);
         User loginUser = userService.getLoginUser(request);
         productVip.setUserId(loginUser.getId());
+        productVip.setTotal(MoneyUtils.saveToDatabaseMoney(productInfoAddRequest.getTotal()));
+        productVip.setOriginalTotal(MoneyUtils.saveToDatabaseMoney(productInfoAddRequest.getOriginalTotal()));
         boolean result = productVipService.save(productVip);
         if (!result) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR);
@@ -186,6 +190,8 @@ public class ProductInfoController {
         if (oldProductInfo == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
+        productInfo.setTotal(MoneyUtils.saveToDatabaseMoney(productInfo.getTotal()));
+        productInfo.setOriginalTotal(MoneyUtils.saveToDatabaseMoney(productInfo.getOriginalTotal()));
         // 仅本人或管理员可修改
         if (!userService.isAdmin(request) && !oldProductInfo.getUserId().equals(user.getId())) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
@@ -213,6 +219,8 @@ public class ProductInfoController {
         if (oldProductInfo == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
+        productInfo.setTotal(MoneyUtils.saveToDatabaseMoney(productInfo.getTotal()));
+        productInfo.setOriginalTotal(MoneyUtils.saveToDatabaseMoney(productInfo.getOriginalTotal()));
         // 仅本人或管理员可修改
         if (!userService.isAdmin(request) && !oldProductInfo.getUserId().equals(user.getId())) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
@@ -232,6 +240,8 @@ public class ProductInfoController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         ProductPoint productInfo = productPointService.getById(id);
+        productInfo.setTotal(MoneyUtils.getRealMoney(productInfo.getTotal()));
+        productInfo.setOriginalTotal(MoneyUtils.getRealMoney(productInfo.getOriginalTotal()));
         return ResultUtils.success(productInfo);
     }
 
@@ -246,7 +256,6 @@ public class ProductInfoController {
         OrderTypeEnum orderType = OrderTypeEnum.getEnumByValue(getByTypeRequest.getType());
         ThrowUtils.throwIf(orderType == null, ErrorCode.PARAMS_ERROR, "不存在该商品");
         GetProductPointInfoByTypeVO res = new GetProductPointInfoByTypeVO();
-
         if (orderType.equals(OrderTypeEnum.POINT_TYPE)) {// 积分订单
             // 查询积分商品信息
             LambdaQueryWrapper<ProductPoint> qw = new LambdaQueryWrapper<>();
@@ -257,7 +266,7 @@ public class ProductInfoController {
             res.setId(productPoint.getId());
             res.setName(productPoint.getName());
             res.setDescription(productPoint.getDescription());
-            res.setTotal(MoneyUtils.saveToDatabaseMoney(productPoint.getTotal()));
+            res.setTotal(MoneyUtils.getRealMoney(productPoint.getTotal()));
         }
 
         if (orderType.equals(OrderTypeEnum.VIP_TYPE)) {// 积分订单
@@ -270,7 +279,7 @@ public class ProductInfoController {
             res.setId(productVip.getId());
             res.setName(productVip.getName());
             res.setDescription(productVip.getDescription());
-            res.setTotal(MoneyUtils.saveToDatabaseMoney(productVip.getTotal()));
+            res.setTotal(MoneyUtils.getRealMoney(productVip.getTotal()));
         }
         return ResultUtils.success(res);
     }
@@ -286,6 +295,8 @@ public class ProductInfoController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         ProductVip productInfo = productVipService.getById(id);
+        productInfo.setTotal(MoneyUtils.getRealMoney(productInfo.getTotal()));
+        productInfo.setOriginalTotal(MoneyUtils.getRealMoney(productInfo.getOriginalTotal()));
         return ResultUtils.success(productInfo);
     }
 
@@ -327,6 +338,13 @@ public class ProductInfoController {
         // 根据金额升序排列
         queryWrapper.orderByAsc("total");
         Page<ProductPoint> productInfoPage = productPointService.page(new Page<>(current, size), queryWrapper);
+
+        productInfoPage.getRecords().stream().map(productPoint -> {
+            productPoint.setTotal(MoneyUtils.getRealMoney(productPoint.getTotal()));
+            productPoint.setOriginalTotal(MoneyUtils.getRealMoney(productPoint.getOriginalTotal()));
+            return productPoint;
+        }).collect(Collectors.toList());
+
         // 不是管理员只能查看已经上线的
         if (!userService.isAdmin(request)) {
             List<ProductPoint> productInfoList = productInfoPage.getRecords().stream()
@@ -371,6 +389,13 @@ public class ProductInfoController {
         // 根据金额升序排列
         queryWrapper.orderByAsc("total");
         Page<ProductVip> productInfoPage = productVipService.page(new Page<>(current, size), queryWrapper);
+
+        productInfoPage.getRecords().stream().map(productPoint -> {
+            productPoint.setTotal(MoneyUtils.getRealMoney(productPoint.getTotal()));
+            productPoint.setOriginalTotal(MoneyUtils.getRealMoney(productPoint.getOriginalTotal()));
+            return productPoint;
+        }).collect(Collectors.toList());
+
         // 不是管理员只能查看已经上线的
         if (!userService.isAdmin(request)) {
             List<ProductVip> productInfoList = productInfoPage.getRecords().stream()
