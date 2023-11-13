@@ -81,21 +81,6 @@ public class BudgeWebSocket {
         error.printStackTrace();
     }
 
-
-    // 此为广播消息
-    public void sendAllMessage(String message) {
-        log.info("【websocket消息】广播消息:"+message);
-        for(BudgeWebSocket webSocket : webSockets) {
-            try {
-                if(webSocket.session.isOpen()) {
-                    webSocket.session.getAsyncRemote().sendText(message);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
     // 此为单点消息
     public void sendOneMessage(long userId, String message) {
         Session session = sessionPool.get(userId);
@@ -109,21 +94,5 @@ public class BudgeWebSocket {
         } else {
             log.error("不存在该用户");
         }
-    }
-
-    // 此为单点消息(多人)
-    public void sendMoreMessage(Long[] userIds, String message) {
-        for(Long userId:userIds) {
-            Session session = sessionPool.get(userId);
-            if (session != null&&session.isOpen()) {
-                try {
-                    log.info("【websocket消息】 单点消息:"+message);
-                    session.getAsyncRemote().sendText(message);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
     }
 }

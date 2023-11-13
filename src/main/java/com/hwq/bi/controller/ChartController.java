@@ -50,7 +50,7 @@ import javax.servlet.http.HttpServletRequest;
 import com.hwq.bi.utils.ExcelUtils;
 import com.hwq.bi.websocket.BudgeWebSocket;
 import com.hwq.bi.websocket.UserWebSocket;
-import com.hwq.bi.websocket.WebSocketMsgVO;
+import com.hwq.bi.websocket.vo.WebSocketMsgVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -61,8 +61,8 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * 帖子接口
  *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://yupi.icu">编程导航知识星球</a>
+ * @author <a href="https://github.com/Hardork">老山羊</a>
+ * 
  */
 @RestController
 @RequestMapping("/chart")

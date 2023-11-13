@@ -6,16 +6,15 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
 import com.hwq.bi.common.ErrorCode;
 import com.hwq.bi.exception.ThrowUtils;
-import com.hwq.bi.model.entity.Chat;
 import com.hwq.bi.model.entity.ChatHistory;
 import com.hwq.bi.model.enums.ChatHistoryRoleEnum;
 import com.hwq.bi.model.enums.ChatHistoryStatusEnum;
 import com.hwq.bi.service.ChatHistoryService;
 import com.hwq.bi.websocket.AiWebSocket;
-import com.hwq.bi.websocket.AiWebSocketVO;
-import com.hwq.bi.websocket.UserWebSocket;
+import com.hwq.bi.websocket.vo.AiWebSocketVO;
 import lombok.Data;
 import okhttp3.*;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -29,13 +28,14 @@ import java.util.*;
 
 @Component
 @Data
+@ConfigurationProperties(prefix = "spark")
 public class SparkAiManager extends WebSocketListener {
     // 地址与鉴权信息  https://spark-api.xf-yun.com/v1.1/chat   1.5地址  domain参数为general
     // 地址与鉴权信息  https://spark-api.xf-yun.com/v2.1/chat   2.0地址  domain参数为generalv2
-    public static final String hostUrl = "https://spark-api.xf-yun.com/v2.1/chat";
-    public static final String appid = "1d72f9bb";
-    public static final String apiSecret = "NWQ4YjViOTdiNzFiYWVlNTM2Y2Q4ZGJm";
-    public static final String apiKey = "8d3f3169ee9f484c042797c0bba2140e";
+    public String hostUrl;
+    public String appid;
+    public String apiSecret;
+    public String apiKey;
 
 
     public static List<RoleContent> historyList = new ArrayList<>(); // 对话历史存储集合

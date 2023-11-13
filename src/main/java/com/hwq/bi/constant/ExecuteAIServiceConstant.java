@@ -7,5 +7,5 @@ package com.hwq.bi.constant;
  **/
 public interface ExecuteAIServiceConstant {
     // AI超时时间
-    Integer LIMIT_TIME = 60*2;
+    Integer LIMIT_TIME = 60*15;
 }

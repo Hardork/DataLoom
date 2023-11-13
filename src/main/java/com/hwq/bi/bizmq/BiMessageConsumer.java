@@ -18,7 +18,7 @@ import com.hwq.bi.service.ChartService;
 import com.hwq.bi.service.FailedChartService;
 import com.hwq.bi.service.ProductOrderService;
 import com.hwq.bi.websocket.UserWebSocket;
-import com.hwq.bi.websocket.WebSocketMsgVO;
+import com.hwq.bi.websocket.vo.WebSocketMsgVO;
 import com.rabbitmq.client.Channel;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -94,7 +94,7 @@ public class BiMessageConsumer {
         });
         String result = "";
         try {
-            // 设置超时时间为2MIN
+            // 设置超时时间为15MIN
             result = future.get(ExecuteAIServiceConstant.LIMIT_TIME, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
             // 更新图表的信息为失败

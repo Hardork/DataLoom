@@ -1,4 +1,4 @@
-package com.hwq.bi.websocket;
+package com.hwq.bi.websocket.vo;
 
 import lombok.Data;
 

@@ -1,6 +1,5 @@
 package com.hwq.bi.job.cycle;
 
-import com.hwq.bi.esdao.PostEsDao;
 import com.hwq.bi.model.dto.post.PostEsDTO;
 import com.hwq.bi.model.entity.Post;
 import com.hwq.bi.mapper.PostMapper;
@@ -15,9 +14,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 /**
  * 增量同步帖子到 es
- *
- * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
- * @from <a href="https://yupi.icu">编程导航知识星球</a>
  */
 // todo 取消注释开启任务
 //@Component
@@ -27,8 +23,7 @@ public class IncSyncPostToEs {
     @Resource
     private PostMapper postMapper;
 
-    @Resource
-    private PostEsDao postEsDao;
+
 
     /**
      * 每分钟执行一次
@@ -51,7 +46,6 @@ public class IncSyncPostToEs {
         for (int i = 0; i < total; i += pageSize) {
             int end = Math.min(i + pageSize, total);
             log.info("sync from {} to {}", i, end);
-            postEsDao.saveAll(postEsDTOList.subList(i, end));
         }
         log.info("IncSyncPostToEs end, total {}", total);
     }

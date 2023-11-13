@@ -7,6 +7,7 @@ package com.hwq.bi.websocket;
  **/
 
 import cn.hutool.json.JSONUtil;
+import com.hwq.bi.websocket.vo.AiWebSocketVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -84,20 +85,6 @@ public class AiWebSocket {
     }
 
 
-    // 此为广播消息
-    public void sendAllMessage(String message) {
-        log.info("【websocket消息】广播消息:"+message);
-        for(AiWebSocket webSocket : webSockets) {
-            try {
-                if(webSocket.session.isOpen()) {
-                    webSocket.session.getAsyncRemote().sendText(message);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
     // 此为单点消息
     public void sendOneMessage(long userId, AiWebSocketVO aiWebSocketVO) {
         Session session = sessionPool.get(userId);
@@ -112,22 +99,6 @@ public class AiWebSocket {
         } else {
             log.error("不存在该用户");
         }
-    }
-
-    // 此为单点消息(多人)
-    public void sendMoreMessage(Long[] userIds, String message) {
-        for(Long userId:userIds) {
-            Session session = sessionPool.get(userId);
-            if (session != null&&session.isOpen()) {
-                try {
-                    log.info("【websocket消息】 单点消息:"+message);
-                    session.getAsyncRemote().sendText(message);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
     }
 
 }
