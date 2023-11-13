@@ -18,14 +18,14 @@ spring:
   # todo 需替换配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://47.98.240.155:3306/bi
+    url: jdbc:mysql://localhost:3306/bi
     username: root
-    password: 123456
+    password: hwq2003121
   # Redis 配置
   # todo 需替换配置，然后取消注释
   redis:
     database: 1
-    host: 47.98.240.155
+    host: localhost
     port: 6379
     timeout: 5000
   mail:
@@ -40,7 +40,7 @@ spring:
             enable: true
 
   rabbitmq:
-    host: 47.98.240.155
+    host: localhost
     username: admin
     password: 123
   # Elasticsearch 配置

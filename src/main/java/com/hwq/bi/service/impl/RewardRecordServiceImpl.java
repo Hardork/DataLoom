@@ -12,6 +12,7 @@ import com.hwq.bi.model.entity.User;
 import com.hwq.bi.service.RewardRecordService;
 import com.hwq.bi.mapper.RewardRecordMapper;
 import com.hwq.bi.service.UserService;
+import com.hwq.bi.service.impl.role_info.RoleService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
 * @author HWQ
@@ -33,6 +35,8 @@ public class RewardRecordServiceImpl extends ServiceImpl<RewardRecordMapper, Rew
     private UserService userService;
     @Resource
     private RewardRecordMapper rewardRecordMapper;
+    @Resource
+    private List<RoleService> roleServiceList;
 
     @Override
     @Transactional
@@ -52,9 +56,12 @@ public class RewardRecordServiceImpl extends ServiceImpl<RewardRecordMapper, Rew
         rewardRecord.setUserId(loginUser.getId());
         boolean save = this.save(rewardRecord);
         ThrowUtils.throwIf(!save, ErrorCode.SYSTEM_ERROR);
-        // 修改用户的积分
+        // 根据用户的身份信息修改用户的积分
         UpdateWrapper<User> userUpdateWrapper = new UpdateWrapper<>();
-        userUpdateWrapper.eq("id", loginUser.getId()).setSql("totalRewardPoints = totalRewardPoints + " + RewardRecordConstant.DAY_FREE_NUM);
+        // 使用策略模式，根据不同的角色进行不同的策略
+        RoleService roleService = roleServiceList.stream().filter(r -> r.isCurrentRole(loginUser.getUserRole())).findFirst().orElse(null);
+        ThrowUtils.throwIf(roleService == null, ErrorCode.PARAMS_ERROR, "没有对应角色");
+        userUpdateWrapper.eq("id", loginUser.getId()).setSql("totalRewardPoints = totalRewardPoints + " + roleService.getDayReward());
         boolean update = userService.update(userUpdateWrapper);
         ThrowUtils.throwIf(!update, ErrorCode.SYSTEM_ERROR);
         return true;

@@ -16,6 +16,7 @@ public enum UserRoleEnum {
     USER("用户", "user"),
     ADMIN("管理员", "admin"),
     VIP("vip用户", "vip"),
+    SVIP("svip用户", "svip"),
     BAN("被封号", "ban");
 
     private final String text;
