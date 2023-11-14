@@ -157,3 +157,15 @@ yarn build or npm run build
 ### 个人中心
 ![img_11.png](img/img_11.png)
 
+## 协议
+[MIT](https://choosealicense.com/licenses/mit)
+
+## 源码贡献
+如果你发现项目中的任何问题或错误，或者想要对项目进行改进，可以通过以下方式报告问题或提交Pull Request：
+
+- 打开一个Issue，详细描述你的问题或需求。
+- 如果你有修复问题的代码，可以创建一个Pull Request，在新分支上修改代码，并将代码合并到主分支。
+
+感谢你对项目的贡献！
+
+
