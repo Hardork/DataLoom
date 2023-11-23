@@ -92,7 +92,8 @@ AI数据可视化平台区别与传统的数据可视化平台，在本项目中
 
 ## 项目流程 🗺️
 **智能图表分析**
-![image-20230831235027262](C:/Users/HWQ/AppData/Roaming/Typora/typora-user-images/image-20230831235027262.png)
+
+![image](https://github.com/Hardork/hwqbi-backend/assets/100034835/27376e7f-dab5-44c1-806f-4a142c4abcc2)
 
 
 ## 快速启动 🚀
