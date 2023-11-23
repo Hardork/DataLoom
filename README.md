@@ -131,32 +131,44 @@ yarn build or npm run build
 
 ### 智能分析
 
-![img_3.png](img/img_3.png)
+![image](https://github.com/Hardork/hwqbi-backend/assets/100034835/c2637e62-d95e-4a97-b43d-ef6c06508630)
+
 
 ### 历史分析
-![img_4.png](img/img_4.png)
+![image](https://github.com/Hardork/hwqbi-backend/assets/100034835/c68afbd2-dc99-44d6-9e01-493ef2a5c5a6)
+
 
 ### 分析详情
-![img_12.png](img/img_12.png)
+![image](https://github.com/Hardork/hwqbi-backend/assets/100034835/c03b92b8-9649-4ac3-b541-8651e0ab8249)
+
 
 ### AI分析助手创建
-![img_6.png](img/img_6.png)
+![image](https://github.com/Hardork/hwqbi-backend/assets/100034835/e8fb204e-dad8-429b-a33f-7e52e2be79e8)
+![image](https://github.com/Hardork/hwqbi-backend/assets/100034835/b52b69ab-b6e8-42f2-b987-c828b8efeca7)
+
+
 
 ### AI辅助分析
-![img_7.png](img/img_7.png)
+![image](https://github.com/Hardork/hwqbi-backend/assets/100034835/14b8f4ac-633e-4285-925b-d5f9c5964cd2)
+
+
 
 ### 积分购买
-![img_8.png](img/img_8.png)
+![image](https://github.com/Hardork/hwqbi-backend/assets/100034835/8d2ca529-6118-47c3-bfcb-2256080d1116)
+
 </br>
 </br>
 
-![img_9.png](img/img_9.png)
+![image](https://github.com/Hardork/hwqbi-backend/assets/100034835/f9296fa4-09f8-4349-b87e-5f58a228117e)
+
 
 ### 订单管理
-![img_10.png](img/img_10.png)
+![image](https://github.com/Hardork/hwqbi-backend/assets/100034835/f3730ed7-54d2-4dd5-b101-39df645e6c4c)
+
 
 ### 个人中心
-![img_11.png](img/img_11.png)
+![image](https://github.com/Hardork/hwqbi-backend/assets/100034835/71c61edd-8e9c-47fe-b94b-d3322029cae5)
+
 
 ## 协议
 [MIT](https://choosealicense.com/licenses/mit)
