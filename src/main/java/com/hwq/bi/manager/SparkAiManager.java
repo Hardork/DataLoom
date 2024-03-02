@@ -176,6 +176,7 @@ public class SparkAiManager extends WebSocketListener {
         myThread.start();
     }
 
+    // 接收AI消息
     @Override
     public void onMessage(WebSocket webSocket, String text) {
         // System.out.println(userId + "用来区分那个用户的结果" + text);
@@ -195,7 +196,8 @@ public class SparkAiManager extends WebSocketListener {
             aiWebSocket.sendOneMessage(userId, aiWebSocketVO);
             totalAnswer = totalAnswer + temp.content;
         }
-        if (myJsonParse.header.status == 2) {
+
+        if (myJsonParse.header.status == 2) {// 最后一个结果
             // 可以关闭连接，释放资源
             System.out.println("*************************************************************************************");
             if(canAddHistory()){
@@ -215,10 +217,8 @@ public class SparkAiManager extends WebSocketListener {
             aiWebSocketVO.setContent("close");
             aiWebSocketVO.setType("end");
             aiWebSocket.sendOneMessage(userId, aiWebSocketVO);
-            // 将本次会话内容写道数据库中
-            if (!unSave) {
-                saveAiResponseMessage(totalAnswer);
-            }
+            // 将本次会话内容写入数据库中
+            saveAiResponseMessage(totalAnswer);
             wsCloseFlag = true;
             totalFlag=true;
         }

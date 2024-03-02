@@ -1,6 +1,8 @@
 package com.hwq.bi.bizmq;
 
 import cn.hutool.json.JSONUtil;
+import com.github.rholder.retry.*;
+import com.google.common.base.Predicate;
 import com.hwq.bi.common.ErrorCode;
 import com.hwq.bi.constant.ChartConstant;
 import com.hwq.bi.constant.CommonConstant;
@@ -30,6 +32,7 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.util.concurrent.*;
 
 @Component
@@ -71,53 +74,24 @@ public class BiMessageConsumer {
             channel.basicNack(deliveryTag, false, false);
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "图表为空");
         }
-        // 先修改图表任务状态为 “执行中”。等执行成功后，修改为 “已完成”、保存执行结果；执行失败后，状态修改为 “失败”，记录任务失败信息。
-        Chart updateChart = new Chart();
-        updateChart.setId(chart.getId());
-        updateChart.setStatus("running");
-        boolean b = chartService.updateById(updateChart);
-        if (!b) {
-            channel.basicNack(deliveryTag, false, false);
-            handleChartUpdateError(chart.getId(), "更新图表执行中状态失败");
-            return;
-        }
+        // 修改图表任务状态为 “执行中”
+        // 执行成功后，修改为 “已完成”、保存执行结果；
+        // 执行失败后，状态修改为 “失败”，记录任务失败信息。
+        if (!updateChartRunning(channel, deliveryTag, chart)) return;
 
-        // 调用 AI
-        // 设置超时任务
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        Future<String> future = executor.submit(new Callable<String>() {
+        // 超时重试机制
+
+        // 定义重试器
+        Retryer<String> retryer = getRetryer();
+
+        String result = retryer.call(new Callable<String>() {
             @Override
             public String call() throws Exception {
                 // 这里是你的任务代码
                 return aiManager.doChat(CommonConstant.BI_MODEL_ID, buildUserInput(chart));
             }
         });
-        String result = "";
-        try {
-            // 设置超时时间为15MIN
-            result = future.get(ExecuteAIServiceConstant.LIMIT_TIME, TimeUnit.SECONDS);
-        } catch (TimeoutException e) {
-            // 更新图表的信息为失败
-            Chart updateChartStatus = new Chart();
-            updateChartStatus.setId(chart.getId());
-            updateChartStatus.setStatus(ChartStatusEnum.FAILED.getValue());
-            boolean update = chartService.updateById(updateChartStatus);
-            ThrowUtils.throwIf(!update, ErrorCode.SYSTEM_ERROR);
-            // 通知用户
-            log.error("分析超时" + chart.getUserId());
-            WebSocketMsgVO webSocketMsgVO = new WebSocketMsgVO();
-            webSocketMsgVO.setType(WebSocketMsgTypeEnum.ERROR.getValue());
-            webSocketMsgVO.setTitle("生成图表失败");
-            webSocketMsgVO.setDescription("失败原因：生成图表时间超时");
-            userWebSocket.sendOneMessage(chart.getUserId(), webSocketMsgVO);
-            channel.basicNack(deliveryTag, false, false);
-            throw new BusinessException(ErrorCode.OPERATION_ERROR);
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        } finally {
-            // 关闭线程
-            executor.shutdown();
-        }
+
         // 校验返回的参数
         if (StringUtils.isEmpty(result)) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR);
@@ -132,14 +106,70 @@ public class BiMessageConsumer {
 
         String genChart = splits[1].trim();
         String genResult = splits[2].trim();
+        // 更新图表状态为succeed
+        updateChartSucceed(channel, deliveryTag, chart, genChart, genResult);
+
+        // 将图表数据缓存到redis中去
+        saveToRedis(chartId, chart, genChart, genResult);
+
+        // 手动确认
+        channel.basicAck(deliveryTag, false);
+        // 通知用户操作成功
+        notifyUserSucceed(chartId, chart);
+    }
+
+    /**
+     * 使用websocket通知前端图表生成成功
+     * @param chartId
+     * @param chart
+     */
+    private void notifyUserSucceed(long chartId, Chart chart) {
+        WebSocketMsgVO webSocketMsgVO = new WebSocketMsgVO();
+        webSocketMsgVO.setType(WebSocketMsgTypeEnum.SUCCESS.getValue());
+        webSocketMsgVO.setTitle("生成图表成功");
+        webSocketMsgVO.setDescription("点击查看详情");
+        webSocketMsgVO.setChartId(chartId + "");
+        userWebSocket.sendOneMessage(chart.getUserId(), webSocketMsgVO);
+    }
+
+    private void updateChartSucceed(Channel channel, long deliveryTag, Chart chart, String genChart, String genResult) throws IOException {
         Chart updateChartResult = new Chart();
         updateChartResult.setId(chart.getId());
         updateChartResult.setGenChart(genChart);
         updateChartResult.setGenResult(genResult);
         updateChartResult.setStatus(ChartStatusEnum.SUCCEED.getValue());
         boolean updateResult = chartService.updateById(updateChartResult);
+        if (!updateResult) {
+            channel.basicNack(deliveryTag, false, false);
+            handleChartUpdateError(chart.getId(), "更新图表成功状态失败");
+        }
+    }
 
-        // 讲数据缓存到redis中去
+
+    // 自定义重试器
+    private static Retryer<String> getRetryer() {
+        // 返回结果不符合预期就重试
+        // 重试时间固定为10s一次
+        // 允许重试3次
+        return RetryerBuilder.<String>newBuilder()
+                .retryIfResult(input -> {
+                    String[] splits = input.split("【【【【【");
+
+                    return StringUtils.isEmpty(input) || splits.length < 3;
+                })
+                .withWaitStrategy(WaitStrategies.fixedWait(10, TimeUnit.SECONDS))
+                .withStopStrategy(StopStrategies.stopAfterAttempt(3))
+                .build();
+    }
+
+    /**
+     * 将图表缓存到Redis
+     * @param chartId
+     * @param chart
+     * @param genChart
+     * @param genResult
+     */
+    private void saveToRedis(long chartId, Chart chart, String genChart, String genResult) {
         String key = ChartConstant.CHART_PREFIX + chartId;
         chart.setGenChart(genChart);
         chart.setGenResult(genResult);
@@ -148,19 +178,27 @@ public class BiMessageConsumer {
 
         // 缓存时间1h
         redisTemplate.opsForValue().set(key, chartJson, 60*60, TimeUnit.SECONDS);
+    }
 
-        if (!updateResult) {
+    /**
+     * 更新图表状态
+     * @param channel
+     * @param deliveryTag
+     * @param chart
+     * @return
+     * @throws IOException
+     */
+    private boolean updateChartRunning(Channel channel, long deliveryTag, Chart chart) throws IOException {
+        Chart updateChart = new Chart();
+        updateChart.setId(chart.getId());
+        updateChart.setStatus("running");
+        boolean b = chartService.updateById(updateChart);
+        if (!b) {
             channel.basicNack(deliveryTag, false, false);
-            handleChartUpdateError(chart.getId(), "更新图表成功状态失败");
+            handleChartUpdateError(chart.getId(), "更新图表执行中状态失败");
+            return false;
         }
-        channel.basicAck(deliveryTag, false);
-        // 通知用户操作成功
-        WebSocketMsgVO webSocketMsgVO = new WebSocketMsgVO();
-        webSocketMsgVO.setType(WebSocketMsgTypeEnum.SUCCESS.getValue());
-        webSocketMsgVO.setTitle("生成图表成功");
-        webSocketMsgVO.setDescription("点击查看详情");
-        webSocketMsgVO.setChartId(chartId + "");
-        userWebSocket.sendOneMessage(chart.getUserId(), webSocketMsgVO);
+        return true;
     }
 
     /**
@@ -188,6 +226,11 @@ public class BiMessageConsumer {
         if (chart == null) {
             channel.basicAck(deliveryTag, false);
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "图表为空");
+        }
+
+        // 已成功
+        if (chart.getStatus().equals(ChartStatusEnum.SUCCEED.getValue())) {
+            return;
         }
 
         // 更新图表的信息为失败

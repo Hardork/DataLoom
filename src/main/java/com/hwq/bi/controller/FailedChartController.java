@@ -33,8 +33,7 @@ public class FailedChartController {
 
     @PostMapping("/list/page")
     @AuthCheck(mustRole = "Admin")
-    public BaseResponse<Page<FailedChart>> listFailedChartsByPage(@RequestBody FailedChartQueryRequest failedChartQueryRequest,
-                                                               HttpServletRequest request) {
+    public BaseResponse<Page<FailedChart>> listFailedChartsByPage(@RequestBody FailedChartQueryRequest failedChartQueryRequest, HttpServletRequest request) {
         long current = failedChartQueryRequest.getCurrent();
         long size = failedChartQueryRequest.getPageSize();
         QueryWrapper<FailedChart> queryWrapper = failedChartService.getQueryWrapper(failedChartQueryRequest);

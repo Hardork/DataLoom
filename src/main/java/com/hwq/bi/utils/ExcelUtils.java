@@ -50,6 +50,7 @@ public class ExcelUtils {
         StringBuilder stringBuilder = new StringBuilder();
         // 读取表头
         LinkedHashMap<Integer, String> headerMap = (LinkedHashMap) list.get(0);
+        //
         List<String> headerList = headerMap.values().stream().filter(ObjectUtils::isNotEmpty).collect(Collectors.toList());
         stringBuilder.append(StringUtils.join(headerList, ",")).append("\n");
         // 读取数据
