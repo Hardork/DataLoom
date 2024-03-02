@@ -19,8 +19,8 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/bi
-    username: root
-    password: hwq2003121
+    username: xxx
+    password: xxx
   # Redis 配置
   # todo 需替换配置，然后取消注释
   redis:
@@ -30,9 +30,9 @@ spring:
     timeout: 5000
   mail:
     host: smtp.qq.com
-    username: 1602370456@qq.com
-    password: fzzfwwfoembojhci
-    emailFrom: 1602370456@qq.com
+    username: xxx@qq.com
+    password: xxx
+    emailFrom: xxx@qq.com
     properties:
       mail:
         smtp:
@@ -97,17 +97,17 @@ wx:
 # todo 需替换配置
 cos:
   client:
-    accessKey: AKIDTtPuIWbRCuXxCE7oMejaJ3d192pZKtFu
-    secretKey: Tq5EAya4MQjwCSbXGRUiokaEgz5AAzmd
-    region: ap-shanghai
-    bucket: hwq-1317946928
+    accessKey: xxx
+    secretKey: xxx
+    region: xxx
+    bucket: xxx
 
 yuapi:
   client:
-    access-key: ifvmmt5c82stlecbi9xet2ih0kdh4ez6
-    secret-key: 6r527qvdzp25mm7g0rizvo1yzf30f68o
+    access-key: xxx
+    secret-key: xxx
 spark:
   hostUrl: https://spark-api.xf-yun.com/v2.1/chat
-  appid: 1d72f9bb
-  apiSecret: NWQ4YjViOTdiNzFiYWVlNTM2Y2Q4ZGJm
-  apiKey: 8d3f3169ee9f484c042797c0bba2140e
+  appid: xxx
+  apiSecret: xxx
+  apiKey: xxx
