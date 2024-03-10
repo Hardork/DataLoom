@@ -15,6 +15,7 @@ public enum ChartStatusEnum {
     WAIT("等待中", "wait"),
     RUNNING("进行中", "running"),
     SUCCEED("成功", "succeed"),
+    TIMEOUT("超时", "timeout"),
     FAILED("失败", "failed");
 
     private final String text;

@@ -49,9 +49,6 @@ public class BiMessageConsumer {
     private UserWebSocket userWebSocket;
 
     @Resource
-    private ProductOrderService productOrderService;
-
-    @Resource
     private FailedChartService failedChartService;
 
     @Resource
@@ -80,7 +77,6 @@ public class BiMessageConsumer {
         if (!updateChartRunning(channel, deliveryTag, chart)) return;
 
         // 超时重试机制
-
         // 定义重试器
         Retryer<String> retryer = getRetryer();
 
@@ -99,13 +95,13 @@ public class BiMessageConsumer {
 
         String[] splits = result.split("【【【【【");
         if (splits.length < 3) {
+            // 将任务设置为失败，不再重新排队
             channel.basicNack(deliveryTag, false, false);
-            handleChartUpdateError(chart.getId(), "AI 生成错误");
+            handleChartUpdateError(chart.getId(), "AI生成错误，请检查文件内容，如有异常请联系管理员");
             return;
         }
-
-        String genChart = splits[1].trim();
-        String genResult = splits[2].trim();
+        String genChart = splits[1].trim(); // 生成的图表option
+        String genResult = splits[2].trim(); // 生成的分析结果
         // 更新图表状态为succeed
         updateChartSucceed(channel, deliveryTag, chart, genChart, genResult);
 
@@ -116,6 +112,51 @@ public class BiMessageConsumer {
         channel.basicAck(deliveryTag, false);
         // 通知用户操作成功
         notifyUserSucceed(chartId, chart);
+    }
+
+    /**
+     * 监听死信队列
+     * 进入死信队列的一般是队列达到最长长度（队列满了)
+     * 消息TTL到了（消息过期）
+     * 分析原因：一般是当前提问的用户太多
+     * 解决措施：
+     * 1.告诉用户当前正忙，稍后再试，返还用户积分
+     * 2.等队列不忙了，再去消费
+     * @param message
+     * @param channel
+     * @param deliveryTag
+     */
+    @SneakyThrows
+    @RabbitListener(queues = {BiMqConstant.BI_DEAD_QUEUE_NAME}, ackMode = "MANUAL")
+    public void receiveDeadMessage(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
+        if (StringUtils.isBlank(message)) {
+            // 如果失败，消息拒绝
+            channel.basicAck(deliveryTag, false);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "消息为空");
+        }
+        long chartId = Long.parseLong(message);
+        Chart chart = chartService.getById(chartId);
+        if (chart == null) {
+            channel.basicAck(deliveryTag, false);
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "图表为空");
+        }
+
+        // 已成功
+        if (chart.getStatus().equals(ChartStatusEnum.SUCCEED.getValue())) {
+            return;
+        }
+
+        // 更新图表的信息为超时
+        updateChartTimeOut(chart);
+
+        // 失败信息入库 给管理员看
+        saveFailedChart(chartId, chart);
+
+
+        // 通知用户分析失败
+        notifyUserFailed(chart);
+        // 消息确认
+        channel.basicAck(deliveryTag, false);
     }
 
     /**
@@ -201,102 +242,33 @@ public class BiMessageConsumer {
         return true;
     }
 
-    /**
-     * 监听死信队列
-     * 进入死信队列的一般是队列达到最长长度（队列满了)
-     * 消息TTL到了（消息过期）
-     * 分析原因：一般是当前提问的用户太多
-     * 解决措施：
-     * 1.告诉用户当前正忙，稍后再试，返还用户积分
-     * 2.等队列不忙了，再去消费
-     * @param message
-     * @param channel
-     * @param deliveryTag
-     */
-    @SneakyThrows
-    @RabbitListener(queues = {BiMqConstant.BI_DEAD_QUEUE_NAME}, ackMode = "MANUAL")
-    public void receiveDeadMessage(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
-        if (StringUtils.isBlank(message)) {
-            // 如果失败，消息拒绝
-            channel.basicAck(deliveryTag, false);
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "消息为空");
-        }
-        long chartId = Long.parseLong(message);
-        Chart chart = chartService.getById(chartId);
-        if (chart == null) {
-            channel.basicAck(deliveryTag, false);
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "图表为空");
-        }
 
-        // 已成功
-        if (chart.getStatus().equals(ChartStatusEnum.SUCCEED.getValue())) {
-            return;
-        }
-
-        // 更新图表的信息为失败
-        Chart updateChartStatus = new Chart();
-        updateChartStatus.setId(chart.getId());
-        updateChartStatus.setStatus(ChartStatusEnum.FAILED.getValue());
-        updateChartStatus.setExecMessage("系统繁忙");
-        boolean update = chartService.updateById(updateChartStatus);
-        ThrowUtils.throwIf(!update, ErrorCode.SYSTEM_ERROR);
-
-        // 失败信息入库 给管理员看
-        FailedChart failedChart = new FailedChart();
-        failedChart.setChartId(chartId);
-        failedChart.setStatus(ChartStatusEnum.FAILED.getValue());
-        failedChart.setExecMessage("系统繁忙");
-        failedChart.setUserId(chart.getUserId());
-        failedChartService.save(failedChart);
-
-
-        // 通知用户分析失败
+    private void notifyUserFailed(Chart chart) {
         log.error("分析超时" + chart.getId());
         WebSocketMsgVO webSocketMsgVO = new WebSocketMsgVO();
         webSocketMsgVO.setType(WebSocketMsgTypeEnum.ERROR.getValue());
         webSocketMsgVO.setTitle("生成图表失败");
         webSocketMsgVO.setDescription("失败原因：系统正忙，请稍后再试");
         userWebSocket.sendOneMessage(chart.getUserId(), webSocketMsgVO);
-        // 消息确认
-        channel.basicAck(deliveryTag, false);
     }
 
-
-
-    @SneakyThrows
-    @RabbitListener(queues = {BiMqConstant.ORDER_DEAD_QUEUE_NAME}, ackMode = "MANUAL")
-    public void receiveOrderMessage(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
-        if (StringUtils.isBlank(message)) {
-            // 如果失败，消息拒绝
-            channel.basicAck(deliveryTag, false);
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "消息为空");
-        }
-        long orderId = Long.parseLong(message);
-        ProductOrder order = productOrderService.getById(orderId);
-        if (order == null) {
-            channel.basicAck(deliveryTag, false);
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "订单不存在");
-        }
-
-        // 更新订单信息为超时（前提是订单的状态为未支付）
-        OrderStatusEnum orderStatusEnum = OrderStatusEnum.getEnumByValue(order.getStatus());
-        ThrowUtils.throwIf(orderStatusEnum == null, ErrorCode.SYSTEM_ERROR);
-        if (orderStatusEnum.equals(OrderStatusEnum.NOT_PAY)) { // 改为超时
-            order.setStatus(OrderStatusEnum.TIMEOUT.getValue());
-            boolean update = productOrderService.updateById(order);
-            ThrowUtils.throwIf(!update, ErrorCode.SYSTEM_ERROR);
-        }
-        log.error("用户订单超时");
-        // 通知用户
-        WebSocketMsgVO webSocketMsgVO = new WebSocketMsgVO();
-        webSocketMsgVO.setType(WebSocketMsgTypeEnum.ERROR.getValue());
-        webSocketMsgVO.setTitle("订单超时");
-        webSocketMsgVO.setDescription("失败原因：超时未支付");
-        userWebSocket.sendOneMessage(order.getUserId(), webSocketMsgVO);
-        // 消息确认
-        channel.basicAck(deliveryTag, false);
+    private void saveFailedChart(long chartId, Chart chart) {
+        FailedChart failedChart = new FailedChart();
+        failedChart.setChartId(chartId);
+        failedChart.setStatus(ChartStatusEnum.TIMEOUT.getValue());
+        failedChart.setExecMessage("系统繁忙");
+        failedChart.setUserId(chart.getUserId());
+        failedChartService.save(failedChart);
     }
 
+    private void updateChartTimeOut(Chart chart) {
+        Chart updateChartStatus = new Chart();
+        updateChartStatus.setId(chart.getId());
+        updateChartStatus.setStatus(ChartStatusEnum.TIMEOUT.getValue());
+        updateChartStatus.setExecMessage("系统繁忙");
+        boolean update = chartService.updateById(updateChartStatus);
+        ThrowUtils.throwIf(!update, ErrorCode.SYSTEM_ERROR);
+    }
 
 
     /**

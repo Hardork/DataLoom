@@ -249,28 +249,10 @@ public class ChartController {
                 handleChartUpdateError(chart.getId(), "更新图表成功状态失败");
             }
             // 生成消息，存入数据库
-            UserMessage userMessage = new UserMessage();
-            userMessage.setTitle("分析图表已生成");
-            userMessage.setUserId(chart.getUserId());
-            userMessage.setDescription("点击查看详情");
-            userMessage.setType(UserMessageTypeEnum.SUCCESS.getValue());
-            userMessage.setRoute(MessageRouteConstant.CHART_DETAIL + chart.getId());
-            userMessage.setIsRead(0);
-            boolean save = userMessageService.save(userMessage);
-            if (!save) {
-                log.error("系统异常");
-            }
+            savaToUserMessage(chart);
 
             // 通知用户图表已生成
-            WebSocketMsgVO webSocketMsgVO = new WebSocketMsgVO();
-            // 将chart.getId()变为字符串是为了防止大数精度丢失问题
-            webSocketMsgVO.setChartId(chart.getId() + "");
-            webSocketMsgVO.setTitle("分析图表已生成");
-            webSocketMsgVO.setDescription("点击查看详情");
-            webSocketMsgVO.setType(WebSocketMsgTypeEnum.SUCCESS.getValue());
-            userWebSocket.sendOneMessage(loginUser.getId(), webSocketMsgVO);
-            // 显示徽标
-            budgeWebSocket.sendOneMessage(loginUser.getId(), "用户有新的消息");
+            notifyUserSucceed(chart, loginUser);
 
         }, threadPoolExecutor);
 
@@ -278,6 +260,32 @@ public class ChartController {
         biResponse.setChartId(chart.getId());
         return ResultUtils.success(biResponse);
 
+    }
+
+    private void notifyUserSucceed(Chart chart, User loginUser) {
+        WebSocketMsgVO webSocketMsgVO = new WebSocketMsgVO();
+        // 将chart.getId()变为字符串是为了防止大数精度丢失问题
+        webSocketMsgVO.setChartId(chart.getId() + "");
+        webSocketMsgVO.setTitle("分析图表已生成");
+        webSocketMsgVO.setDescription("点击查看详情");
+        webSocketMsgVO.setType(WebSocketMsgTypeEnum.SUCCESS.getValue());
+        userWebSocket.sendOneMessage(loginUser.getId(), webSocketMsgVO);
+        // 显示徽标
+        budgeWebSocket.sendOneMessage(loginUser.getId(), "用户有新的消息");
+    }
+
+    private void savaToUserMessage(Chart chart) {
+        UserMessage userMessage = new UserMessage();
+        userMessage.setTitle("分析图表已生成");
+        userMessage.setUserId(chart.getUserId());
+        userMessage.setDescription("点击查看详情");
+        userMessage.setType(UserMessageTypeEnum.SUCCESS.getValue());
+        userMessage.setRoute(MessageRouteConstant.CHART_DETAIL + chart.getId());
+        userMessage.setIsRead(0);
+        boolean save = userMessageService.save(userMessage);
+        if (!save) {
+            log.error("系统异常");
+        }
     }
 
     @PostMapping("/gen/async/mq")
