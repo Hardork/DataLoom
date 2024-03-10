@@ -16,7 +16,7 @@ public class OrderInitMain {
     public static void main(String[] args) {
         try {
             ConnectionFactory factory = new ConnectionFactory();
-            factory.setHost("localhost");
+            factory.setHost("127.0.0.1");
             factory.setUsername("admin");
             factory.setPassword("123");
             Connection connection = factory.newConnection();

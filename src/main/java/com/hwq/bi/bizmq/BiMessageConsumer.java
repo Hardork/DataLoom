@@ -265,7 +265,7 @@ public class BiMessageConsumer {
         Chart updateChartStatus = new Chart();
         updateChartStatus.setId(chart.getId());
         updateChartStatus.setStatus(ChartStatusEnum.TIMEOUT.getValue());
-        updateChartStatus.setExecMessage("系统繁忙");
+        updateChartStatus.setExecMessage("系统繁忙，将在空闲时间重试执行，请耐心等待");
         boolean update = chartService.updateById(updateChartStatus);
         ThrowUtils.throwIf(!update, ErrorCode.SYSTEM_ERROR);
     }

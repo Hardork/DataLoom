@@ -319,7 +319,7 @@ public class ChartController {
         // 压缩后的数据
         String csvData = ExcelUtils.excelToCsv(multipartFile);
         // 防止投喂给AI的数据太大
-        ThrowUtils.throwIf(csvData.length() > 2048, ErrorCode.PARAMS_ERROR, "文件字数超过2048字");
+        ThrowUtils.throwIf(csvData.length() > 1024, ErrorCode.PARAMS_ERROR, "文件字数超过1024字");
         // 插入到数据库
         Chart chart = new Chart();
         chart.setName(name);
