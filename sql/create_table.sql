@@ -188,7 +188,7 @@ INSERT INTO `chat_history` (`id`, `chatRole`, `chatId`, `modelId`, `content`, `e
 INSERT INTO `chat_history` (`id`, `chatRole`, `chatId`, `modelId`, `content`, `execMessage`, `status`, `createTime`, `updateTime`, `isDelete`) VALUES (1716466328766377985, 0, 1716293012059426817, 1716292966333124609, '会员服务的库表怎么设计？', NULL, 0, '2023-10-23 22:47:17', '2023-10-23 22:47:17', 0);
 INSERT INTO `chat_history` (`id`, `chatRole`, `chatId`, `modelId`, `content`, `execMessage`, `status`, `createTime`, `updateTime`, `isDelete`) VALUES (1716466383720148993, 1, 1716293012059426817, 1716292966333124609, '设计会员服务的库表需要考虑以下几个关键因素：\n\n1. 用户ID（User ID）：这是每个用户的唯一标识符，通常是一个自增的整数或字符串。\n\n2. 会员级别（Membership Level）：这表示用户的会员等级，可以根据不同的等级提供不同的会员服务。\n\n3. 注册日期（Registration Date）：这是用户注册成为会员的日期。\n\n4. 最后登录日期（Last Login Date）：这是用户最后一次登录系统的日期。\n\n5. 邮箱地址（Email Address）：这是用户的电子邮件地址，可以用于发送通知和促销信息。\n\n6. 手机号码（Phone Number）：这是用户的联系电话，可以用于发送通知和促销信息。\n\n7. 密码（Password）：这是用户的登录密码，需要加密存储以确保安全。\n\n8. 姓名（Name）：这是用户的姓名，用于显示在用户界面上。\n\n9. 地址（Address）：这是用户的邮寄地址，可以用于发送账单和其他相关文件。\n\n10. 生日（Birthday）：这是用户的生日，可以用于发送生日祝福和优惠券等。\n\n根据以上因素，可以设计如下的数据库表结构：\n\n```sql\nCREATE TABLE Membership (\n    UserID INT PRIMARY KEY,\n    MembershipLevel VARCHAR(50),\n    RegistrationDate DATE,\n    LastLoginDate DATE,\n    EmailAddress VARCHAR(100),\n    PhoneNumber VARCHAR(20),\n    PasswordHash VARCHAR(255),\n    Name VARCHAR(100),\n    Address VARCHAR(255),\n    Birthday DATE\n);\n```', '', 0, '2023-10-23 22:47:30', '2023-10-23 22:47:30', 0);
 
-
+drop table if exists bi.failed_chart;
 create table if not exists bi.failed_chart
 (
     id          bigint auto_increment comment 'id'
@@ -196,15 +196,13 @@ create table if not exists bi.failed_chart
     chartId     bigint                                 not null comment '图表id',
     status      varchar(128) default 'wait'            not null comment 'wait,running,succeed,failed',
     execMessage text                                   null comment '执行信息',
+    retryNum    tinyint     default 0                  null comment '重试次数',
     userId      bigint                                 null comment '创建用户 id',
     createTime  datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
     updateTime  datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     isDelete    tinyint      default 0                 not null comment '是否删除'
 )
     comment '失败分析表';
-INSERT INTO `failed_chart` (`id`, `chartId`, `status`, `execMessage`, `userId`, `createTime`, `updateTime`, `isDelete`) VALUES (1, 1700538268766515201, 'failed', '系统繁忙', 1697633200786403330, '2023-10-23 19:46:17', '2023-10-23 19:46:17', 0);
-INSERT INTO `failed_chart` (`id`, `chartId`, `status`, `execMessage`, `userId`, `createTime`, `updateTime`, `isDelete`) VALUES (2, 1700538268766515201, 'failed', '系统繁忙', 1697633200786403330, '2023-10-23 19:48:10', '2023-10-23 19:48:10', 0);
-INSERT INTO `failed_chart` (`id`, `chartId`, `status`, `execMessage`, `userId`, `createTime`, `updateTime`, `isDelete`) VALUES (3, 1700538268766515201, 'failed', '系统繁忙', 1697633200786403330, '2023-10-23 19:49:50', '2023-10-23 19:49:50', 0);
 
 
 create table if not exists bi.product_order
@@ -526,4 +524,22 @@ INSERT INTO `user_message` (`id`, `userId`, `description`, `type`, `title`, `cre
 INSERT INTO `user_message` (`id`, `userId`, `description`, `type`, `title`, `createTime`, `updateTime`, `isDelete`, `isRead`, `route`) VALUES (1710630645166280705, 1697633200786403330, '点击查看详情', 1, '分析图表已生成', '2023-10-07 20:18:22', '2023-10-07 20:18:22', 0, 1, '/chart_detail/1710630346942877697');
 INSERT INTO `user_message` (`id`, `userId`, `description`, `type`, `title`, `createTime`, `updateTime`, `isDelete`, `isRead`, `route`) VALUES (1711356088576122882, 1711350501649948674, '点击查看详情', 1, '分析图表已生成', '2023-10-09 20:21:01', '2023-10-09 20:21:01', 0, 1, '/chart_detail/1711355882224754690');
 
+create table user_data (
+    id bigint primary key auto_increment,
+    userId bigint not null comment '创建数据用户',
 
+    createTime  datetime      default CURRENT_TIMESTAMP null,
+    updateTime  datetime      default CURRENT_TIMESTAMP null,
+    isDelete    tinyint       default 0                 null
+);
+
+
+create table user_data_permission (
+    id bigint primary key auto_increment,
+    dataId bigint not null comment '对应数据集id',
+    userId bigint not null comment '对应用户id',
+    permission tinyint default 0 comment '权限',
+    createTime  datetime      default CURRENT_TIMESTAMP null,
+    updateTime  datetime      default CURRENT_TIMESTAMP null,
+    isDelete    tinyint       default 0                 null
+);

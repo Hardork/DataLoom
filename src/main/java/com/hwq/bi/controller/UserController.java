@@ -138,6 +138,13 @@ public class UserController {
         mailSender.send(message);
     }
 
+
+    @GetMapping("/test")
+    public BaseResponse<LoginUserVO> userTest(HttpServletRequest request) {
+        LoginUserVO loginUserVO = userService.userLogin("experience", "12345678", request);
+        return ResultUtils.success(loginUserVO);
+    }
+
     /**
      * 用户登录
      *

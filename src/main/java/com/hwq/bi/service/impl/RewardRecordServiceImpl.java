@@ -39,15 +39,11 @@ public class RewardRecordServiceImpl extends ServiceImpl<RewardRecordMapper, Rew
     @Resource
     private List<RoleService> roleServiceList;
 
-    // 互斥锁
-    private final ReentrantLock lock = new ReentrantLock();
-
     @Override
     @Transactional
     public boolean addReward(User loginUser) {
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
-        lock.lock();
-        try {
+        synchronized (loginUser.getUserAccount().intern()) {
             // 查询当前用户今日是否已经获取
             QueryWrapper<RewardRecord> qw = new QueryWrapper<>();
             Long userId = loginUser.getId();
@@ -70,8 +66,6 @@ public class RewardRecordServiceImpl extends ServiceImpl<RewardRecordMapper, Rew
             userUpdateWrapper.eq("id", loginUser.getId()).setSql("totalRewardPoints = totalRewardPoints + " + roleService.getDayReward());
             boolean update = userService.update(userUpdateWrapper);
             ThrowUtils.throwIf(!update, ErrorCode.SYSTEM_ERROR);
-        } finally {
-            lock.unlock();
         }
         return true;
     }

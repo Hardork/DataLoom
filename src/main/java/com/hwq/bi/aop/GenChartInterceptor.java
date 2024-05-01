@@ -52,7 +52,7 @@ public class GenChartInterceptor {
         Integer preRewardPoint = user.getTotalRewardPoints();
 
         UpdateWrapper<User> userUpdateWrapper = new UpdateWrapper<>();
-        // 在扣减库存的时候，确保数据前后一直
+        // 在扣减库存的时候，确保数据前后一致
         userUpdateWrapper
                 .eq("id", loginUser.getId())
                 .eq("totalRewardPoints", preRewardPoint)

@@ -1,6 +1,7 @@
 package com.hwq.bi.controller;
 import java.util.Date;
 import java.util.List;
+import java.util.Stack;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.hwq.bi.annotation.AiService;
@@ -59,8 +60,8 @@ public class AiController {
      * @param request
      * @return
      */
-    @ReduceRewardPoint(reducePoint = 1)
-    @CheckPoint(needPoint = 1)
+    @ReduceRewardPoint
+    @CheckPoint
     @AiService
     @PostMapping("/talk")
     public BaseResponse<Boolean> getAiTalk(@RequestBody AiChatRequest aiTalkRequest, HttpServletRequest request) {
@@ -75,14 +76,15 @@ public class AiController {
         return ResultUtils.success(true);
     }
 
+
     /**
      * 与助手单次会话
      * @param aiChatRequest
      * @param request
      * @return
      */
-    @ReduceRewardPoint(reducePoint = 1)
-    @CheckPoint(needPoint = 1)
+    @ReduceRewardPoint
+    @CheckPoint
     @AiService
     @PostMapping("/chat/assistant")
     public BaseResponse<Boolean> chatWithAssistant(@RequestBody AiChatRequest aiChatRequest, HttpServletRequest request) {
@@ -112,8 +114,8 @@ public class AiController {
      * @param request
      * @return
      */
-    @ReduceRewardPoint(reducePoint = 1)
-    @CheckPoint(needPoint = 1)
+    @ReduceRewardPoint
+    @CheckPoint
     @AiService
     @PostMapping("/chat/temp")
     public BaseResponse<Boolean> chatWithTemp (@RequestBody AiTempChatRequest aiTempChatRequest, HttpServletRequest request) {
@@ -138,8 +140,8 @@ public class AiController {
     }
 
     @ApiOperation("用户会话聊天")
-    @ReduceRewardPoint(reducePoint = 1)
-    @CheckPoint(needPoint = 1)
+    @ReduceRewardPoint
+    @CheckPoint
     @AiService
     @PostMapping("/chat/model")
     public BaseResponse<Boolean> userChatWithModel(@RequestBody ChatWithModelRequest chatWithModelRequest, HttpServletRequest request) {
@@ -152,7 +154,6 @@ public class AiController {
         // 限流
         User loginUser = userService.getLoginUser(request);
         redisLimiterManager.doRateLimit("aiTalk_" + loginUser.getId());
-
         Chat chat = chatService.getById(chatId);
         // 校验提问字数 < 200字
         ThrowUtils.throwIf(text.length() > 2000, ErrorCode.PARAMS_ERROR, "提问字数过多");

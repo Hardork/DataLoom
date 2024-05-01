@@ -21,13 +21,11 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class RetryTimeoutChart {
-
     @Resource
     private FailedChartService failedChartService;
 
     @Resource
     private BiMessageProducer biMessageProducer;
-
 
 
     /**

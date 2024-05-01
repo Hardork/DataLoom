@@ -8,6 +8,7 @@
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="goal" column="goal" jdbcType="VARCHAR"/>
             <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="userDataId" column="userDataId" jdbcType="BIGINT"/>
             <result property="chartData" column="chartData" jdbcType="VARCHAR"/>
             <result property="chartType" column="chartType" jdbcType="VARCHAR"/>
             <result property="genChart" column="genChart" jdbcType="VARCHAR"/>
@@ -22,9 +23,30 @@
 
     <sql id="Base_Column_List">
         id,goal,name,
-        chartData,chartType,genChart,
+        chartData,userDataId,chartType,genChart,
         genResult,status,execMessage,
         userId,createTime,updateTime,
         isDelete
     </sql>
+
+    <select id="genChartDataTable">
+        create table chart_${id}(
+            id bigint auto_increment primary key,
+            <foreach collection="headerList" item="columnName" separator=",">
+                ${columnName} varchar(255)
+            </foreach>
+        );
+    </select>
+
+    <insert id="insertDataToChartDataTable">
+        insert into chart_${id} (<foreach collection="headerList" item="columnName" separator=",">
+        ${columnName}
+    </foreach>) values (<foreach collection="dataList" item="data" separator=",">
+        #{data}
+    </foreach> );
+    </insert>
+
+    <select id="DropTableAfterException">
+        drop table if exists chart_${id} if
+    </select>
 </mapper>

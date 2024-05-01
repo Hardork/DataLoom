@@ -279,6 +279,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (userName.length() > 40) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "昵称过长");
         }
+        if (userAccount.length() < 4) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "账户长度不得小于4");
+        }
         String emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
         if (!Pattern.matches(emailPattern, emailAccount)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "不合法的邮箱地址！");

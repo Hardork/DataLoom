@@ -1,5 +1,6 @@
 package com.hwq.bi.model.enums;
 
+import lombok.Data;
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.util.Arrays;

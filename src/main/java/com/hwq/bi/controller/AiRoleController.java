@@ -195,14 +195,5 @@ public class AiRoleController {
      * @param request
      * @return
      */
-//    @PostMapping("/search/page/vo")
-//    public BaseResponse<Page<PostVO>> searchPostVOByPage(@RequestBody PostQueryRequest postQueryRequest,
-//            HttpServletRequest request) {
-//        long size = postQueryRequest.getPageSize();
-//        // 限制爬虫
-//        ThrowUtils.throwIf(size > 20, ErrorCode.PARAMS_ERROR);
-//        Page<Post> postPage = postService.searchFromEs(postQueryRequest);
-//        return ResultUtils.success(postService.getPostVOPage(postPage, request));
-//    }
 
 }

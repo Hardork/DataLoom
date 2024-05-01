@@ -24,6 +24,7 @@ import com.hwq.bi.constant.CommonConstant;
 import com.hwq.bi.constant.MessageRouteConstant;
 import com.hwq.bi.manager.AiManager;
 import com.hwq.bi.manager.RedisLimiterManager;
+import com.hwq.bi.mapper.ChartMapper;
 import com.hwq.bi.model.dto.chart.*;
 import com.hwq.bi.model.entity.Chart;
 import com.hwq.bi.model.entity.User;
@@ -31,18 +32,24 @@ import com.hwq.bi.annotation.AuthCheck;
 import com.hwq.bi.constant.UserConstant;
 import com.hwq.bi.exception.BusinessException;
 import com.hwq.bi.exception.ThrowUtils;
+import com.hwq.bi.model.entity.UserData;
 import com.hwq.bi.model.entity.UserMessage;
 import com.hwq.bi.model.enums.ChartStatusEnum;
 import com.hwq.bi.model.enums.UserMessageTypeEnum;
 import com.hwq.bi.model.enums.WebSocketMsgTypeEnum;
 import com.hwq.bi.model.vo.BiResponse;
 import com.hwq.bi.service.ChartService;
+import com.hwq.bi.service.UserDataService;
 import com.hwq.bi.service.UserMessageService;
 import com.hwq.bi.service.UserService;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -100,7 +107,12 @@ public class ChartController {
     @Resource
     private RedisTemplate<String, String> redisTemplate;
 
-    private final static Gson GSON = new Gson();
+    @Resource
+    private ExcelUtils excelUtils;
+
+    @Resource
+    private UserDataService userDataService;
+
 
 
     /**
@@ -137,7 +149,7 @@ public class ChartController {
         // 限流，防止用户在同一时间段内多次请求该接口
         String key = "chart:gen:" + loginUser.getId();
         redisLimiterManager.doRateLimit(key);
-        String csvData = ExcelUtils.excelToCsv(multipartFile);
+        String csvData = excelUtils.excelToCsv(multipartFile);
         // 构造用户输入
         String userInput = buildUserInput(goal, chartType, csvData);
 
@@ -147,6 +159,7 @@ public class ChartController {
         if (splits.length < 3) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "AI 生成错误");
         }
+
         String genChart = splits[1].trim();
         String genResult = splits[2].trim();
         // 插入到数据库
@@ -200,10 +213,9 @@ public class ChartController {
         User loginUser = userService.getLoginUser(request);
         // 限流判断，每个用户一个限流器
         redisLimiterManager.doRateLimit("genChartByAi_" + loginUser.getId());
-        // 无需写 prompt，直接调用现有模型，https://www.yucongming.com，公众号搜【鱼聪明AI】
         long biModelId = 1659171950288818178L;
 
-        String csvData = ExcelUtils.excelToCsv(multipartFile);
+        String csvData = excelUtils.excelToCsv(multipartFile);
         // 构造用户输入
         String userInput = buildUserInput(goal, chartType, csvData);
 
@@ -317,9 +329,9 @@ public class ChartController {
         // 限流判断，每个用户一个限流器 每秒最多访问 2 次
         redisLimiterManager.doRateLimit("genChartByAi_" + loginUser.getId());
         // 压缩后的数据
-        String csvData = ExcelUtils.excelToCsv(multipartFile);
+        String csvData = excelUtils.excelToCsv(multipartFile);
         // 防止投喂给AI的数据太大
-        ThrowUtils.throwIf(csvData.length() > 1024, ErrorCode.PARAMS_ERROR, "文件字数超过1024字");
+//        ThrowUtils.throwIf(csvData.length() > 1024, ErrorCode.PARAMS_ERROR, "文件字数超过1024字");
         // 插入到数据库
         Chart chart = new Chart();
         chart.setName(name);
@@ -329,6 +341,7 @@ public class ChartController {
         chart.setStatus("wait");
         chart.setUserId(loginUser.getId());
         boolean saveResult = chartService.save(chart);
+
         ThrowUtils.throwIf(!saveResult, ErrorCode.SYSTEM_ERROR, "图表保存失败");
         long newChartId = chart.getId();
         biMessageProducer.sendMessage(String.valueOf(newChartId));
@@ -338,6 +351,97 @@ public class ChartController {
         return ResultUtils.success(biResponse);
     }
 
+
+    /**
+     * 细分存储
+     * @param multipartFile
+     * @param genChartByAiRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/gen/async/mq/v3")
+    @ReduceRewardPoint(reducePoint = 2)
+    @BiService
+    @CheckPoint(needPoint = 2)
+    public BaseResponse<BiResponse> genChartByAiAsyncMqV3(@RequestPart("file") MultipartFile multipartFile,
+                                                          GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) {
+        String name = genChartByAiRequest.getName();
+        String goal = genChartByAiRequest.getGoal();
+        String chartType = genChartByAiRequest.getChartType();
+        // 校验
+        ThrowUtils.throwIf(StringUtils.isBlank(goal), ErrorCode.PARAMS_ERROR, "目标为空");
+        ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length() > 100, ErrorCode.PARAMS_ERROR, "名称过长");
+        // 校验文件
+        long size = multipartFile.getSize();
+        String originalFilename = multipartFile.getOriginalFilename();
+        // 校验文件大小
+        final long ONE_MB = 1024 * 1024L;
+        ThrowUtils.throwIf(size > ONE_MB, ErrorCode.PARAMS_ERROR, "文件超过 1M");
+        // 校验文件后缀 aaa.png
+        String suffix = FileUtil.getSuffix(originalFilename);
+        final List<String> validFileSuffixList = Arrays.asList("xlsx", "xls", "csv");
+        ThrowUtils.throwIf(!validFileSuffixList.contains(suffix), ErrorCode.PARAMS_ERROR, "文件后缀非法");
+        User loginUser = userService.getLoginUser(request);
+        // 判断用户积分是否充足
+        Integer totalRewardPoints = loginUser.getTotalRewardPoints();
+        ThrowUtils.throwIf(totalRewardPoints <= 0, ErrorCode.OPERATION_ERROR, "积分不足");
+        // 限流判断，每个用户一个限流器 每秒最多访问 2 次
+        redisLimiterManager.doRateLimit("genChartByAi_" + loginUser.getId());
+        // 将生成的chartId作为数据表的表名chart_{id}
+        Long id = userDataService.save(loginUser, originalFilename, originalFilename);
+        // 将用户上传的数据存入到MongoDB中
+        excelUtils.saveDataToMongo(multipartFile,id);
+        // 防止投喂给AI的数据太大
+        // 插入到数据库
+        Chart chart = new Chart();
+        chart.setName(name);
+        chart.setGoal(goal);
+        chart.setUserId(id);
+        chart.setUserDataId(id);
+        chart.setChartType(chartType);
+        chart.setStatus("wait");
+        chart.setUserId(loginUser.getId());
+        boolean saveResult = chartService.save(chart);
+        long newChartId = chart.getId();
+        biMessageProducer.sendMessage(String.valueOf(newChartId));
+        ThrowUtils.throwIf(!saveResult, ErrorCode.SYSTEM_ERROR, "图表保存失败");
+        // 分析成功
+        BiResponse biResponse = new BiResponse();
+        biResponse.setChartId(newChartId);
+        return ResultUtils.success(biResponse);
+    }
+
+    /**
+     * 基于数据集分析
+     * @param request
+     * @return
+     */
+    @PostMapping("/gen/async/mq/data")
+    @ReduceRewardPoint(reducePoint = 2)
+    @BiService
+    @CheckPoint(needPoint = 2)
+    public BaseResponse<BiResponse> genChartByAiWithDataAsyncMq(@RequestBody GenChartByAiWithDataRequest genChartByAiWithDataRequest, HttpServletRequest request) {
+        String name = genChartByAiWithDataRequest.getName();
+        String goal = genChartByAiWithDataRequest.getGoal();
+        String chartType = genChartByAiWithDataRequest.getChartType();
+        Long dataId = genChartByAiWithDataRequest.getDataId();
+        // 校验
+        ThrowUtils.throwIf(StringUtils.isBlank(goal), ErrorCode.PARAMS_ERROR, "目标为空");
+        ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length() > 100, ErrorCode.PARAMS_ERROR, "名称过长");
+        ThrowUtils.throwIf(dataId == null, ErrorCode.PARAMS_ERROR, "数据集id不得为空");
+        User loginUser = userService.getLoginUser(request);
+        // 判断用户积分是否充足
+        Integer totalRewardPoints = loginUser.getTotalRewardPoints();
+        ThrowUtils.throwIf(totalRewardPoints <= 0, ErrorCode.OPERATION_ERROR, "积分不足");
+        // 限流判断，每个用户一个限流器 每秒最多访问 2 次
+        redisLimiterManager.doRateLimit("genChartByAi_" + loginUser.getId());
+        // 防止投喂给AI的数据太大
+        Long chartId = chartService.genChartByAiWithDataAsyncMq(name, goal, chartType, dataId, loginUser);
+        // 分析成功
+        BiResponse biResponse = new BiResponse();
+        biResponse.setChartId(chartId);
+        return ResultUtils.success(biResponse);
+    }
 
     @PostMapping("/gen/retry")
     @ReduceRewardPoint(reducePoint = 2)
@@ -365,24 +469,6 @@ public class ChartController {
     }
 
     private String buildUserInput(String goal, String chartType, String csvData) {
-        // 分析需求：
-        // 分析网站用户的增长情况
-        // 原始数据：
-        // 日期,用户数
-        // 1号,10
-        // 2号,20
-        // 3号,30
-        // 拼接分析目标
-        //        final String prompt = "你是一个数据分析师和前端开发专家，接下来我会按照以下固定格式给你提供内容：\n" +
-        //                "分析需求：\n" +
-        //                "{数据分析的需求或者目标}\n" +
-        //                "原始数据：\n" +
-        //                "{csv格式的原始数据，用,作为分隔符}\n" +
-        //                "请根据这两部分内容，按照以下指定格式生成内容（此外不要输出任何多余的开头、结尾、注释）\n" +
-        //                "【【【【【\n" +
-        //                "{前端 Echarts V5 的 option 配置对象js代码，合理地将数据进行可视化，不要生成任何多余的内容，比如注释}\n" +
-        //                "【【【【【\n" +
-        //                "{明确的数据分析结论、越详细越好，不要生成多余的注释}";
         // 构造用户输入
         StringBuilder userInput = new StringBuilder();
         userInput.append("分析需求：").append("\n");
@@ -429,6 +515,7 @@ public class ChartController {
         User loginUser = userService.getLoginUser(request);
         chart.setUserId(loginUser.getId());
         boolean result = chartService.save(chart);
+        // 同时创建一个
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
         long newchartId = chart.getId();
         return ResultUtils.success(newchartId);
@@ -507,6 +594,10 @@ public class ChartController {
         if (chart == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
+        // 获取mongo中的data数据
+        String chartData = excelUtils.mongoToCSV(chart.getUserDataId());
+        chart.setChartData(chartData);
+
         return ResultUtils.success(chart);
     }
 

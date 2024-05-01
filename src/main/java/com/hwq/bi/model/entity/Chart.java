@@ -38,6 +38,12 @@ public class Chart implements Serializable {
     private String chartData;
 
     /**
+     * 数据集id
+     */
+    @TableField(value = "userDataId")
+    private Long userDataId;
+
+    /**
      * 图表类型
      */
     @TableField(value = "chartType")

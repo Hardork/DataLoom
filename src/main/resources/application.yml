@@ -16,11 +16,14 @@ spring:
     timeout: 2592000
   # 数据库配置
   # todo 需替换配置
+  data:
+    mongodb:
+      uri: mongodb://localhost/chart
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/bi
-    username: xxx
-    password: xxxx
+    username: root
+    password: hwq2003121
   # Redis 配置
   # todo 需替换配置，然后取消注释
   redis:
@@ -30,9 +33,9 @@ spring:
     timeout: 5000
   mail:
     host: smtp.qq.com
-    username: xxx@qq.com
-    password: xxx
-    emailFrom: xxx@qq.com
+    username: 1602370456@qq.com
+    password: fzzfwwfoembojhci
+    emailFrom: 1602370456@qq.com
     properties:
       mail:
         smtp:
@@ -41,8 +44,8 @@ spring:
 
   rabbitmq:
     host: localhost
-    username: xxx
-    password: xxx
+    username: admin
+    password: 123
   # Elasticsearch 配置
   # todo 需替换配置，然后取消注释
   #  elasticsearch:
@@ -97,17 +100,16 @@ wx:
 # todo 需替换配置
 cos:
   client:
-    accessKey: xxx
-    secretKey: xxx
-    region: xxx
-    bucket: xxx
-
+    accessKey: AKIDTtPuIWbRCuXxCE7oMejaJ3d192pZKtFu
+    secretKey: Tq5EAya4MQjwCSbXGRUiokaEgz5AAzmd
+    region: ap-shanghai
+    bucket: hwq-1317946928
 yuapi:
   client:
-    access-key: xxx
-    secret-key: xxx
+    access-key: e3yndaoabds7gaiz0cwuu213gq5yq7pq
+    secret-key: 1enxmrjou9ly893qes7qyua4w92c3jlr
 spark:
   hostUrl: https://spark-api.xf-yun.com/v2.1/chat
-  appid: xxx
-  apiSecret: xxx
-  apiKey: xxx
+  appid: 1d72f9bb
+  apiSecret: NWQ4YjViOTdiNzFiYWVlNTM2Y2Q4ZGJm
+  apiKey: 8d3f3169ee9f484c042797c0bba2140e

@@ -55,6 +55,4 @@ public interface BiMqConstant {
     String ORDER_DEAD_ROUTING_KEY = "order_dead_route";
 
 
-
-
 }

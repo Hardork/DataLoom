@@ -7,18 +7,23 @@ import com.hwq.bi.common.ErrorCode;
 import com.hwq.bi.constant.ChartConstant;
 import com.hwq.bi.constant.CommonConstant;
 import com.hwq.bi.constant.ExecuteAIServiceConstant;
+import com.hwq.bi.constant.MessageRouteConstant;
 import com.hwq.bi.exception.BusinessException;
 import com.hwq.bi.exception.ThrowUtils;
 import com.hwq.bi.manager.AiManager;
 import com.hwq.bi.model.entity.Chart;
 import com.hwq.bi.model.entity.FailedChart;
 import com.hwq.bi.model.entity.ProductOrder;
+import com.hwq.bi.model.entity.UserMessage;
 import com.hwq.bi.model.enums.ChartStatusEnum;
 import com.hwq.bi.model.enums.OrderStatusEnum;
+import com.hwq.bi.model.enums.UserMessageTypeEnum;
 import com.hwq.bi.model.enums.WebSocketMsgTypeEnum;
 import com.hwq.bi.service.ChartService;
 import com.hwq.bi.service.FailedChartService;
 import com.hwq.bi.service.ProductOrderService;
+import com.hwq.bi.service.UserMessageService;
+import com.hwq.bi.utils.ExcelUtils;
 import com.hwq.bi.websocket.UserWebSocket;
 import com.hwq.bi.websocket.vo.WebSocketMsgVO;
 import com.rabbitmq.client.Channel;
@@ -54,11 +59,156 @@ public class BiMessageConsumer {
     @Resource
     private RedisTemplate<String, String> redisTemplate;
 
-    // 指定程序监听的消息队列和确认机制
+    @Resource
+    private UserMessageService userMessageService;
+
+    @Resource
+    private ExcelUtils excelUtils;
+
+    /**
+     * 监听BI队列消息，并调用ChatGPT接口进行消费
+     * @param message
+     * @param channel
+     * @param deliveryTag
+     */
+//    @SneakyThrows
+//    @RabbitListener(queues = {BiMqConstant.BI_QUEUE_NAME}, ackMode = "MANUAL")
+//    public void receiveMessage(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
+//        log.info("ChatGPT receiveMessage message = {}", message);
+//        channel.basicQos(1);
+//        if (StringUtils.isBlank(message)) {
+//            // 如果失败，消息拒绝, 并且不返回队列中
+//            channel.basicNack(deliveryTag, false, false);
+//            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "消息为空");
+//        }
+//        // 消息确认
+//        long chartId = Long.parseLong(message);
+//        Chart chart = chartService.getById(chartId);
+//        if (chart == null) {
+//            channel.basicNack(deliveryTag, false, false);
+//            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "图表为空");
+//        }
+//        // 修改图表任务状态为 “执行中”
+//        // 执行成功后，修改为 “已完成”、保存执行结果；
+//        // 执行失败后，状态修改为 “失败”，记录任务失败信息。
+//        if (!updateChartRunning(channel, deliveryTag, chart)) return;
+//
+//        // 超时重试机制
+//        // 定义重试器
+//        Retryer<String> retryer = getRetryer();
+//
+//        String result = retryer.call(new Callable<String>() {
+//            @Override
+//            public String call() throws Exception {
+//                // 这里是你的任务代码
+//                return aiManager.doChat(CommonConstant.BI_MODEL_ID, buildUserInput(chart));
+//            }
+//        });
+//
+//        // 校验返回的参数
+//        if (StringUtils.isEmpty(result)) {
+//            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+//        }
+//
+//        String[] splits = result.split("【【【【【");
+//        if (splits.length < 3) {
+//            // 将任务设置为失败，不再重新排队
+//            channel.basicNack(deliveryTag, false, false);
+//            handleChartUpdateError(chart.getId(), "AI生成错误，请检查文件内容，如有异常请联系管理员");
+//            return;
+//        }
+//        String genChart = splits[1].trim(); // 生成的图表option
+//        String genResult = splits[2].trim(); // 生成的分析结果
+//        // 更新图表状态为succeed
+//        updateChartSucceed(channel, deliveryTag, chart, genChart, genResult);
+//
+//        // 将图表数据缓存到redis中去
+//        saveToRedis(chartId, chart, genChart, genResult);
+//
+//        // 手动确认
+//        channel.basicAck(deliveryTag, false);
+//        // 通知用户操作成功
+//        notifyUserSucceed(chartId, chart);
+//    }
+
+    /**
+     * 监听BI队列消息，交由KimiAI处理
+     * @param message
+     * @param channel
+     * @param deliveryTag
+     */
+//    @SneakyThrows
+//    @RabbitListener(queues = {BiMqConstant.BI_QUEUE_NAME}, ackMode = "MANUAL")
+//    public void receiveMessageToKimi(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
+//        log.info("KimiAI receiveMessage message = {}", message);
+//        channel.basicQos(1);
+//        if (StringUtils.isBlank(message)) {
+//            // 如果失败，消息拒绝, 并且不返回队列中
+//            channel.basicNack(deliveryTag, false, false);
+//            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "消息为空");
+//        }
+//        // 消息确认
+//        long chartId = Long.parseLong(message);
+//        Chart chart = chartService.getById(chartId);
+//        if (chart == null) {
+//            channel.basicNack(deliveryTag, false, false);
+//            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "图表为空");
+//        }
+//        // 修改图表任务状态为 “执行中”
+//        // 执行成功后，修改为 “已完成”、保存执行结果；
+//        // 执行失败后，状态修改为 “失败”，记录任务失败信息。
+//        if (!updateChartRunning(channel, deliveryTag, chart)) return;
+//
+//        // 超时重试机制
+//        // 定义重试器
+//        Retryer<String> retryer = getRetryer();
+//
+//        String result = retryer.call(new Callable<String>() {
+//            @Override
+//            public String call() throws Exception {
+//                // 这里是你的任务代码
+//                return aiManager.doChatWithKimi(buildUserInput(chart));
+//            }
+//        });
+//
+//        // 校验返回的参数
+//        if (StringUtils.isEmpty(result)) {
+//            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+//        }
+//
+//        String[] splits = result.split("【【【【【");
+//        if (splits.length < 3) {
+//            // 将任务设置为失败，不再重新排队
+//            channel.basicNack(deliveryTag, false, false);
+//            handleChartUpdateError(chart.getId(), "AI生成错误，请检查文件内容，如有异常请联系管理员");
+//            return;
+//        }
+//        String genChart = splits[1].trim(); // 生成的图表option
+//        String genResult = splits[2].trim(); // 生成的分析结果
+//        // 更新图表状态为succeed
+//        updateChartSucceed(channel, deliveryTag, chart, genChart, genResult);
+//
+//        // 将图表数据缓存到redis中去
+//        saveToRedis(chartId, chart, genChart, genResult);
+//
+//        // 手动确认
+//        channel.basicAck(deliveryTag, false);
+//        // 通知用户操作成功
+//        notifyUserSucceed(chartId, chart);
+//    }
+
+    /**
+     * 监听BI队列消息，交由KimiAI处理
+     * 从mongoDB中取数据
+     * @param message
+     * @param channel
+     * @param deliveryTag
+     */
     @SneakyThrows
     @RabbitListener(queues = {BiMqConstant.BI_QUEUE_NAME}, ackMode = "MANUAL")
-    public void receiveMessage(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
-        log.info("receiveMessage message = {}", message);
+    public void receiveMessageToKimi(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
+        log.info("KimiAI receiveMessage message = {}", message);
+        channel.basicQos(1);
         if (StringUtils.isBlank(message)) {
             // 如果失败，消息拒绝, 并且不返回队列中
             channel.basicNack(deliveryTag, false, false);
@@ -79,12 +229,12 @@ public class BiMessageConsumer {
         // 超时重试机制
         // 定义重试器
         Retryer<String> retryer = getRetryer();
-
+        String input = buildUserInputFromMongo(chart);
         String result = retryer.call(new Callable<String>() {
             @Override
             public String call() throws Exception {
                 // 这里是你的任务代码
-                return aiManager.doChat(CommonConstant.BI_MODEL_ID, buildUserInput(chart));
+                return aiManager.doChatWithKimi(input);
             }
         });
 
@@ -108,11 +258,17 @@ public class BiMessageConsumer {
         // 将图表数据缓存到redis中去
         saveToRedis(chartId, chart, genChart, genResult);
 
-        // 手动确认
-        channel.basicAck(deliveryTag, false);
+        // 通知入库
+        savaToUserMessage(chart);
+
         // 通知用户操作成功
         notifyUserSucceed(chartId, chart);
+
+        // 手动确认
+        channel.basicAck(deliveryTag, false);
     }
+
+
 
     /**
      * 监听死信队列
@@ -152,11 +308,29 @@ public class BiMessageConsumer {
         // 失败信息入库 给管理员看
         saveFailedChart(chartId, chart);
 
+        // 通知入库
+        savaToUserMessage(chart);
 
         // 通知用户分析失败
         notifyUserFailed(chart);
+
         // 消息确认
         channel.basicAck(deliveryTag, false);
+    }
+
+
+    private void savaToUserMessage(Chart chart) {
+        UserMessage userMessage = new UserMessage();
+        userMessage.setTitle("分析图表已生成");
+        userMessage.setUserId(chart.getUserId());
+        userMessage.setDescription("点击查看详情");
+        userMessage.setType(UserMessageTypeEnum.SUCCESS.getValue());
+        userMessage.setRoute(MessageRouteConstant.CHART_DETAIL + chart.getId());
+        userMessage.setIsRead(0);
+        boolean save = userMessageService.save(userMessage);
+        if (!save) {
+            log.error("系统异常");
+        }
     }
 
     /**
@@ -195,11 +369,10 @@ public class BiMessageConsumer {
         return RetryerBuilder.<String>newBuilder()
                 .retryIfResult(input -> {
                     String[] splits = input.split("【【【【【");
-
                     return StringUtils.isEmpty(input) || splits.length < 3;
                 })
-                .withWaitStrategy(WaitStrategies.fixedWait(10, TimeUnit.SECONDS))
-                .withStopStrategy(StopStrategies.stopAfterAttempt(3))
+                .withWaitStrategy(WaitStrategies.fixedWait(5, TimeUnit.SECONDS))
+                .withStopStrategy(StopStrategies.stopAfterAttempt(2))
                 .build();
     }
 
@@ -281,6 +454,26 @@ public class BiMessageConsumer {
         String chartType = chart.getChartType();
         String csvData = chart.getChartData();
 
+        // 构造用户输入
+        StringBuilder userInput = new StringBuilder();
+        userInput.append("分析需求：").append("\n");
+
+        // 拼接分析目标
+        String userGoal = goal;
+        if (StringUtils.isNotBlank(chartType)) {
+            userGoal += "，请使用" + chartType;
+        }
+        userInput.append(userGoal).append("\n");
+        userInput.append("原始数据：").append("\n");
+        userInput.append(csvData).append("\n");
+        return userInput.toString();
+    }
+
+    private String buildUserInputFromMongo(Chart chart) {
+        String goal = chart.getGoal();
+        String chartType = chart.getChartType();
+        Long userDataId = chart.getUserDataId();
+        String csvData = excelUtils.mongoToCSV(userDataId);
         // 构造用户输入
         StringBuilder userInput = new StringBuilder();
         userInput.append("分析需求：").append("\n");

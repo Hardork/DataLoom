@@ -31,7 +31,7 @@ public class BiInitMain {
             arguments.put("x-dead-letter-exchange", BiMqConstant.BI_DEAD_EXCHANGE_NAME);
             arguments.put("x-dead-letter-routing-key", BiMqConstant.DEAD_ROUTING_KEY);
             // 设置延迟队列的ttl 也就是延迟消息的时间 5min
-            arguments.put("x-message-ttl", 5*60*1000);
+            arguments.put("x-message-ttl", 5 * 60 * 1000);
             // 声明普通队列
             channel.queueDeclare(queueName, true, false, false, arguments);
             channel.queueBind(queueName, EXCHANGE_NAME,  BiMqConstant.BI_ROUTING_KEY);
