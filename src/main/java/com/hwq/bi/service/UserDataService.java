@@ -1,5 +1,6 @@
 package com.hwq.bi.service;
 
+import com.hwq.bi.model.dto.user_data.ShareUserDataRequest;
 import com.hwq.bi.model.entity.User;
 import com.hwq.bi.model.entity.UserData;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -23,4 +24,6 @@ public interface UserDataService extends IService<UserData> {
      * 创建用户数据集，并设置权限
      */
     Long save(User loginUser, String dataName, String description);
+
+    String genLink(ShareUserDataRequest shareUserDataRequest, User loginUser);
 }

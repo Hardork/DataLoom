@@ -527,7 +527,6 @@ INSERT INTO `user_message` (`id`, `userId`, `description`, `type`, `title`, `cre
 create table user_data (
     id bigint primary key auto_increment,
     userId bigint not null comment '创建数据用户',
-
     createTime  datetime      default CURRENT_TIMESTAMP null,
     updateTime  datetime      default CURRENT_TIMESTAMP null,
     isDelete    tinyint       default 0                 null

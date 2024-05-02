@@ -1,9 +1,7 @@
 package com.hwq.bi.model.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
+
 import java.io.Serializable;
 import java.util.Date;
 import lombok.Data;
@@ -24,12 +22,12 @@ public class UserDataPermission implements Serializable {
     /**
      * 对应数据集id
      */
-    private Long dataid;
+    private Long dataId;
 
     /**
      * 对应用户id
      */
-    private Long userid;
+    private Long userId;
 
     /**
      * 权限
@@ -39,17 +37,18 @@ public class UserDataPermission implements Serializable {
     /**
      * 
      */
-    private Date createtime;
+    private Date createTime;
 
     /**
      * 
      */
-    private Date updatetime;
+    private Date updateTime;
 
     /**
      * 
      */
-    private Integer isdelete;
+    @TableLogic
+    private Integer isDelete;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

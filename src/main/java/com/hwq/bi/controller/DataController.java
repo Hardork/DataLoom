@@ -9,6 +9,7 @@ import com.hwq.bi.exception.BusinessException;
 import com.hwq.bi.exception.ThrowUtils;
 import com.hwq.bi.model.dto.data.DataQueryRequest;
 import com.hwq.bi.model.dto.user_data.DeleteUserDataRequest;
+import com.hwq.bi.model.dto.user_data.ShareUserDataRequest;
 import com.hwq.bi.model.dto.user_data.UploadUserDataRequest;
 import com.hwq.bi.model.entity.User;
 import com.hwq.bi.model.entity.UserData;
@@ -18,6 +19,7 @@ import com.hwq.bi.mongo.dto.DeleteChartDataRecordRequest;
 import com.hwq.bi.mongo.dto.EditChartDataRecordRequest;
 import com.hwq.bi.mongo.entity.ChartData;
 import com.hwq.bi.service.MongoService;
+import com.hwq.bi.service.UserDataPermissionService;
 import com.hwq.bi.service.UserDataService;
 import com.hwq.bi.service.UserService;
 import com.hwq.bi.utils.ExcelUtils;
@@ -53,6 +55,9 @@ public class DataController {
     @Resource
     private ExcelUtils excelUtils;
 
+    @Resource
+    private UserDataPermissionService userDataPermissionService;
+
 
     @ReduceRewardPoint
     @PostMapping("/upload")
@@ -80,6 +85,20 @@ public class DataController {
         excelUtils.saveDataToMongo(multipartFile, id);
         // 返回mongoDB
         return ResultUtils.success(id);
+    }
+
+    @PostMapping("/share/userData")
+    @ApiOperation("共享用户数据集")
+    public BaseResponse<String> shareUserData(@RequestBody ShareUserDataRequest shareUserDataRequest, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
+        ThrowUtils.throwIf(shareUserDataRequest == null || shareUserDataRequest.getId() == null, ErrorCode.PARAMS_ERROR);
+        Long id = shareUserDataRequest.getId();
+        if (id < 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        String link = userDataService.genLink(shareUserDataRequest, loginUser);
+        return ResultUtils.success(link);
     }
 
     @PostMapping("/delete/userData")
