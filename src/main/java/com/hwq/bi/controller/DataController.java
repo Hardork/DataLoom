@@ -19,7 +19,6 @@ import com.hwq.bi.mongo.dto.DeleteChartDataRecordRequest;
 import com.hwq.bi.mongo.dto.EditChartDataRecordRequest;
 import com.hwq.bi.mongo.entity.ChartData;
 import com.hwq.bi.service.MongoService;
-import com.hwq.bi.service.UserDataPermissionService;
 import com.hwq.bi.service.UserDataService;
 import com.hwq.bi.service.UserService;
 import com.hwq.bi.utils.ExcelUtils;
@@ -54,9 +53,6 @@ public class DataController {
 
     @Resource
     private ExcelUtils excelUtils;
-
-    @Resource
-    private UserDataPermissionService userDataPermissionService;
 
 
     @ReduceRewardPoint
@@ -101,6 +97,28 @@ public class DataController {
         return ResultUtils.success(link);
     }
 
+    @GetMapping("/{dataId}/{type}/{secret}")
+    @ApiOperation("链接获取数据集权限")
+    public BaseResponse<Boolean> getOtherUserData(@PathVariable Long dataId, @PathVariable Integer type, @PathVariable String secret, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
+        ThrowUtils.throwIf(dataId == null || dataId < 0, ErrorCode.PARAMS_ERROR);
+        ThrowUtils.throwIf(type == null, ErrorCode.PARAMS_ERROR, "请求类型为空");
+        ThrowUtils.throwIf(StringUtils.isEmpty(secret), ErrorCode.PARAMS_ERROR);
+        Boolean res = userDataService.checkLinkAndAuthorization(dataId, type, secret, loginUser);
+        return ResultUtils.success(res);
+    }
+
+    @GetMapping("/list/collaborators/{dataId}")
+    @ApiOperation("查看数据协作者")
+    public BaseResponse<List<User>> getDataCollaborators(@PathVariable Long dataId, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
+        ThrowUtils.throwIf(dataId == null || dataId < 0, ErrorCode.PARAMS_ERROR);
+        List<User> userList = userDataService.getDataCollaborators(dataId, loginUser);
+        return ResultUtils.success(userList);
+    }
+
     @PostMapping("/delete/userData")
     @ApiOperation("删除用户数据集")
     public BaseResponse<Boolean> deleteUserData(@RequestBody DeleteUserDataRequest deleteUserDataRequest, HttpServletRequest request) {
@@ -124,9 +142,8 @@ public class DataController {
     public BaseResponse<List<UserData>> listUserDataInfo(HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
-        QueryWrapper<UserData> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("userId", loginUser.getId());
-        return ResultUtils.success(userDataService.list(queryWrapper));
+        List<UserData> userDataList = userDataService.listByPermission(loginUser);
+        return ResultUtils.success(userDataList);
     }
 
     @PostMapping("/delete")

@@ -1,6 +1,7 @@
 package com.hwq.bi.service.impl;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.crypto.digest.DigestUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hwq.bi.common.ErrorCode;
 import com.hwq.bi.exception.BusinessException;
@@ -11,6 +12,7 @@ import com.hwq.bi.model.entity.UserData;
 import com.hwq.bi.model.entity.UserDataPermission;
 import com.hwq.bi.model.enums.UserDataPermissionEnum;
 import com.hwq.bi.model.enums.UserDataTypeEnum;
+import com.hwq.bi.service.UserDataPermissionService;
 import com.hwq.bi.service.UserDataService;
 import com.hwq.bi.mapper.UserDataMapper;
 import lombok.Data;
@@ -18,6 +20,13 @@ import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import static com.hwq.bi.constant.UserDataConstant.SECRET_SALT;
 
 /**
@@ -40,6 +49,9 @@ public class UserDataServiceImpl extends ServiceImpl<UserDataMapper, UserData>
     private String port;
 
     private String prefix;
+
+    @Resource
+    private UserDataPermissionService userDataPermissionService;
 
     @Override
     public Boolean deleteUserData(Long id, User loginUser) {
@@ -81,7 +93,8 @@ public class UserDataServiceImpl extends ServiceImpl<UserDataMapper, UserData>
         userDataPermission.setDataId(userData.getId());
         userDataPermission.setUserId(loginUser.getId());
         userDataPermission.setPermission(UserDataPermissionEnum.WRITE.getValue());
-
+        boolean savePermission = userDataPermissionService.save(userDataPermission);
+        ThrowUtils.throwIf(!savePermission, ErrorCode.SYSTEM_ERROR);
         return userData.getId();
     }
 
@@ -109,6 +122,67 @@ public class UserDataServiceImpl extends ServiceImpl<UserDataMapper, UserData>
             link.append(userData.getWriteSecretKey());
         }
         return link.toString();
+    }
+
+    @Override
+    public Boolean checkLinkAndAuthorization(Long dataId, Integer type, String secret, User loginUser) {
+        // 校验参数
+        ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
+        ThrowUtils.throwIf(dataId == null || dataId < 0, ErrorCode.PARAMS_ERROR);
+        ThrowUtils.throwIf(type == null, ErrorCode.PARAMS_ERROR, "请求类型为空");
+        ThrowUtils.throwIf(StringUtils.isEmpty(secret), ErrorCode.PARAMS_ERROR);
+        // 获取对应数据集元数据
+        UserData userData = this.getById(dataId);
+        ThrowUtils.throwIf(userData == null, ErrorCode.PARAMS_ERROR, "对应数据集不存在");
+        // 判断权限类型
+        UserDataPermissionEnum userDataPermissionEnum = UserDataPermissionEnum.getEnumByValue(type);
+        ThrowUtils.throwIf(userDataPermissionEnum == null, ErrorCode.PARAMS_ERROR);
+        // 校验权限
+        if (userDataPermissionEnum == UserDataPermissionEnum.READ) { // 读权限
+            // 判断密钥是否相符
+            ThrowUtils.throwIf(!secret.equals(userData.getReadSecretKey()), ErrorCode.NO_AUTH_ERROR);
+        } else { // 写权限
+            ThrowUtils.throwIf(!secret.equals(userData.getWriteSecretKey()), ErrorCode.NO_AUTH_ERROR);
+        }
+        // 判断是否需要审批
+        if (userData.getApprovalConfirm()) { // 需要审批
+            // todo: 将请求加入审批表，由创建者审批后才能添加到权限表中
+            return true;
+        }
+        // 将当前用户加入到权限表中
+        // 1.判断当前用户是否在权限表中已经存在
+        QueryWrapper<UserDataPermission> qw = new QueryWrapper<>();
+        qw.eq("dataId", dataId);
+        qw.eq("userId", loginUser.getId());
+        UserDataPermission permission = userDataPermissionService.getOne(qw);
+        if (permission != null && permission.getPermission() >= type) { // 说明当前用户已经在权限表中，并且申请的权限小于等于当前的权限，直接返回成功
+            return true;
+        }
+        // 2.不存在，将当前用户插入到权限表
+        UserDataPermission userDataPermission = new UserDataPermission();
+        userDataPermission.setDataId(dataId);
+        userDataPermission.setUserId(loginUser.getId());
+        userDataPermission.setPermission(type);
+        boolean save = userDataPermissionService.save(userDataPermission);
+        ThrowUtils.throwIf(!save, ErrorCode.SYSTEM_ERROR);
+        return true;
+    }
+
+    @Override
+    public List<UserData> listByPermission(User loginUser) { // 根据数据集权限表访问
+        ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
+        // 获取当前用户具有权限的数据集ID
+        QueryWrapper<UserDataPermission> qw = new QueryWrapper<>();
+        qw.eq("userId", loginUser.getId());
+        qw.select("dataId");
+        List<Long> dataIds = userDataPermissionService.list(qw)
+                .stream()
+                .map(UserDataPermission::getDataId)
+                .collect(Collectors.toList());
+        if (dataIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return this.listByIds(dataIds);
     }
 }
 

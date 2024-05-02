@@ -1,14 +1,18 @@
 package com.hwq.bi.service.impl.mongo;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.hwq.bi.common.ErrorCode;
 import com.hwq.bi.constant.UserDataConstant;
 import com.hwq.bi.exception.BusinessException;
 import com.hwq.bi.exception.ThrowUtils;
 import com.hwq.bi.model.entity.User;
 import com.hwq.bi.model.entity.UserData;
+import com.hwq.bi.model.entity.UserDataPermission;
+import com.hwq.bi.model.enums.UserDataPermissionEnum;
 import com.hwq.bi.model.vo.DataPage;
 import com.hwq.bi.mongo.entity.ChartData;
 import com.hwq.bi.service.MongoService;
+import com.hwq.bi.service.UserDataPermissionService;
 import com.hwq.bi.service.UserDataService;
 import com.hwq.bi.service.UserService;
 import com.mongodb.client.result.DeleteResult;
@@ -42,6 +46,8 @@ public class MongoServiceImpl implements MongoService {
     @Resource
     private MongoTemplate mongoTemplate;
 
+    @Resource
+    private UserDataPermissionService userDataPermissionService;
 
 
 
@@ -54,7 +60,7 @@ public class MongoServiceImpl implements MongoService {
         // 不可获取他人的数据
         UserData userData = userDataService.getById(dataId);
         ThrowUtils.throwIf(userData == null, ErrorCode.PARAMS_ERROR, "数据不存在");
-        ThrowUtils.throwIf(!userData.getUserId().equals(loginUser.getId()), ErrorCode.NO_AUTH_ERROR);
+        checkReadAuth(dataId, loginUser);
         // 根据条件返回数据
         Pageable pageable = PageRequest.of((int) current, (int) size);
         Query query = new Query();
@@ -86,7 +92,9 @@ public class MongoServiceImpl implements MongoService {
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR, "未登陆");
         UserData userData = userDataService.getById(dataId);
         ThrowUtils.throwIf(userData == null, ErrorCode.PARAMS_ERROR, "不存在该数据集");
-        ThrowUtils.throwIf(!loginUser.getId().equals(userData.getUserId()), ErrorCode.NO_AUTH_ERROR);
+        // 鉴权
+        checkWriteAuth(dataId, loginUser);
+        // 删除数据
         Query query = new Query();
         query.addCriteria(Criteria.where("_id").is(id));
         DeleteResult remove = mongoTemplate.remove(query, "chart_" + dataId);
@@ -103,7 +111,9 @@ public class MongoServiceImpl implements MongoService {
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
         UserData userData = userDataService.getById(dataId);
         ThrowUtils.throwIf(userData == null, ErrorCode.PARAMS_ERROR, "不存在该数据集");
-        ThrowUtils.throwIf(!loginUser.getId().equals(userData.getUserId()), ErrorCode.NO_AUTH_ERROR);
+        // 校验权限
+        checkWriteAuth(dataId, loginUser);
+        // 删除数据
         Query query = new Query();
         query.addCriteria(Criteria.where("_id").is(id));
         Update update = generateUpdate(data);
@@ -124,9 +134,27 @@ public class MongoServiceImpl implements MongoService {
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
         UserData userData = userDataService.getById(dataId);
         ThrowUtils.throwIf(userData == null, ErrorCode.PARAMS_ERROR, "不存在该数据集");
-        ThrowUtils.throwIf(!loginUser.getId().equals(userData.getUserId()), ErrorCode.NO_AUTH_ERROR);
+        // 校验权限
+        checkWriteAuth(dataId, loginUser);
+        // 添加数据
         addOneRecord(data, dataId);
         return true;
+    }
+
+    public void checkReadAuth(Long dataId, User loginUser) {
+        QueryWrapper<UserDataPermission> qw = new QueryWrapper<>();
+        qw.eq("userId", loginUser.getId());
+        qw.eq("dataId", dataId);
+        UserDataPermission permission = userDataPermissionService.getOne(qw);
+        ThrowUtils.throwIf(permission == null || permission.getPermission() < UserDataPermissionEnum.READ.getValue(), ErrorCode.NO_AUTH_ERROR);
+    }
+
+    public void checkWriteAuth(Long dataId, User loginUser) {
+        QueryWrapper<UserDataPermission> qw = new QueryWrapper<>();
+        qw.eq("userId", loginUser.getId());
+        qw.eq("dataId", dataId);
+        UserDataPermission permission = userDataPermissionService.getOne(qw);
+        ThrowUtils.throwIf(permission == null || permission.getPermission() < UserDataPermissionEnum.WRITE.getValue(), ErrorCode.NO_AUTH_ERROR);
     }
 
     @Override

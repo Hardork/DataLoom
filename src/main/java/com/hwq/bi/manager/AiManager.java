@@ -69,43 +69,14 @@ public class AiManager {
                 "      \"type\": \"line\"\n" +
                 "    }\n" +
                 "  ]\n" +
-                "}，显示的data数量不要超过100，超过100可以仅仅返回关键的数据的可视化配置，合理地将数据进行可视化，不要生成任何多余的内容，比如注释} \n" +
+                "}，显示的data数量不要超过50条，超过50条可以仅仅返回关键的数据的可视化配置，合理地将数据进行可视化，不要生成任何多余的内容，比如注释} \n" +
                 "【【【【【 \n" +
                 "{明确的数据分析结论、越详细越好，不要生成多余的注释}";
         List<Message> messages = CollUtil.newArrayList(
                 new Message(RoleEnum.system.name(), prompt),
                 new Message(RoleEnum.user.name(), message)
         );
-        return MoonshotAiUtils.chat("moonshot-v1-32k",messages);
-    }
-
-    public String doCrawl() {
-        Process proc;
-        try {
-            proc = Runtime.getRuntime().exec("/Users/wqh/PycharmProjects/deep-learning/.venv/bin/python /Users/wqh/PycharmProjects/deep-learning/craw/code4.py");// 执行py文件
-            //用输入输出流来截取结果
-            BufferedReader in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-            BufferedReader err = new BufferedReader(new InputStreamReader(proc.getErrorStream())); // 获取stderr输出流
-            String line = null;
-            while ((line = in.readLine()) != null) {
-                System.out.println(line);
-            }
-            while ((line = err.readLine()) != null) {
-                System.err.println(line); // 打印错误信息到stderr
-            }
-            in.close();
-            proc.waitFor();
-            // 检查进程是否已经终止
-            int exitCode = proc.exitValue();
-            if (exitCode != 0) {
-                System.err.println("Python process exited with error code: " + exitCode);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return "";
+        return MoonshotAiUtils.chat("moonshot-v1-128k",messages);
     }
 
 }
