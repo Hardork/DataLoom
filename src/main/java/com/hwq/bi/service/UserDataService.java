@@ -4,6 +4,7 @@ import com.hwq.bi.model.dto.user_data.ShareUserDataRequest;
 import com.hwq.bi.model.entity.User;
 import com.hwq.bi.model.entity.UserData;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.hwq.bi.model.vo.DataCollaboratorsVO;
 
 import java.util.List;
 
@@ -48,10 +49,10 @@ public interface UserDataService extends IService<UserData> {
     List<UserData> listByPermission(User loginUser);
 
     /**
-     * 获取数据协作与权限
+     * 获取数据集的所有数据协作者
      * @param dataId
      * @param loginUser
      * @return
      */
-    List<User> getDataCollaborators(Long dataId, User loginUser);
+    List<DataCollaboratorsVO> getDataCollaborators(Long dataId, User loginUser);
 }

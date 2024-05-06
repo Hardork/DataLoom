@@ -13,6 +13,7 @@ import com.hwq.bi.model.dto.user_data.ShareUserDataRequest;
 import com.hwq.bi.model.dto.user_data.UploadUserDataRequest;
 import com.hwq.bi.model.entity.User;
 import com.hwq.bi.model.entity.UserData;
+import com.hwq.bi.model.vo.DataCollaboratorsVO;
 import com.hwq.bi.model.vo.DataPage;
 import com.hwq.bi.mongo.dto.AddChardDataRecordRequest;
 import com.hwq.bi.mongo.dto.DeleteChartDataRecordRequest;
@@ -111,11 +112,11 @@ public class DataController {
 
     @GetMapping("/list/collaborators/{dataId}")
     @ApiOperation("查看数据协作者")
-    public BaseResponse<List<User>> getDataCollaborators(@PathVariable Long dataId, HttpServletRequest request) {
+    public BaseResponse<List<DataCollaboratorsVO>> getDataCollaborators(@PathVariable Long dataId, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
         ThrowUtils.throwIf(dataId == null || dataId < 0, ErrorCode.PARAMS_ERROR);
-        List<User> userList = userDataService.getDataCollaborators(dataId, loginUser);
+        List<DataCollaboratorsVO> userList = userDataService.getDataCollaborators(dataId, loginUser);
         return ResultUtils.success(userList);
     }
 

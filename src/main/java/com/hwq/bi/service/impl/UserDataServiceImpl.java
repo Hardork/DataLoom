@@ -12,9 +12,12 @@ import com.hwq.bi.model.entity.UserData;
 import com.hwq.bi.model.entity.UserDataPermission;
 import com.hwq.bi.model.enums.UserDataPermissionEnum;
 import com.hwq.bi.model.enums.UserDataTypeEnum;
+import com.hwq.bi.model.vo.DataCollaboratorsVO;
+import com.hwq.bi.model.vo.UserVO;
 import com.hwq.bi.service.UserDataPermissionService;
 import com.hwq.bi.service.UserDataService;
 import com.hwq.bi.mapper.UserDataMapper;
+import com.hwq.bi.service.UserService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
@@ -52,6 +55,9 @@ public class UserDataServiceImpl extends ServiceImpl<UserDataMapper, UserData>
 
     @Resource
     private UserDataPermissionService userDataPermissionService;
+
+    @Resource
+    private UserService userService;
 
     @Override
     public Boolean deleteUserData(Long id, User loginUser) {
@@ -183,6 +189,39 @@ public class UserDataServiceImpl extends ServiceImpl<UserDataMapper, UserData>
             return new ArrayList<>();
         }
         return this.listByIds(dataIds);
+    }
+
+    /**
+     *
+     * @param dataId
+     * @param loginUser
+     * @return
+     */
+    @Override
+    public List<DataCollaboratorsVO> getDataCollaborators(Long dataId, User loginUser) {
+        // 校验
+        ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
+        ThrowUtils.throwIf(dataId == null, ErrorCode.PARAMS_ERROR);
+        // 查询对应dataId的数据协作者
+        QueryWrapper<UserDataPermission> qw = new QueryWrapper<>();
+        qw.select("userId", "permission");
+        qw.eq("dataId", dataId);
+        List<UserDataPermission> permissionList = userDataPermissionService.list(qw);
+        // 去掉创建者本身
+        List<UserDataPermission> userDataPermissionList = permissionList.stream()
+                .filter(userDataPermission -> !userDataPermission.getUserId().equals(loginUser.getId()))
+                .collect(Collectors.toList());
+        // 查询对应协作者信息
+        List<DataCollaboratorsVO> res = new ArrayList<>();
+        userDataPermissionList.forEach(userDataPermission -> {
+            User user = userService.getById(userDataPermission.getUserId());
+            UserVO userVO = userService.getUserVO(user);
+            DataCollaboratorsVO dataCollaboratorsVO = new DataCollaboratorsVO();
+            dataCollaboratorsVO.setUserVO(userVO);
+            dataCollaboratorsVO.setPermission(userDataPermission.getPermission());
+            res.add(dataCollaboratorsVO);
+        });
+        return res;
     }
 }
 
