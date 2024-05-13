@@ -11,7 +11,6 @@ import com.hwq.bi.common.BaseResponse;
 import com.hwq.bi.common.ErrorCode;
 import com.hwq.bi.common.ResultUtils;
 import com.hwq.bi.exception.ThrowUtils;
-import com.hwq.bi.manager.RedisLimiterManager;
 import com.hwq.bi.manager.SparkAiManager;
 import com.hwq.bi.model.dto.ai.*;
 import com.hwq.bi.model.entity.*;
@@ -42,8 +41,6 @@ public class AiController {
     @Resource
     private SparkAiManager sparkAiManager;
     @Resource
-    private RedisLimiterManager redisLimiterManager;
-    @Resource
     private AiRoleService aiRoleService;
 
     @Resource
@@ -70,7 +67,6 @@ public class AiController {
         // 校验提问字数 < 200字
         ThrowUtils.throwIf(aiTalkRequest.getText().length() > 2000, ErrorCode.PARAMS_ERROR, "提问字数过多");
         // 限流
-        redisLimiterManager.doRateLimit("aiTalk_" + loginUser.getId());
         sparkAiManager.setUserId(loginUser.getId());
         sparkAiManager.startTalk(aiTalkRequest.getText());
         return ResultUtils.success(true);
@@ -102,7 +98,6 @@ public class AiController {
         String aiRoleInput = buildAiRoleInput(text, aiRole);
 
         // 限流
-        redisLimiterManager.doRateLimit("aiTalk_" + loginUser.getId());
         sparkAiManager.setUserId(loginUser.getId());
         sparkAiManager.startTalk(aiRoleInput);
 
@@ -132,7 +127,6 @@ public class AiController {
         String aiRoleInput = buildAiRoleInput(text, aiRole);
 
         // 限流
-        redisLimiterManager.doRateLimit("aiTalk_" + loginUser.getId());
         sparkAiManager.setUserId(loginUser.getId());
         sparkAiManager.setUnSave(true);
         sparkAiManager.startTalk(aiRoleInput);
@@ -153,7 +147,6 @@ public class AiController {
         ThrowUtils.throwIf(ObjectUtils.isEmpty(chatId), ErrorCode.PARAMS_ERROR);
         // 限流
         User loginUser = userService.getLoginUser(request);
-        redisLimiterManager.doRateLimit("aiTalk_" + loginUser.getId());
         Chat chat = chatService.getById(chatId);
         // 校验提问字数 < 200字
         ThrowUtils.throwIf(text.length() > 2000, ErrorCode.PARAMS_ERROR, "提问字数过多");

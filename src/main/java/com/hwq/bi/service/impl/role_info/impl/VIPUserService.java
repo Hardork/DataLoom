@@ -31,6 +31,16 @@ public class VIPUserService implements RoleService {
     }
 
     @Override
+    public String goToQueueTag() {
+        return "vip";
+    }
+
+    @Override
+    public Integer maxUploadFileSizeMB() {
+        return 10;
+    }
+
+    @Override
     public Integer getChartSaveDay() {
         return 30;
     }

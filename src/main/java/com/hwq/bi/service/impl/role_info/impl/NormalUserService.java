@@ -25,6 +25,14 @@ public class NormalUserService implements RoleService {
         return 10;
     }
 
+    public Integer maxUploadFileSizeMB() {
+        return 10;
+    }
+
+    public String goToQueueTag() {
+        return "normal";
+    }
+
     @Override
     public Integer getMaxToken() {
         return 2048;

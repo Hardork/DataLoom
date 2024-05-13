@@ -25,6 +25,18 @@ public interface RoleService {
     Integer getMaxToken();
 
     /**
+     * 获取去往队列的标识
+     * @return
+     */
+    String goToQueueTag();
+
+    /**
+     * 最大上传文件大小
+     * @return
+     */
+    Integer maxUploadFileSizeMB();
+
+    /**
      * 获取图表保存天数
      * @return
      */

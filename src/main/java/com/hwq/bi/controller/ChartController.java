@@ -10,9 +10,7 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
-import com.hwq.bi.annotation.BiService;
-import com.hwq.bi.annotation.CheckPoint;
-import com.hwq.bi.annotation.ReduceRewardPoint;
+import com.hwq.bi.annotation.*;
 import com.hwq.bi.bizmq.BiMessageProducer;
 import com.hwq.bi.common.BaseResponse;
 import com.hwq.bi.common.DeleteRequest;
@@ -28,7 +26,6 @@ import com.hwq.bi.mapper.ChartMapper;
 import com.hwq.bi.model.dto.chart.*;
 import com.hwq.bi.model.entity.Chart;
 import com.hwq.bi.model.entity.User;
-import com.hwq.bi.annotation.AuthCheck;
 import com.hwq.bi.constant.UserConstant;
 import com.hwq.bi.exception.BusinessException;
 import com.hwq.bi.exception.ThrowUtils;
@@ -85,8 +82,6 @@ public class ChartController {
     @Resource
     private AiManager aiManager;
 
-    @Resource
-    private RedisLimiterManager redisLimiterManager;
 
     @Resource
     private ThreadPoolExecutor threadPoolExecutor;
@@ -148,7 +143,6 @@ public class ChartController {
 
         // 限流，防止用户在同一时间段内多次请求该接口
         String key = "chart:gen:" + loginUser.getId();
-        redisLimiterManager.doRateLimit(key);
         String csvData = excelUtils.excelToCsv(multipartFile);
         // 构造用户输入
         String userInput = buildUserInput(goal, chartType, csvData);
@@ -191,6 +185,7 @@ public class ChartController {
     @ReduceRewardPoint(reducePoint = 2)
     @CheckPoint(needPoint = 2)
     @BiService
+    @RateLimiter(ratePerSecond = 2, key = "genChartByAi_")
     public BaseResponse<BiResponse> genChartByAiAsync(@RequestPart("file") MultipartFile multipartFile,
                                                  GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) {
         String name = genChartByAiRequest.getName();
@@ -212,7 +207,6 @@ public class ChartController {
 
         User loginUser = userService.getLoginUser(request);
         // 限流判断，每个用户一个限流器
-        redisLimiterManager.doRateLimit("genChartByAi_" + loginUser.getId());
         long biModelId = 1659171950288818178L;
 
         String csvData = excelUtils.excelToCsv(multipartFile);
@@ -304,6 +298,7 @@ public class ChartController {
     @ReduceRewardPoint(reducePoint = 2)
     @BiService
     @CheckPoint(needPoint = 2)
+    @RateLimiter(ratePerSecond = 2, key = "genChartByAi_")
     public BaseResponse<BiResponse> genChartByAiAsyncMq(@RequestPart("file") MultipartFile multipartFile,
                                                         GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) {
         String name = genChartByAiRequest.getName();
@@ -327,7 +322,6 @@ public class ChartController {
         Integer totalRewardPoints = loginUser.getTotalRewardPoints();
         ThrowUtils.throwIf(totalRewardPoints <= 0, ErrorCode.OPERATION_ERROR, "积分不足");
         // 限流判断，每个用户一个限流器 每秒最多访问 2 次
-        redisLimiterManager.doRateLimit("genChartByAi_" + loginUser.getId());
         // 压缩后的数据
         String csvData = excelUtils.excelToCsv(multipartFile);
         // 防止投喂给AI的数据太大
@@ -363,6 +357,7 @@ public class ChartController {
     @ReduceRewardPoint(reducePoint = 2)
     @BiService
     @CheckPoint(needPoint = 2)
+    @RateLimiter(ratePerSecond = 2, key = "genChartByAi_")
     public BaseResponse<BiResponse> genChartByAiAsyncMqV3(@RequestPart("file") MultipartFile multipartFile,
                                                           GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) {
         String name = genChartByAiRequest.getName();
@@ -386,7 +381,6 @@ public class ChartController {
         Integer totalRewardPoints = loginUser.getTotalRewardPoints();
         ThrowUtils.throwIf(totalRewardPoints <= 0, ErrorCode.OPERATION_ERROR, "积分不足");
         // 限流判断，每个用户一个限流器 每秒最多访问 2 次
-        redisLimiterManager.doRateLimit("genChartByAi_" + loginUser.getId());
         // 将生成的chartId作为数据表的表名chart_{id}
         Long id = userDataService.save(loginUser, originalFilename, originalFilename);
         // 将用户上传的数据存入到MongoDB中
@@ -417,6 +411,7 @@ public class ChartController {
      * @return
      */
     @PostMapping("/gen/async/mq/data")
+    @RateLimiter(ratePerSecond = 2, key = "genChartByAi_")
     @ReduceRewardPoint(reducePoint = 2)
     @BiService
     @CheckPoint(needPoint = 2)
@@ -430,11 +425,6 @@ public class ChartController {
         ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length() > 100, ErrorCode.PARAMS_ERROR, "名称过长");
         ThrowUtils.throwIf(dataId == null, ErrorCode.PARAMS_ERROR, "数据集id不得为空");
         User loginUser = userService.getLoginUser(request);
-        // 判断用户积分是否充足
-        Integer totalRewardPoints = loginUser.getTotalRewardPoints();
-        ThrowUtils.throwIf(totalRewardPoints <= 0, ErrorCode.OPERATION_ERROR, "积分不足");
-        // 限流判断，每个用户一个限流器 每秒最多访问 2 次
-        redisLimiterManager.doRateLimit("genChartByAi_" + loginUser.getId());
         // 防止投喂给AI的数据太大
         Long chartId = chartService.genChartByAiWithDataAsyncMq(name, goal, chartType, dataId, loginUser);
         // 分析成功
@@ -454,8 +444,6 @@ public class ChartController {
         // 获取用户信息
         User loginUser = userService.getLoginUser(request);
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
-        // 限流判断，每个用户一个限流器
-        redisLimiterManager.doRateLimit("reGenChartByAi_" + loginUser.getId());
         // 获取原来图表的信息 并且只有失败图表才能重试
         Chart chartInfo = chartService.getById(chartId);
         ThrowUtils.throwIf(chartInfo == null, ErrorCode.NOT_FOUND_ERROR);
