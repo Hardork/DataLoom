@@ -2,9 +2,7 @@ package com.hwq.bi.service.impl;
 
 import static com.hwq.bi.constant.EmailConstant.CAPTCHA_CACHE_KEY;
 import static com.hwq.bi.constant.UserConstant.USER_LOGIN_STATE;
-import static org.bouncycastle.asn1.x500.style.RFC4519Style.userPassword;
 
-import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -15,6 +13,7 @@ import com.hwq.bi.model.dto.user.UserEmailRegisterRequest;
 import com.hwq.bi.model.dto.user.UserQueryRequest;
 import com.hwq.bi.model.entity.User;
 import com.hwq.bi.model.enums.UserRoleEnum;
+import com.hwq.bi.service.MongoService;
 import com.hwq.bi.utils.RedissonLockUtil;
 import com.hwq.bi.utils.SqlUtils;
 import com.hwq.bi.constant.CommonConstant;
@@ -35,6 +34,8 @@ import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -57,6 +58,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Resource
     private RedissonLockUtil redissonLockUtil;
+
+    private MongoService mongoService;
+
+
+    @Autowired
+    public void setMongoService(@Lazy MongoService mongoService) {
+        this.mongoService = mongoService;
+    }
+
 
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
@@ -267,8 +277,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String invitationCode = userEmailRegisterRequest.getInvitationCode();
         String userPassword = userEmailRegisterRequest.getUserPassword();
         String checkPassword = userEmailRegisterRequest.getCheckPassword();
-
-
         if (!userPassword.equals(checkPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "校验密码与密码不一致");
         }
@@ -329,7 +337,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             user.setEmail(emailAccount);
             user.setUserAvatar("https://tse2-mm.cn.bing.net/th/id/OIP-C.GcH5tncpMBmeWkfM0SkTfwHaHa?pid=ImgDet&rs=1");
             user.setUserPassword(encryptPassword);
-
             if (invitationCodeUser != null) {
                 user.setTotalRewardPoints(100);
                 this.addUserTotalRewards(invitationCodeUser.getId(), 100);
@@ -340,9 +347,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             if (!saveResult) {
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR, "注册失败，数据库错误");
             }
+
+            // 给用户添加示例数据
+            mongoService.copyDataToNewCollection("chart_example", user);
             return user.getId();
         }, "邮箱账号注册失败");
     }
+
+
 
     /**
      * 给用户添加积分

@@ -17,8 +17,8 @@ import com.hwq.bi.service.UserDataService;
 import com.hwq.bi.service.UserService;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -38,6 +38,7 @@ import java.util.Map;
  * @description
  */
 @Service
+@Slf4j
 public class MongoServiceImpl implements MongoService {
     @Resource
     private UserService userService;
@@ -162,6 +163,18 @@ public class MongoServiceImpl implements MongoService {
         ThrowUtils.throwIf(id == null || id < 0, ErrorCode.PARAMS_ERROR);
         // 删除mongoDB中的数据
         mongoTemplate.dropCollection(UserDataConstant.USER_CHART_DATA_PREFIX + id);
+        return true;
+    }
+
+    @Override
+    public Boolean copyDataToNewCollection(String sourceCollectionName, User user) {
+        try {
+            Long dataId = userDataService.save(user, "示例数据", "空气质量");
+            List<ChartData> dataList = mongoTemplate.findAll(ChartData.class, sourceCollectionName);
+            mongoTemplate.insert(dataList, UserDataConstant.USER_CHART_DATA_PREFIX + dataId);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
         return true;
     }
 

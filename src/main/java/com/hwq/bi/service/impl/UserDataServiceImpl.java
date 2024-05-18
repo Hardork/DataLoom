@@ -93,7 +93,6 @@ public class UserDataServiceImpl extends ServiceImpl<UserDataMapper, UserData>
         // 生成数据集元数据表
         boolean save = this.save(userData);
         ThrowUtils.throwIf(!save, ErrorCode.SYSTEM_ERROR);
-
         // 生成数据集权限表
         UserDataPermission userDataPermission = new UserDataPermission();
         userDataPermission.setDataId(userData.getId());

@@ -111,70 +111,6 @@ public class ChartController {
 
 
     /**
-     * 生成图表
-     * @param multipartFile
-     * @param genChartByAiRequest
-     * @param request
-     * @return
-     */
-    @PostMapping("/gen")
-    @ReduceRewardPoint(reducePoint = 2)
-    @CheckPoint(needPoint = 2)
-    @BiService
-    public BaseResponse<BiResponse> genChartByAi(@RequestPart("file") MultipartFile multipartFile,
-                                             GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) {
-        User loginUser = userService.getLoginUser(request);
-        String name = genChartByAiRequest.getName();
-        String goal = genChartByAiRequest.getGoal();
-        String chartType = genChartByAiRequest.getChartType();
-        // 校验
-        ThrowUtils.throwIf(StringUtils.isBlank(goal), ErrorCode.PARAMS_ERROR, "目标为空");
-        ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length() > 100, ErrorCode.PARAMS_ERROR, "名称过长");
-        // 校验文件
-        long size = multipartFile.getSize();
-        String originalFilename = multipartFile.getOriginalFilename();
-        // 校验文件后缀
-        String suffix = FileUtil.getSuffix(originalFilename);
-        final List<String> validFileSuffix = Arrays.asList("xlsx");
-        ThrowUtils.throwIf(!validFileSuffix.contains(suffix), ErrorCode.PARAMS_ERROR, "文件后缀非法");
-        // 校验文件大小
-        final long ONE_MB = 1024*1024L;
-        ThrowUtils.throwIf(size > ONE_MB, ErrorCode.PARAMS_ERROR, "文件超过 1MB");
-
-        // 限流，防止用户在同一时间段内多次请求该接口
-        String key = "chart:gen:" + loginUser.getId();
-        String csvData = excelUtils.excelToCsv(multipartFile);
-        // 构造用户输入
-        String userInput = buildUserInput(goal, chartType, csvData);
-
-        long biModelId = CommonConstant.BI_MODEL_ID;
-        String result = aiManager.doChat(biModelId, userInput);
-        String[] splits = result.split("【【【【【");
-        if (splits.length < 3) {
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "AI 生成错误");
-        }
-
-        String genChart = splits[1].trim();
-        String genResult = splits[2].trim();
-        // 插入到数据库
-        Chart chart = new Chart();
-        chart.setName(name);
-        chart.setGoal(goal);
-        chart.setChartData(csvData);
-        chart.setChartType(chartType);
-        chart.setGenChart(genChart);
-        chart.setGenResult(genResult);
-        chart.setUserId(loginUser.getId());
-        boolean saveResult = chartService.save(chart);
-        ThrowUtils.throwIf(!saveResult, ErrorCode.SYSTEM_ERROR, "图表保存失败");
-        BiResponse biResponse = new BiResponse();
-        biResponse.setGenChart(genChart);
-        biResponse.setGenResult(genResult);
-        biResponse.setChartId(chart.getId());
-        return ResultUtils.success(biResponse);
-    }
-
-    /**
      * 异步生成图表
      * @param multipartFile
      * @param genChartByAiRequest
@@ -265,7 +201,6 @@ public class ChartController {
         BiResponse biResponse = new BiResponse();
         biResponse.setChartId(chart.getId());
         return ResultUtils.success(biResponse);
-
     }
 
     private void notifyUserSucceed(Chart chart, User loginUser) {
@@ -318,14 +253,8 @@ public class ChartController {
         final List<String> validFileSuffixList = Arrays.asList("xlsx", "xls", "csv");
         ThrowUtils.throwIf(!validFileSuffixList.contains(suffix), ErrorCode.PARAMS_ERROR, "文件后缀非法");
         User loginUser = userService.getLoginUser(request);
-        // 判断用户积分是否充足
-        Integer totalRewardPoints = loginUser.getTotalRewardPoints();
-        ThrowUtils.throwIf(totalRewardPoints <= 0, ErrorCode.OPERATION_ERROR, "积分不足");
-        // 限流判断，每个用户一个限流器 每秒最多访问 2 次
         // 压缩后的数据
         String csvData = excelUtils.excelToCsv(multipartFile);
-        // 防止投喂给AI的数据太大
-//        ThrowUtils.throwIf(csvData.length() > 1024, ErrorCode.PARAMS_ERROR, "文件字数超过1024字");
         // 插入到数据库
         Chart chart = new Chart();
         chart.setName(name);
@@ -427,7 +356,7 @@ public class ChartController {
         User loginUser = userService.getLoginUser(request);
         // 防止投喂给AI的数据太大
         Long chartId = chartService.genChartByAiWithDataAsyncMq(name, goal, chartType, dataId, loginUser);
-        // 分析成功
+        // 响应
         BiResponse biResponse = new BiResponse();
         biResponse.setChartId(chartId);
         return ResultUtils.success(biResponse);
