@@ -18,6 +18,23 @@ public interface BiMqConstant {
     String BI_ROUTING_KEY = "bi_routingKey";
 
     /**
+     * vip交换机名称
+     */
+    String BI_VIP_EXCHANGE_NAME = "bi_vip_exchange";
+
+    /**
+     * vip队列名称
+     */
+    String BI_VIP_QUEUE_NAME = "bi_vip_queue";
+
+    /**
+     * VIP路由名称
+     */
+    String BI_VIP_ROUTING_KEY = "bi_vip_routingKey";
+
+
+
+    /**
      * 死信交换机名称
      */
     String BI_DEAD_EXCHANGE_NAME = "bi_dead_exchange";
@@ -53,6 +70,4 @@ public interface BiMqConstant {
     String ORDER_DEAD_QUEUE_NAME = "order_dead_queue";
 
     String ORDER_DEAD_ROUTING_KEY = "order_dead_route";
-
-
 }

@@ -13,6 +13,7 @@ import com.hwq.bi.service.RewardRecordService;
 import com.hwq.bi.mapper.RewardRecordMapper;
 import com.hwq.bi.service.UserService;
 import com.hwq.bi.service.impl.role_info.RoleService;
+import com.hwq.bi.service.impl.role_info.RoleStrategyFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,7 +38,7 @@ public class RewardRecordServiceImpl extends ServiceImpl<RewardRecordMapper, Rew
     @Resource
     private RewardRecordMapper rewardRecordMapper;
     @Resource
-    private List<RoleService> roleServiceList;
+    private RoleStrategyFactory roleStrategyFactory;
 
     @Override
     @Transactional
@@ -61,7 +62,7 @@ public class RewardRecordServiceImpl extends ServiceImpl<RewardRecordMapper, Rew
             // 根据用户的身份信息修改用户的积分
             UpdateWrapper<User> userUpdateWrapper = new UpdateWrapper<>();
             // 使用策略模式，根据不同的角色进行不同的策略
-            RoleService roleService = roleServiceList.stream().filter(r -> r.isCurrentRole(loginUser.getUserRole())).findFirst().orElse(null);
+            RoleService roleService = roleStrategyFactory.getRoleStrategy(loginUser.getUserRole());
             ThrowUtils.throwIf(roleService == null, ErrorCode.PARAMS_ERROR, "没有对应角色");
             userUpdateWrapper.eq("id", loginUser.getId()).setSql("totalRewardPoints = totalRewardPoints + " + roleService.getDayReward());
             boolean update = userService.update(userUpdateWrapper);

@@ -71,65 +71,68 @@ public class BiMessageConsumer {
      * @param channel
      * @param deliveryTag
      */
-//    @SneakyThrows
-//    @RabbitListener(queues = {BiMqConstant.BI_QUEUE_NAME}, ackMode = "MANUAL")
-//    public void receiveMessage(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
-//        log.info("ChatGPT receiveMessage message = {}", message);
-//        channel.basicQos(1);
-//        if (StringUtils.isBlank(message)) {
-//            // 如果失败，消息拒绝, 并且不返回队列中
-//            channel.basicNack(deliveryTag, false, false);
-//            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "消息为空");
-//        }
-//        // 消息确认
-//        long chartId = Long.parseLong(message);
-//        Chart chart = chartService.getById(chartId);
-//        if (chart == null) {
-//            channel.basicNack(deliveryTag, false, false);
-//            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "图表为空");
-//        }
-//        // 修改图表任务状态为 “执行中”
-//        // 执行成功后，修改为 “已完成”、保存执行结果；
-//        // 执行失败后，状态修改为 “失败”，记录任务失败信息。
-//        if (!updateChartRunning(channel, deliveryTag, chart)) return;
-//
-//        // 超时重试机制
-//        // 定义重试器
-//        Retryer<String> retryer = getRetryer();
-//
-//        String result = retryer.call(new Callable<String>() {
-//            @Override
-//            public String call() throws Exception {
-//                // 这里是你的任务代码
-//                return aiManager.doChat(CommonConstant.BI_MODEL_ID, buildUserInput(chart));
-//            }
-//        });
-//
-//        // 校验返回的参数
-//        if (StringUtils.isEmpty(result)) {
-//            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
-//        }
-//
-//        String[] splits = result.split("【【【【【");
-//        if (splits.length < 3) {
-//            // 将任务设置为失败，不再重新排队
-//            channel.basicNack(deliveryTag, false, false);
-//            handleChartUpdateError(chart.getId(), "AI生成错误，请检查文件内容，如有异常请联系管理员");
-//            return;
-//        }
-//        String genChart = splits[1].trim(); // 生成的图表option
-//        String genResult = splits[2].trim(); // 生成的分析结果
-//        // 更新图表状态为succeed
-//        updateChartSucceed(channel, deliveryTag, chart, genChart, genResult);
-//
-//        // 将图表数据缓存到redis中去
-//        saveToRedis(chartId, chart, genChart, genResult);
-//
-//        // 手动确认
-//        channel.basicAck(deliveryTag, false);
-//        // 通知用户操作成功
-//        notifyUserSucceed(chartId, chart);
-//    }
+    @SneakyThrows
+    @RabbitListener(queues = {BiMqConstant.BI_QUEUE_NAME}, ackMode = "MANUAL", containerFactory = "gptContainerFactory")
+    public void receiveMessage(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
+        log.info("ChatGPT receiveMessage message = {}", message);
+        channel.basicQos(1);
+        if (StringUtils.isBlank(message)) {
+            // 如果失败，消息拒绝, 并且不返回队列中
+            channel.basicNack(deliveryTag, false, false);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "消息为空");
+        }
+        // 消息确认
+        long chartId = Long.parseLong(message);
+        Chart chart = chartService.getById(chartId);
+        if (chart == null) {
+            channel.basicNack(deliveryTag, false, false);
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "图表为空");
+        }
+        // 修改图表任务状态为 “执行中”
+        // 执行成功后，修改为 “已完成”、保存执行结果；
+        // 执行失败后，状态修改为 “失败”，记录任务失败信息。
+        if (!updateChartRunning(channel, deliveryTag, chart)) return;
+
+        String input = buildUserInputFromMongo(chart);
+
+        // 超时重试机制
+        // 定义重试器
+        Retryer<String[]> retryer = getRetryer();
+
+        String[] result;
+        try {
+            result =  retryer.call(new Callable<String[]>() {
+                @Override
+                public String[] call() throws Exception { // 提交任务
+                    String chatRes = aiManager.doChat(CommonConstant.BI_MODEL_ID, input);
+                    return chatRes.split("【【【【【");
+                }
+            });
+        } catch (RetryException e) { // 重试器抛出异常，说明重试了两次还是失败了,设置失败
+            // 将任务设置为失败，不再重新排队
+            channel.basicNack(deliveryTag, false, false);
+            handleChartUpdateError(chart.getId(), "AI生成错误，请检查文件内容，如有异常请联系管理员");
+            return;
+        }
+
+        // 提炼结果
+        String genChart = result[1].trim(); // 生成的图表option
+        String genResult = result[2].trim(); // 生成的分析结果
+        // 更新图表状态为succeed
+        updateChartSucceed(channel, deliveryTag, chart, genChart, genResult);
+
+        // 将图表数据缓存到redis中去
+        saveToRedis(chartId, chart, genChart, genResult);
+
+        // 通知入库
+        savaToUserMessage(chart);
+
+        // 通知用户操作成功
+        notifyUserSucceed(chartId, chart);
+
+        // 手动确认
+        channel.basicAck(deliveryTag, false);
+    }
 
 
     /**
@@ -140,7 +143,7 @@ public class BiMessageConsumer {
      * @param deliveryTag
      */
     @SneakyThrows
-    @RabbitListener(queues = {BiMqConstant.BI_QUEUE_NAME}, ackMode = "MANUAL", containerFactory = "customContainerFactory")
+    @RabbitListener(queues = {BiMqConstant.BI_VIP_QUEUE_NAME}, ackMode = "MANUAL", containerFactory = "kimiContainerFactory")
     public void receiveMessageToKimi(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
         log.info("KimiAI receiveMessage message = {}", message);
         channel.basicQos(1);
@@ -165,7 +168,12 @@ public class BiMessageConsumer {
         // 定义重试器
         Retryer<String[]> retryer = getRetryer();
         String input = buildUserInputFromMongo(chart);
-        // todo：根据类型去选择对应的分析模型
+        // todo：根据策略模式去选择对应的分析模型
+        // 分析的依据：
+        // 用户的身份 普通用户：8K以下
+
+        // 用户的选择
+
         String[] result;
         try {
             result =  retryer.call(new Callable<String[]>() {

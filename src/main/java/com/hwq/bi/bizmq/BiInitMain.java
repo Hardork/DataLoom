@@ -30,11 +30,23 @@ public class BiInitMain {
             Map<String, Object> arguments = new HashMap<>();
             arguments.put("x-dead-letter-exchange", BiMqConstant.BI_DEAD_EXCHANGE_NAME);
             arguments.put("x-dead-letter-routing-key", BiMqConstant.DEAD_ROUTING_KEY);
-            // 设置延迟队列的ttl 也就是延迟消息的时间 5min
-            arguments.put("x-message-ttl", 5 * 60 * 1000);
+            // 设置延迟队列的ttl 也就是延迟消息的时间 10min
+            arguments.put("x-message-ttl", 10 * 60 * 1000);
             // 声明普通队列
             channel.queueDeclare(queueName, true, false, false, arguments);
             channel.queueBind(queueName, EXCHANGE_NAME,  BiMqConstant.BI_ROUTING_KEY);
+
+
+            // 创建VIP交换机
+            String VIP_EXCHANGE_NAME =  BiMqConstant.BI_VIP_EXCHANGE_NAME;
+            channel.exchangeDeclare(VIP_EXCHANGE_NAME, "direct", true, false, false, null);
+
+            // 创建队列，分配一个队列名称
+            String vipQueueName = BiMqConstant.BI_VIP_QUEUE_NAME;
+            // 声明VIP队列
+            channel.queueDeclare(vipQueueName, true, false, false, null);
+            channel.queueBind(vipQueueName, VIP_EXCHANGE_NAME,  BiMqConstant.BI_VIP_ROUTING_KEY);
+
 
             // 创建死信交换机
             String DEAD_EXCHANGE_NAME = BiMqConstant.BI_DEAD_EXCHANGE_NAME;
@@ -45,7 +57,6 @@ public class BiInitMain {
             channel.queueDeclare(deadQueueName, true, false,false, null);
             channel.queueBind(deadQueueName, DEAD_EXCHANGE_NAME, BiMqConstant.DEAD_ROUTING_KEY);
             System.out.println("创建完毕");
-            return;
         } catch (Exception e) {
             System.out.println(e);
         }

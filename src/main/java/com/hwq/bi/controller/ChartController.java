@@ -354,7 +354,7 @@ public class ChartController {
         ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length() > 100, ErrorCode.PARAMS_ERROR, "名称过长");
         ThrowUtils.throwIf(dataId == null, ErrorCode.PARAMS_ERROR, "数据集id不得为空");
         User loginUser = userService.getLoginUser(request);
-        // 防止投喂给AI的数据太大
+        ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
         Long chartId = chartService.genChartByAiWithDataAsyncMq(name, goal, chartType, dataId, loginUser);
         // 响应
         BiResponse biResponse = new BiResponse();

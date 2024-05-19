@@ -20,6 +20,16 @@ public class BiMessageProducer {
     }
 
     /**
+     * 发送消息
+     * @param message
+     * @param exchangeName
+     * @param routingKey
+     */
+    public void sendMessage(String message, String exchangeName, String routingKey) {
+        rabbitTemplate.convertAndSend(exchangeName, routingKey, message);
+    }
+
+    /**
      * 发送订单
      * @param message
      */

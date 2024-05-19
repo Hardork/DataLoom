@@ -28,7 +28,19 @@ public interface RoleService {
      * 获取去往队列的标识
      * @return
      */
-    String goToQueueTag();
+    String goToQueueName();
+
+    /**
+     * 获取去往交换机的routing_key
+     * @return
+     */
+    String RoutingKey();
+
+    /**
+     * 发送消息到MQ
+     * @return
+     */
+    void sendMessageToMQ(String message);
 
     /**
      * 最大上传文件大小

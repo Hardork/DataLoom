@@ -17,6 +17,8 @@ import com.hwq.bi.model.entity.User;
 import com.hwq.bi.model.entity.UserData;
 import com.hwq.bi.service.ChartService;
 import com.hwq.bi.service.UserDataService;
+import com.hwq.bi.service.impl.role_info.RoleService;
+import com.hwq.bi.service.impl.role_info.RoleStrategyFactory;
 import com.hwq.bi.utils.SqlUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -38,6 +40,9 @@ public class ChartServiceImpl extends ServiceImpl<ChartMapper, Chart>
 
     @Resource
     private BiMessageProducer biMessageProducer;
+
+    @Resource
+    private RoleStrategyFactory roleStrategyFactory;
 
     @Override
     public void validChart(Chart chart, boolean add) {
@@ -97,10 +102,21 @@ public class ChartServiceImpl extends ServiceImpl<ChartMapper, Chart>
         UserData userData = userDataService.getById(dataId);
         ThrowUtils.throwIf(userData == null, ErrorCode.PARAMS_ERROR, "请求数据集不存在");
 
-        // 鉴权
-        ThrowUtils.throwIf(!loginUser.getId().equals(userData.getUserId()), ErrorCode.NO_AUTH_ERROR);
+        // 校验token数
 
-        // 插入到数据库
+
+        // 鉴权data
+        ThrowUtils.throwIf(!loginUser.getId().equals(userData.getUserId()), ErrorCode.NO_AUTH_ERROR);
+        // 初始化chart，设置状态为wait（等待中）
+        long newChartId = initChart(name, goal, chartType, loginUser, userData);
+        // 发送任务到队列中
+        RoleService roleStrategy = roleStrategyFactory.getRoleStrategy(loginUser.getUserRole());
+        ThrowUtils.throwIf(roleStrategy == null, ErrorCode.PARAMS_ERROR);
+        roleStrategy.sendMessageToMQ(String.valueOf(newChartId));
+        return newChartId;
+    }
+
+    private long initChart(String name, String goal, String chartType, User loginUser, UserData userData) {
         Chart chart = new Chart();
         chart.setName(name);
         chart.setGoal(goal);
@@ -111,7 +127,6 @@ public class ChartServiceImpl extends ServiceImpl<ChartMapper, Chart>
         chart.setUserId(loginUser.getId());
         boolean saveResult = save(chart);
         long newChartId = chart.getId();
-        biMessageProducer.sendMessage(String.valueOf(newChartId));
         ThrowUtils.throwIf(!saveResult, ErrorCode.SYSTEM_ERROR, "图表保存失败");
         return newChartId;
     }

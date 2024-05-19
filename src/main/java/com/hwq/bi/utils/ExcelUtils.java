@@ -79,6 +79,11 @@ public class ExcelUtils {
     }
 
 
+    /**
+     * 将数据保存到Mongo中
+     * @param multipartFile
+     * @param id
+     */
     public void saveDataToMongo(MultipartFile multipartFile, Long id) {
         // 读取数据
         List<Map<Integer, String>> list = null;
@@ -98,7 +103,7 @@ public class ExcelUtils {
         // 创建表
         List<String> headerList = headerMap.values().stream().filter(ObjectUtils::isNotEmpty).map(s -> s.replace(".", "_")).
                 collect(Collectors.toList());
-
+        // 统计字数
         try {
             List<ChartData> insertData = new ArrayList<>();
             // 获取封装后的数据
@@ -116,6 +121,14 @@ public class ExcelUtils {
         }
     }
 
+
+
+    /**
+     * 封装一行的数据成ChartData
+     * @param header 标题行
+     * @param data 数据行
+     * @return
+     */
     public ChartData getDataMap(List<String> header, List<String> data) {
         if (header.size() != data.size()) {
             return null;
@@ -123,7 +136,6 @@ public class ExcelUtils {
         HashMap<String, Object> map = new HashMap<>();
         for (int i = 0; i < header.size(); i++) {
             map.put(header.get(i), data.get(i));
-
         }
         return new ChartData()
                 .setData(map);
@@ -133,6 +145,11 @@ public class ExcelUtils {
         mongoTemplate.insert(chartDataList, "chart_" + chartId);
     }
 
+    /**
+     * 将mongo中的数据转为CSV格式（节约token）
+     * @param chartId
+     * @return
+     */
     public String mongoToCSV(Long chartId) {
         List<ChartData> dataList = mongoTemplate.findAll(ChartData.class, UserDataConstant.USER_CHART_DATA_PREFIX + chartId);
         if (dataList.isEmpty()) {
