@@ -159,7 +159,6 @@ public class ChartController {
         chart.setUserId(loginUser.getId());
         boolean saveResult = chartService.save(chart);
         ThrowUtils.throwIf(!saveResult, ErrorCode.SYSTEM_ERROR, "图表保存失败");
-
         // todo 建议处理任务队列满了后，抛异常的情况
         CompletableFuture.runAsync(() -> {
             // 先修改图表任务状态为 “执行中”。等执行成功后，修改为 “已完成”、保存执行结果；执行失败后，状态修改为 “失败”，记录任务失败信息。
@@ -287,8 +286,7 @@ public class ChartController {
     @BiService
     @CheckPoint(needPoint = 2)
     @RateLimiter(ratePerSecond = 2, key = "genChartByAi_")
-    public BaseResponse<BiResponse> genChartByAiAsyncMqV3(@RequestPart("file") MultipartFile multipartFile,
-                                                          GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) {
+    public BaseResponse<BiResponse> genChartByAiAsyncMqV3(@RequestPart("file") MultipartFile multipartFile, GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) {
         String name = genChartByAiRequest.getName();
         String goal = genChartByAiRequest.getGoal();
         String chartType = genChartByAiRequest.getChartType();

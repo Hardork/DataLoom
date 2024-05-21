@@ -43,6 +43,7 @@ public class BiInitMain {
 
             // 创建队列，分配一个队列名称
             String vipQueueName = BiMqConstant.BI_VIP_QUEUE_NAME;
+
             // 声明VIP队列
             channel.queueDeclare(vipQueueName, true, false, false, null);
             channel.queueBind(vipQueueName, VIP_EXCHANGE_NAME,  BiMqConstant.BI_VIP_ROUTING_KEY);

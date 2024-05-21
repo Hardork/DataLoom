@@ -80,7 +80,7 @@ public class ExcelUtils {
 
 
     /**
-     * 将数据保存到Mongo中
+     * 将用户上传的Excel保存到Mongo中
      * @param multipartFile
      * @param id
      */
@@ -177,6 +177,11 @@ public class ExcelUtils {
 
     }
 
+    /**
+     * 将用户上传的Excel存储到MySQL中
+     * @param multipartFile
+     * @param id
+     */
     @Transactional
     public void saveDataToMySQL(MultipartFile multipartFile, Long id) {
         // 读取数据
@@ -194,7 +199,7 @@ public class ExcelUtils {
             return;
         }
         // 读取表头
-        LinkedHashMap<Integer, String> headerMap = (LinkedHashMap) list.get(0);// ["日期", "字符串", "小树"]
+        LinkedHashMap<Integer, String> headerMap = (LinkedHashMap) list.get(0);// ["日期", "字符串", "小数"]
         // 创建表
         List<String> headerList = headerMap.values().stream().filter(ObjectUtils::isNotEmpty).collect(Collectors.toList());
         try {

@@ -2,6 +2,10 @@ package com.hwq.bi.bizmq.test;
 
 import com.rabbitmq.client.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import static org.springframework.amqp.rabbit.core.RabbitAdmin.QUEUE_NAME;
 
 /**
@@ -14,7 +18,6 @@ public class DoubleConsumer {
 
     //消费者
     public static void main(String[] args) throws Exception {
-
         ConnectionFactory factory = new ConnectionFactory();
         // 设置服务端的地址、端口、用户名和密码...
         factory.setHost("127.0.0.1");

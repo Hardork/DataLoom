@@ -101,11 +101,13 @@ public class Kimi {
         chart.setChartType("折线图");
         chart.setGoal("随意分析");
         chart.setChartData(data);
-        List<Message> messages = CollUtil.newArrayList(
-                new Message(RoleEnum.system.name(), prompt),
-                new Message(RoleEnum.user.name(), buildUserInput(chart))
-        );
-        System.out.println(MoonshotAiUtils.chat("moonshot-v1-32k",messages));
+        System.out.println(prompt);
+        System.out.println(buildUserInput(chart));
+//        List<Message> messages = CollUtil.newArrayList(
+//                new Message(RoleEnum.system.name(), prompt),
+//                new Message(RoleEnum.user.name(), buildUserInput(chart))
+//        );
+//        System.out.println(MoonshotAiUtils.chat("moonshot-v1-32k",messages));
     }
 
     private static String buildUserInput(Chart chart) {
