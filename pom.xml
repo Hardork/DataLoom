@@ -175,6 +175,12 @@
             <scope>runtime</scope>
             <optional>true</optional>
         </dependency>
+        <!--   Druid     -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid</artifactId>
+            <version>1.2.8</version> <!-- 请使用最新的版本号 -->
+        </dependency>
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>

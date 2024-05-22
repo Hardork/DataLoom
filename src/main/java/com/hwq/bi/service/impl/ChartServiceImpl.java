@@ -39,9 +39,6 @@ public class ChartServiceImpl extends ServiceImpl<ChartMapper, Chart>
     private UserDataService userDataService;
 
     @Resource
-    private BiMessageProducer biMessageProducer;
-
-    @Resource
     private RoleStrategyFactory roleStrategyFactory;
 
     @Override
@@ -101,9 +98,6 @@ public class ChartServiceImpl extends ServiceImpl<ChartMapper, Chart>
         // 查询对应的dataId
         UserData userData = userDataService.getById(dataId);
         ThrowUtils.throwIf(userData == null, ErrorCode.PARAMS_ERROR, "请求数据集不存在");
-
-        // 校验token数
-
 
         // 鉴权data
         ThrowUtils.throwIf(!loginUser.getId().equals(userData.getUserId()), ErrorCode.NO_AUTH_ERROR);

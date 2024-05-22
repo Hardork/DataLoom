@@ -367,7 +367,6 @@ public class ChartController {
         ThrowUtils.throwIf(reGenChartRequest == null , ErrorCode.PARAMS_ERROR);
         Long chartId = reGenChartRequest.getChartId();
         ThrowUtils.throwIf( chartId == null , ErrorCode.PARAMS_ERROR);
-
         // 获取用户信息
         User loginUser = userService.getLoginUser(request);
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
@@ -387,7 +386,6 @@ public class ChartController {
         // 构造用户输入
         StringBuilder userInput = new StringBuilder();
         userInput.append("分析需求：").append("\n");
-
         // 拼接分析目标
         String userGoal = goal;
         if (StringUtils.isNotBlank(chartType)) {
