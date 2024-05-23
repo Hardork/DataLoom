@@ -94,16 +94,14 @@ public class ChartServiceImpl extends ServiceImpl<ChartMapper, Chart>
         ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length() > 100, ErrorCode.PARAMS_ERROR, "名称过长");
         ThrowUtils.throwIf(dataId == null, ErrorCode.PARAMS_ERROR, "数据集id不得为空");
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
-
         // 查询对应的dataId
         UserData userData = userDataService.getById(dataId);
         ThrowUtils.throwIf(userData == null, ErrorCode.PARAMS_ERROR, "请求数据集不存在");
-
-        // 鉴权data
+        // 判断数据集是否合法
         ThrowUtils.throwIf(!loginUser.getId().equals(userData.getUserId()), ErrorCode.NO_AUTH_ERROR);
         // 初始化chart，设置状态为wait（等待中）
         long newChartId = initChart(name, goal, chartType, loginUser, userData);
-        // 发送任务到队列中
+        // 根据用户身份将消息转发到不同的队列中
         RoleService roleStrategy = roleStrategyFactory.getRoleStrategy(loginUser.getUserRole());
         ThrowUtils.throwIf(roleStrategy == null, ErrorCode.PARAMS_ERROR);
         roleStrategy.sendMessageToMQ(String.valueOf(newChartId));

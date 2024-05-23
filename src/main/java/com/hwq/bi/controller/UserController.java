@@ -139,6 +139,11 @@ public class UserController {
     }
 
 
+    /**
+     * 游客登陆
+     * @param request
+     * @return
+     */
     @GetMapping("/test")
     public BaseResponse<LoginUserVO> userTest(HttpServletRequest request) {
         LoginUserVO loginUserVO = userService.userLogin("experience", "12345678", request);

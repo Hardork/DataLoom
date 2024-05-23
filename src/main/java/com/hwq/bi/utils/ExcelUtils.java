@@ -201,7 +201,8 @@ public class ExcelUtils {
         // 读取表头
         LinkedHashMap<Integer, String> headerMap = (LinkedHashMap) list.get(0);// ["日期", "字符串", "小数"]
         // 创建表
-        List<String> headerList = headerMap.values().stream().filter(ObjectUtils::isNotEmpty).collect(Collectors.toList());
+        List<String> headerList = headerMap.values().stream().filter(ObjectUtils::isNotEmpty).map(s -> s.replace(".", "_")).
+                collect(Collectors.toList());
         try {
             chartMapper.genChartDataTable(id, headerList);
             // 读取数据
@@ -215,7 +216,7 @@ public class ExcelUtils {
             log.error(e.getMessage());
             // 判断表是否已经创建，创建了进行删除
             chartMapper.DropTableAfterException(id);
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请根据文件规范，检查上传文件是否正常");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请根据文件规范，检查上传文件是否正常,列字段不能包含特殊字符");
         }
     }
 

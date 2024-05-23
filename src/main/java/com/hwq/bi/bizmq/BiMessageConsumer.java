@@ -92,21 +92,15 @@ public class BiMessageConsumer {
         // 执行成功后，修改为 “已完成”、保存执行结果；
         // 执行失败后，状态修改为 “失败”，记录任务失败信息。
         if (!updateChartRunning(channel, deliveryTag, chart)) return;
-
         String input = buildUserInputFromMongo(chart);
-
         // 超时重试机制
         // 定义重试器
         Retryer<String[]> retryer = getRetryer();
-
         String[] result;
         try {
-            result =  retryer.call(new Callable<String[]>() {
-                @Override
-                public String[] call() throws Exception { // 提交任务
-                    String chatRes = aiManager.doChat(CommonConstant.BI_MODEL_ID, input);
-                    return chatRes.split("【【【【【");
-                }
+            result =  retryer.call(() -> { // 提交任务
+                String chatRes = aiManager.doChat(CommonConstant.BI_MODEL_ID, input);
+                return chatRes.split("【【【【【");
             });
         } catch (RetryException e) { // 重试器抛出异常，说明重试了两次还是失败了,设置失败
             // 将任务设置为失败，不再重新排队
@@ -114,15 +108,12 @@ public class BiMessageConsumer {
             handleChartUpdateError(chart.getId(), "AI生成错误，请检查文件内容，如有异常请联系管理员");
             return;
         }
-
         // 提炼结果
         String genChart = result[1].trim(); // 生成的图表option
         String genResult = result[2].trim(); // 生成的分析结果
         // 更新图表状态为succeed
         updateChartSucceed(channel, deliveryTag, chart, genChart, genResult);
 
-        // 将图表数据缓存到redis中去
-        saveToRedis(chartId, chart, genChart, genResult);
 
         // 通知入库
         savaToUserMessage(chart);
@@ -196,8 +187,6 @@ public class BiMessageConsumer {
         // 更新图表状态为succeed
         updateChartSucceed(channel, deliveryTag, chart, genChart, genResult);
 
-        // 将图表数据缓存到redis中去
-        saveToRedis(chartId, chart, genChart, genResult);
 
         // 通知入库
         savaToUserMessage(chart);
