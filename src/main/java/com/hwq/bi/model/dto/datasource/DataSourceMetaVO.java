@@ -8,7 +8,7 @@ import lombok.Data;
  * @description 数据源信息
  */
 @Data
-public class DataSourceMetaInfo {
+public class DataSourceMetaVO {
     /**
      * 名称
      */

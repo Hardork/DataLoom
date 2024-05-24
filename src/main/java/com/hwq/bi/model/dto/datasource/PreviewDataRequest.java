@@ -8,6 +8,7 @@ import lombok.Data;
  * @description
  */
 @Data
-public class PreviewDataRequest extends DataSourceConfig{
+public class PreviewDataRequest{
+    private String datasourceId;
     private String dataName;
 }

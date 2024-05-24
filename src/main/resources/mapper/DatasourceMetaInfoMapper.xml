@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hwq.bi.mapper.DatasourceMetaInfoMapper">
+
+    <resultMap id="BaseResultMap" type="com.hwq.bi.model.entity.DatasourceMetaInfo">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="userId" column="userId" jdbcType="BIGINT"/>
+            <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="description" column="description" jdbcType="VARCHAR"/>
+            <result property="type" column="type" jdbcType="TINYINT"/>
+            <result property="host" column="host" jdbcType="VARCHAR"/>
+            <result property="port" column="port" jdbcType="VARCHAR"/>
+            <result property="dataBaseName" column="dataBaseName" jdbcType="VARCHAR"/>
+            <result property="userName" column="userName" jdbcType="VARCHAR"/>
+            <result property="password" column="password" jdbcType="VARCHAR"/>
+            <result property="initConNum" column="initConNum" jdbcType="TINYINT"/>
+            <result property="maxConNum" column="maxConNum" jdbcType="TINYINT"/>
+            <result property="timeoutSecond" column="timeoutSecond" jdbcType="INTEGER"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+            <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,userId,name,
+        description,type,host,
+        port,dataBaseName,userName,
+        password,initConNum,maxConNum,
+        timeoutSecond,createTime,updateTime,
+        isDelete
+    </sql>
+</mapper>

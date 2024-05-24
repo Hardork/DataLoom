@@ -9,7 +9,6 @@ import com.hwq.bi.common.ErrorCode;
  * 
  */
 public class BusinessException extends RuntimeException {
-
     /**
      * 错误码
      */

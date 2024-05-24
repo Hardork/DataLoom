@@ -17,11 +17,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 /**
- * 数据库连接池
+ * 连接用户数据库工作类
  */
 @Slf4j
 public class DruidUtil {
+
+    private static final String secretKey = "uUXsN6okXYqsh0BB";
 
     /**
      * 校验连接
@@ -159,6 +162,8 @@ public class DruidUtil {
         String dataBaseName = dataSourceConfig.getDataBaseName();
         String userName = dataSourceConfig.getUserName();
         String password = dataSourceConfig.getPassword();
+        // 解密
+        password = AESUtils.decrypt(password, secretKey);
         // 构造URL
         StringBuilder url = new StringBuilder();
         url.append("jdbc:mysql://" )
@@ -176,16 +181,16 @@ public class DruidUtil {
         return conn;
     }
 
-    public static void main(String[] args) throws SQLException {
-        DataSourceConfig dataSourceConfig = new DataSourceConfig();
-        dataSourceConfig.setHost("47.98.240.155");
-        dataSourceConfig.setPort("3307");
-        dataSourceConfig.setDataBaseName("bi");
-        dataSourceConfig.setUserName("root");
-        dataSourceConfig.setPassword("hwq2003121");
-        dataSourceConfig.setPort("3306");
-//        DruidUtil.structure(dataSourceConfig, "ai_role");
-        DruidUtil.getPreviewData(dataSourceConfig, "ai_role");
-    }
+//    public static void main(String[] args) throws SQLException {
+//        DataSourceConfig dataSourceConfig = new DataSourceConfig();
+//        dataSourceConfig.setHost("47.98.240.155");
+//        dataSourceConfig.setPort("3307");
+//        dataSourceConfig.setDataBaseName("bi");
+//        dataSourceConfig.setUserName("root");
+//        dataSourceConfig.setPassword("hwq2003121");
+//        dataSourceConfig.setPort("3306");
+////        DruidUtil.structure(dataSourceConfig, "ai_role");
+//        DruidUtil.getPreviewData(dataSourceConfig, "ai_role");
+//    }
 
 }

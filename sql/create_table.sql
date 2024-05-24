@@ -542,3 +542,25 @@ create table user_data_permission (
     updateTime  datetime      default CURRENT_TIMESTAMP null,
     isDelete    tinyint       default 0                 null
 );
+
+
+# 数据源元数据
+drop table datasource_meta_info;
+create table datasource_meta_info (
+    id bigint primary key auto_increment,
+    userId bigint not null comment '创建人id',
+    name varchar(255) not null default '未命名数据源' comment '数据源名称',
+    description varchar(512) null comment '数据源描述',
+    type tinyint null default 0 comment '数据源类型',
+    host varchar(40) not null comment '主机地址',
+    port varchar(16) not null comment '端口号',
+    dataBaseName varchar(100) not null comment '数据库名称',
+    userName varchar(100) not null comment '用户名',
+    password varchar(255) not null comment '密码',
+    initConNum tinyint null default 5 comment '初始连接数',
+    maxConNum tinyint null default 10 comment '最大连接数',
+    timeoutSecond int null default 10 comment '连接超时时间',
+    createTime  datetime      default CURRENT_TIMESTAMP null,
+    updateTime  datetime      default CURRENT_TIMESTAMP null,
+    isDelete    tinyint       default 0                 null
+)

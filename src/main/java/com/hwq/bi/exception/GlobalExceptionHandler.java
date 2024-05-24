@@ -4,6 +4,7 @@ import com.hwq.bi.common.BaseResponse;
 import com.hwq.bi.common.ErrorCode;
 import com.hwq.bi.common.ResultUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -27,5 +28,11 @@ public class GlobalExceptionHandler {
     public BaseResponse<?> runtimeExceptionHandler(RuntimeException e) {
         log.error("RuntimeException", e);
         return ResultUtils.error(ErrorCode.SYSTEM_ERROR, "系统错误");
+    }
+
+    @ExceptionHandler(BindException.class)
+    public BaseResponse<?> bindExceptionHandler(BindException e) {
+        log.error("bindException", e);
+        return ResultUtils.error(ErrorCode.PARAMS_ERROR , e.getBindingResult().getAllErrors().get(0).getDefaultMessage());
     }
 }
