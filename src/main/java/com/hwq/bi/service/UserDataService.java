@@ -5,6 +5,7 @@ import com.hwq.bi.model.entity.User;
 import com.hwq.bi.model.entity.UserData;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.hwq.bi.model.vo.DataCollaboratorsVO;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -27,6 +28,7 @@ public interface UserDataService extends IService<UserData> {
      * 创建用户数据集，并设置权限
      */
     Long save(User loginUser, String dataName, String description);
+    Long save(User loginUser, String dataName, String description, MultipartFile multipartFile);
 
     /**
      * 生成数据集分享链接

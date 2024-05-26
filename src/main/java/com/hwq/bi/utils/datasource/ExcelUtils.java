@@ -1,14 +1,13 @@
-package com.hwq.bi.utils;
+package com.hwq.bi.utils.datasource;
 
 import cn.hutool.core.collection.CollUtil;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.support.ExcelTypeEnum;
 import com.hwq.bi.common.ErrorCode;
-import com.hwq.bi.constant.ChartConstant;
 import com.hwq.bi.constant.UserDataConstant;
 import com.hwq.bi.exception.BusinessException;
-import com.hwq.bi.exception.ThrowUtils;
 import com.hwq.bi.mapper.ChartMapper;
+import com.hwq.bi.model.dto.datasource.TableFieldInfo;
 import com.hwq.bi.mongo.entity.ChartData;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -20,10 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -84,7 +79,7 @@ public class ExcelUtils {
      * @param multipartFile
      * @param id
      */
-    public void saveDataToMongo(MultipartFile multipartFile, Long id) {
+    public List<TableFieldInfo> saveDataToMongo(MultipartFile multipartFile, Long id) {
         // 读取数据
         List<Map<Integer, String>> list = null;
         try {
@@ -97,19 +92,39 @@ public class ExcelUtils {
             log.error("表格处理错误", e);
         }
         if (CollUtil.isEmpty(list)) {
-            return;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "表格数据为空");
         }
-        LinkedHashMap<Integer, String> headerMap = (LinkedHashMap) list.get(0);// ["日期", "字符串", "小树"]
-        // 创建表
-        List<String> headerList = headerMap.values().stream().filter(ObjectUtils::isNotEmpty).map(s -> s.replace(".", "_")).
-                collect(Collectors.toList());
+        LinkedHashMap<Integer, String> headerMap = (LinkedHashMap) list.get(0);
+        // 取出表头
+        List<String> headerList = new ArrayList<>(headerMap.values());
+        // 校验表头是否包含特殊字符
+        MongoDBColumnValidator.validateColumnNames(headerList);
+        // 存储字段头
+        List<TableFieldInfo> fields = new ArrayList<>();
+        // 初始化表头字段
+        for (String s : headerList) {
+            TableFieldInfo tableFiled = new TableFieldInfo();
+            tableFiled.setFieldType(null);
+            tableFiled.setName(s);
+            tableFiled.setOriginName(s);
+            fields.add(tableFiled);
+        }
+
         // 统计字数
         try {
             List<ChartData> insertData = new ArrayList<>();
             // 获取封装后的数据
             for (int i = 1; i < list.size(); i++) {
                 LinkedHashMap<Integer, String> dataMap = (LinkedHashMap) list.get(i); // [1, 2]
-                List<String> dataList = dataMap.values().stream().filter(ObjectUtils::isNotEmpty).collect(Collectors.toList());
+                // dataList存储当前行所有列的数据
+                List<String> dataList = new ArrayList<>(dataMap.values());
+                // 校验数据类型
+                // 遍历每一个元素
+                for (int j = 0; j < dataList.size(); j++) {
+                    if (j < headerList.size()) {
+                        cellType(dataList.get(j), fields.get(j));
+                    }
+                }
                 ChartData chartData = getDataMap(headerList, dataList);
                 if (chartData != null) insertData.add(chartData);
             }
@@ -119,8 +134,54 @@ public class ExcelUtils {
             log.error(e.getMessage());
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "请根据文件规范，检查上传文件是否正常");
         }
+        return fields;
     }
 
+    /**
+     * 类型推断
+     *
+     * @param value
+     * @param tableFieldInfo
+     * @return
+     */
+    private void cellType(String value, TableFieldInfo tableFieldInfo) {
+        if (StringUtils.isEmpty(value)) {
+            return;
+        }
+        String type = cellType(value);
+        if (tableFieldInfo.getFieldType() == null) {
+            tableFieldInfo.setFieldType(type);
+        } else {
+            if (type.equalsIgnoreCase("TEXT")) {
+                tableFieldInfo.setFieldType(type);
+            }
+            if (type.equalsIgnoreCase("DOUBLE") && tableFieldInfo.getFieldType().equalsIgnoreCase("LONG")) {
+                tableFieldInfo.setFieldType(type);
+            }
+
+        }
+
+    }
+
+    private String cellType(String value) {
+        if( value.length() > 19){
+            return "TEXT";
+        }
+        if (DateTimeValidator.isDateTime(value)) {
+            return "DATETIME";
+        }
+        try {
+            Double d = Double.valueOf(value);
+            double eps = 1e-10;
+            if (d - Math.floor(d) < eps) {
+                return "LONG";
+            } else {
+                return "DOUBLE";
+            }
+        } catch (Exception e2) {
+            return "TEXT";
+        }
+    }
 
 
     /**

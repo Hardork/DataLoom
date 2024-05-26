@@ -1,12 +1,16 @@
 package com.hwq.bi.service.impl;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.crypto.digest.DigestUtil;
+import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hwq.bi.common.ErrorCode;
 import com.hwq.bi.exception.BusinessException;
 import com.hwq.bi.exception.ThrowUtils;
+import com.hwq.bi.model.dto.datasource.TableFieldInfo;
 import com.hwq.bi.model.dto.user_data.ShareUserDataRequest;
+import com.hwq.bi.model.entity.DatasourceMetaInfo;
 import com.hwq.bi.model.entity.User;
 import com.hwq.bi.model.entity.UserData;
 import com.hwq.bi.model.entity.UserDataPermission;
@@ -14,15 +18,19 @@ import com.hwq.bi.model.enums.UserDataPermissionEnum;
 import com.hwq.bi.model.enums.UserDataTypeEnum;
 import com.hwq.bi.model.vo.DataCollaboratorsVO;
 import com.hwq.bi.model.vo.UserVO;
+import com.hwq.bi.service.DatasourceMetaInfoService;
 import com.hwq.bi.service.UserDataPermissionService;
 import com.hwq.bi.service.UserDataService;
 import com.hwq.bi.mapper.UserDataMapper;
 import com.hwq.bi.service.UserService;
+import com.hwq.bi.utils.datasource.ExcelUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 
@@ -59,6 +67,12 @@ public class UserDataServiceImpl extends ServiceImpl<UserDataMapper, UserData>
     @Resource
     private UserService userService;
 
+    @Resource
+    private DatasourceMetaInfoService datasourceMetaInfoService;
+
+    @Resource
+    private ExcelUtils excelUtils;
+
     @Override
     public Boolean deleteUserData(Long id, User loginUser) {
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
@@ -77,6 +91,44 @@ public class UserDataServiceImpl extends ServiceImpl<UserDataMapper, UserData>
 
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Long save(User loginUser, String dataName, String description, MultipartFile multipartFile) {
+        ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
+        ThrowUtils.throwIf(StringUtils.isEmpty(dataName), ErrorCode.NOT_LOGIN_ERROR);
+        UserData userData = new UserData();
+        userData.setUserId(loginUser.getId());
+        userData.setDataName(dataName);
+        userData.setDescription(description);
+        userData.setUploadType(UserDataTypeEnum.EXCEL.getValue());
+        // 生成对应读写密钥
+        String readSecretKey = DigestUtil.md5Hex(SECRET_SALT + loginUser.getUserAccount() + RandomUtil.randomNumbers(5));
+        String writeSecretKey = DigestUtil.md5Hex(SECRET_SALT + loginUser.getUserAccount() + RandomUtil.randomNumbers(8));
+        userData.setReadSecretKey(readSecretKey);
+        userData.setWriteSecretKey(writeSecretKey);
+        // 生成数据集元数据表
+        boolean save = this.save(userData);
+        ThrowUtils.throwIf(!save, ErrorCode.SYSTEM_ERROR);
+        // 生成数据集权限表
+        UserDataPermission userDataPermission = new UserDataPermission();
+        userDataPermission.setDataId(userData.getId());
+        userDataPermission.setUserId(loginUser.getId());
+        userDataPermission.setPermission(UserDataPermissionEnum.WRITE.getValue());
+        boolean savePermission = userDataPermissionService.save(userDataPermission);
+        // 将数据存储到MySQL中
+        excelUtils.saveDataToMongo(multipartFile, userData.getId());
+        ThrowUtils.throwIf(!savePermission, ErrorCode.SYSTEM_ERROR);
+        // 将数据存储到MongoDB中
+        List<TableFieldInfo> tableFieldInfos = excelUtils.saveDataToMongo(multipartFile, userData.getId());
+        // 更新元数据的fieldType
+        String tableFieldInfosString = JSON.toJSONString(tableFieldInfos);
+        userData.setFieldTypeInfo(tableFieldInfosString);
+        boolean update = this.updateById(userData);
+        ThrowUtils.throwIf(!update, ErrorCode.SYSTEM_ERROR);
+        return userData.getId();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public Long save(User loginUser, String dataName, String description) {
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
         ThrowUtils.throwIf(StringUtils.isEmpty(dataName), ErrorCode.NOT_LOGIN_ERROR);
@@ -180,14 +232,34 @@ public class UserDataServiceImpl extends ServiceImpl<UserDataMapper, UserData>
         QueryWrapper<UserDataPermission> qw = new QueryWrapper<>();
         qw.eq("userId", loginUser.getId());
         qw.select("dataId");
+        // 查询对应的excel存储的地方
         List<Long> dataIds = userDataPermissionService.list(qw)
                 .stream()
                 .map(UserDataPermission::getDataId)
                 .collect(Collectors.toList());
+        List<UserData> res = this.listByIds(dataIds);
+        // 查询对应MySQL存储的地方
+        LambdaQueryWrapper<DatasourceMetaInfo> lqw = new LambdaQueryWrapper<>();
+        lqw.eq(DatasourceMetaInfo::getUserId, loginUser.getId());
+        List<DatasourceMetaInfo> list = datasourceMetaInfoService.list(lqw);
+        List<UserData> mysqlDataList = list.stream().map(this::datasourceMetaInfoToUserData).collect(Collectors.toList());
+        res.addAll(mysqlDataList);
         if (dataIds.isEmpty()) {
             return new ArrayList<>();
         }
-        return this.listByIds(dataIds);
+        return res;
+    }
+
+    public UserData datasourceMetaInfoToUserData(DatasourceMetaInfo datasourceMetaInfo) {
+        UserData userData = new UserData();
+        userData.setId(datasourceMetaInfo.getId());
+        userData.setUserId(datasourceMetaInfo.getUserId());
+        userData.setDataName(datasourceMetaInfo.getName());
+        userData.setDescription(datasourceMetaInfo.getDescription());
+        userData.setUploadType(1);
+        userData.setCreateTime(datasourceMetaInfo.getCreateTime());
+        userData.setUpdateTime(datasourceMetaInfo.getUpdateTime());
+        return userData;
     }
 
     /**

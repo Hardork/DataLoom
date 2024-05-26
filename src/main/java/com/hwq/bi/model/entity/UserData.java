@@ -42,6 +42,11 @@ public class UserData implements Serializable {
     private Integer uploadType;
 
     /**
+     * 字段类型
+     */
+    private String fieldTypeInfo;
+
+    /**
      * 所有记录
      */
     private Integer totalRecord;

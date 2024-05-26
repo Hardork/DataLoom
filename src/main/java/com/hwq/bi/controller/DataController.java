@@ -22,7 +22,7 @@ import com.hwq.bi.mongo.entity.ChartData;
 import com.hwq.bi.service.MongoService;
 import com.hwq.bi.service.UserDataService;
 import com.hwq.bi.service.UserService;
-import com.hwq.bi.utils.ExcelUtils;
+import com.hwq.bi.utils.datasource.ExcelUtils;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -76,13 +76,15 @@ public class DataController {
         String dataName = uploadUserDataRequest.getDataName();
         ThrowUtils.throwIf(StringUtils.isEmpty(dataName), ErrorCode.PARAMS_ERROR, "数据集名称不得为空");
         String description = uploadUserDataRequest.getDescription();
-        Long id = userDataService.save(loginUser, dataName, description);
+        Long id = userDataService.save(loginUser, dataName, description, multipartFile);
         // 将生成的chartId作为数据表的表名chart_{id}
         // 将用户上传的数据存入到MongoDB中
-        excelUtils.saveDataToMongo(multipartFile, id);
         // 返回mongoDB
         return ResultUtils.success(id);
     }
+
+
+
 
     @PostMapping("/share/userData")
     @ApiOperation("共享用户数据集")

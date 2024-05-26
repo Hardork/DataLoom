@@ -1,5 +1,6 @@
 package com.hwq.bi.model.vo;
 
+import com.hwq.bi.model.dto.datasource.TableFieldInfo;
 import com.hwq.bi.mongo.entity.ChartData;
 import lombok.Data;
 
@@ -16,4 +17,5 @@ public class DataPage {
     private Long size;
     private Long total;
     private List<ChartData> dataList;
+    private List<TableFieldInfo> tableFieldInfosList;
 }

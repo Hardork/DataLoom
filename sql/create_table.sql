@@ -524,12 +524,22 @@ INSERT INTO `user_message` (`id`, `userId`, `description`, `type`, `title`, `cre
 INSERT INTO `user_message` (`id`, `userId`, `description`, `type`, `title`, `createTime`, `updateTime`, `isDelete`, `isRead`, `route`) VALUES (1710630645166280705, 1697633200786403330, '点击查看详情', 1, '分析图表已生成', '2023-10-07 20:18:22', '2023-10-07 20:18:22', 0, 1, '/chart_detail/1710630346942877697');
 INSERT INTO `user_message` (`id`, `userId`, `description`, `type`, `title`, `createTime`, `updateTime`, `isDelete`, `isRead`, `route`) VALUES (1711356088576122882, 1711350501649948674, '点击查看详情', 1, '分析图表已生成', '2023-10-09 20:21:01', '2023-10-09 20:21:01', 0, 1, '/chart_detail/1711355882224754690');
 
-create table user_data (
-    id bigint primary key auto_increment,
-    userId bigint not null comment '创建数据用户',
-    createTime  datetime      default CURRENT_TIMESTAMP null,
-    updateTime  datetime      default CURRENT_TIMESTAMP null,
-    isDelete    tinyint       default 0                 null
+create table user_data
+(
+    id              bigint auto_increment
+        primary key,
+    userId          bigint                                 not null comment '创建数据用户',
+    createTime      datetime     default CURRENT_TIMESTAMP null,
+    updateTime      datetime     default CURRENT_TIMESTAMP null,
+    isDelete        tinyint      default 0                 null,
+    dataName        varchar(255) default '数据集'           null comment '数据集名称',
+    fieldTypeInfo   text                                   null comment '字段类型',
+    description     varchar(512) default ''                null comment '数据集描述',
+    uploadType      tinyint      default 0                 null comment '上传类型',
+    totalRecord     int          default 0                 null comment '记录数',
+    readSecretKey   varchar(255)                           null comment '读密钥',
+    writeSecretKey  varchar(255)                           null comment '写密钥',
+    approvalConfirm tinyint(1)   default 0                 not null comment '审批确认'
 );
 
 
@@ -544,7 +554,8 @@ create table user_data_permission (
 );
 
 
-# 数据源元数据
+
+# 用户数据库元数据
 drop table datasource_meta_info;
 create table datasource_meta_info (
     id bigint primary key auto_increment,

@@ -9,7 +9,6 @@ package com.hwq.bi.controller;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.google.gson.Gson;
 import com.hwq.bi.annotation.*;
 import com.hwq.bi.bizmq.BiMessageProducer;
 import com.hwq.bi.common.BaseResponse;
@@ -18,18 +17,14 @@ import com.hwq.bi.common.ErrorCode;
 import com.hwq.bi.common.ResultUtils;
 
 import com.hwq.bi.constant.ChartConstant;
-import com.hwq.bi.constant.CommonConstant;
 import com.hwq.bi.constant.MessageRouteConstant;
 import com.hwq.bi.manager.AiManager;
-import com.hwq.bi.manager.RedisLimiterManager;
-import com.hwq.bi.mapper.ChartMapper;
 import com.hwq.bi.model.dto.chart.*;
 import com.hwq.bi.model.entity.Chart;
 import com.hwq.bi.model.entity.User;
 import com.hwq.bi.constant.UserConstant;
 import com.hwq.bi.exception.BusinessException;
 import com.hwq.bi.exception.ThrowUtils;
-import com.hwq.bi.model.entity.UserData;
 import com.hwq.bi.model.entity.UserMessage;
 import com.hwq.bi.model.enums.ChartStatusEnum;
 import com.hwq.bi.model.enums.UserMessageTypeEnum;
@@ -40,18 +35,14 @@ import com.hwq.bi.service.UserDataService;
 import com.hwq.bi.service.UserMessageService;
 import com.hwq.bi.service.UserService;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
-import com.hwq.bi.utils.ExcelUtils;
+import com.hwq.bi.utils.datasource.ExcelUtils;
 import com.hwq.bi.websocket.BudgeWebSocket;
 import com.hwq.bi.websocket.UserWebSocket;
 import com.hwq.bi.websocket.vo.WebSocketMsgVO;
@@ -309,7 +300,7 @@ public class ChartController {
         ThrowUtils.throwIf(totalRewardPoints <= 0, ErrorCode.OPERATION_ERROR, "积分不足");
         // 限流判断，每个用户一个限流器 每秒最多访问 2 次
         // 将生成的chartId作为数据表的表名chart_{id}
-        Long id = userDataService.save(loginUser, originalFilename, originalFilename);
+        Long id = userDataService.save(loginUser, originalFilename, originalFilename, multipartFile);
         // 将用户上传的数据存入到MongoDB中
         excelUtils.saveDataToMongo(multipartFile,id);
         // 防止投喂给AI的数据太大

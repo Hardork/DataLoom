@@ -1,10 +1,13 @@
 package com.hwq.bi.service.impl.mongo;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.hwq.bi.common.ErrorCode;
 import com.hwq.bi.constant.UserDataConstant;
 import com.hwq.bi.exception.BusinessException;
 import com.hwq.bi.exception.ThrowUtils;
+import com.hwq.bi.model.dto.datasource.TableFieldInfo;
 import com.hwq.bi.model.entity.User;
 import com.hwq.bi.model.entity.UserData;
 import com.hwq.bi.model.entity.UserDataPermission;
@@ -29,6 +32,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -62,6 +66,13 @@ public class MongoServiceImpl implements MongoService {
         UserData userData = userDataService.getById(dataId);
         ThrowUtils.throwIf(userData == null, ErrorCode.PARAMS_ERROR, "数据不存在");
         checkReadAuth(dataId, loginUser);
+        // 转换TableField中的Str->JSON
+        String fieldTypeInfo = userData.getFieldTypeInfo();
+        List<TableFieldInfo> tableFieldInfos = new ArrayList<>();
+        if (!fieldTypeInfo.isEmpty()) {
+            tableFieldInfos = JSON.parseObject(fieldTypeInfo, new TypeReference<ArrayList<TableFieldInfo>>() {
+            });
+        }
         // 根据条件返回数据
         Pageable pageable = PageRequest.of((int) current, (int) size);
         Query query = new Query();
@@ -78,6 +89,7 @@ public class MongoServiceImpl implements MongoService {
         query.with(pageable);
         List<ChartData> dataList = mongoTemplate.find(query, ChartData.class, "chart_" + dataId);
         DataPage dataPage = new DataPage();
+        dataPage.setTableFieldInfosList(tableFieldInfos);
         dataPage.setDataList(dataList);
         dataPage.setSize(size);
         dataPage.setCurrent(current);
@@ -120,8 +132,6 @@ public class MongoServiceImpl implements MongoService {
         Update update = generateUpdate(data);
         UpdateResult updateResult = mongoTemplate.updateFirst(query, update, "chart_" + dataId);
         if (updateResult.getMatchedCount() == 0l) { // 说明为新增操作
-
-
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "数据不存在");
         }
         return true;
