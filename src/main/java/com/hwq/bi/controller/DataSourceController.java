@@ -7,20 +7,20 @@ import com.hwq.bi.exception.ThrowUtils;
 import com.hwq.bi.model.dto.datasource.DataSourceConfig;
 import com.hwq.bi.model.dto.datasource.PreviewData;
 import com.hwq.bi.model.dto.datasource.PreviewDataRequest;
+import com.hwq.bi.model.dto.datasource.SchemaStructure;
 import com.hwq.bi.model.entity.DatasourceMetaInfo;
 import com.hwq.bi.model.entity.User;
 import com.hwq.bi.service.DatasourceMetaInfoService;
 import com.hwq.bi.service.UserService;
 import com.hwq.bi.utils.datasource.DruidUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * @author HWQ
@@ -48,6 +48,17 @@ public class DataSourceController {
         User loginUser = userService.getLoginUser(request);
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
         return ResultUtils.success(DruidUtil.checkConnectValid(dataSourceConfig));
+    }
+
+    @GetMapping("/getSchemas/{id}")
+    public BaseResponse<List<String>> getSchemas(@PathVariable("id") Long id, HttpServletRequest request) {
+        // 校验参数
+        User loginUser = userService.getLoginUser(request);
+        ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
+        DatasourceMetaInfo datasourceMetaInfo = datasourceMetaInfoService.getById(id);
+        ThrowUtils.throwIf(datasourceMetaInfo == null, ErrorCode.NOT_FOUND_ERROR);
+        ThrowUtils.throwIf(!loginUser.getId().equals(datasourceMetaInfo.getUserId()), ErrorCode.NO_AUTH_ERROR);
+        return ResultUtils.success(datasourceMetaInfoService.getSchemas(datasourceMetaInfo));
     }
 
     /**

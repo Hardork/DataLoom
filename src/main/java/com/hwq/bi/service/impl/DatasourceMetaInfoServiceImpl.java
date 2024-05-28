@@ -1,5 +1,6 @@
 package com.hwq.bi.service.impl;
 import java.util.Date;
+import java.util.List;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hwq.bi.common.ErrorCode;
@@ -8,6 +9,7 @@ import com.hwq.bi.mapper.DatasourceMetaInfoMapper;
 import com.hwq.bi.model.dto.datasource.DataSourceConfig;
 import com.hwq.bi.model.dto.datasource.PreviewData;
 import com.hwq.bi.model.dto.datasource.PreviewDataRequest;
+import com.hwq.bi.model.dto.datasource.SchemaStructure;
 import com.hwq.bi.model.entity.DatasourceMetaInfo;
 import com.hwq.bi.model.entity.User;
 import com.hwq.bi.service.DatasourceMetaInfoService;
@@ -46,6 +48,13 @@ public class DatasourceMetaInfoServiceImpl extends ServiceImpl<DatasourceMetaInf
         boolean save = this.save(datasourceMetaInfo);
         ThrowUtils.throwIf(!save, ErrorCode.SYSTEM_ERROR);
         return true;
+    }
+
+    @Override
+    public List<String> getSchemas(DatasourceMetaInfo datasourceMetaInfo) {
+        DataSourceConfig dataSourceConfig = new DataSourceConfig();
+        BeanUtils.copyProperties(datasourceMetaInfo, dataSourceConfig);
+        return DruidUtil.getSchemas(dataSourceConfig);
     }
 }
 

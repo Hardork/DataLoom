@@ -2,6 +2,7 @@ package com.hwq.bi;
 
 import com.hwq.bi.config.WebSocketConfig;
 import com.hwq.bi.mongo.entity.ChartData;
+import com.hwq.bi.utils.datasource.ExcelUtils;
 import org.bson.types.ObjectId;
 import org.junit.After;
 import org.junit.Before;
@@ -21,6 +22,11 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 
 import javax.annotation.Resource;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 @RunWith(SpringRunner.class)
@@ -35,6 +41,9 @@ public class TmallApplicationTests {
 
     @MockBean
     private ServerEndpointExporter serverEndpointExporter;
+
+    @Resource
+    private ExcelUtils excelUtils;
 
     @Before
     public void init() {
@@ -51,6 +60,56 @@ public class TmallApplicationTests {
 
     }
 
+
+    /**
+     * 测试MongoDB存1W5数据消耗的时间
+     */
+    @Test
+    public void testMongo() {
+        String curDir = System.getProperty("user.dir");
+        // 指定Excel文件的文件名
+        String fileName = "example2.xlsx";  // 请替换为你的Excel文件名
+
+        // 构造文件路径
+        Path filePath = Paths.get(curDir, fileName);
+
+        // 获取InputStream
+        try (InputStream inputStream = Files.newInputStream(filePath)) {
+            // 你可以在这里使用InputStream处理Excel文件
+            long start = System.currentTimeMillis();
+            System.out.println("成功获取文件的InputStream: " + filePath);
+            Long id = excelUtils.saveDataToMongo(inputStream, 1000002L);
+            long end = System.currentTimeMillis();
+            System.out.println("mongo：" + (end - start) + "ms");
+        } catch (IOException e) {
+            System.err.println("无法读取文件: " + filePath);
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 测试MySQL存储1W5数据消耗的时间
+     */
+    @Test
+    public void testMySQL() {
+        String curDir = System.getProperty("user.dir");
+        // 指定Excel文件的文件名
+        String fileName = "example2.xlsx";  // 请替换为你的Excel文件名
+        // 构造文件路径
+        Path filePath = Paths.get(curDir, fileName);
+        // 获取InputStream
+        try (InputStream inputStream = Files.newInputStream(filePath)) {
+            // 你可以在这里使用InputStream处理Excel文件
+            long start = System.currentTimeMillis();
+            System.out.println("成功获取文件的InputStream: " + filePath);
+            excelUtils.saveDataToMySQL(inputStream, 1000002L);
+            long end = System.currentTimeMillis();
+            System.out.println("mysql：" + (end - start) + "ms");
+        } catch (IOException e) {
+            System.err.println("无法读取文件: " + filePath);
+            e.printStackTrace();
+        }
+    }
 
     public ChartData getDataMap(List<String> header, List<String> data) {
         if (header.size() != data.size()) {

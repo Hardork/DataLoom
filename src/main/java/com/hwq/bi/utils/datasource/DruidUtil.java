@@ -132,8 +132,9 @@ public class DruidUtil {
             Statement statement = conn.createStatement();
             ResultSet resultSet = statement.executeQuery("SELECT * FROM " + tableName);
 
-            // 打印每行数据
-            while (resultSet.next()) {
+            // 打印每行数据,至多显示100行
+            int i = 0;
+            while (resultSet.next() && i++ < 100) {
                 Map<String, String> columnData = new HashMap<>();
                 for (SchemaStructure schemaStructure : schemaStructuresList) {
                     String columnName = schemaStructure.getColumnName();

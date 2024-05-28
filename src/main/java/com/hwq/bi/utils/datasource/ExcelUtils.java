@@ -12,6 +12,7 @@ import com.hwq.bi.mongo.entity.ChartData;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -137,6 +139,37 @@ public class ExcelUtils {
         return fields;
     }
 
+
+    public Long saveDataToMongo(InputStream inputStream, Long id) {
+        // 读取数据
+        List<Map<Integer, String>> list = null;
+        list = EasyExcel.read(inputStream)
+                .excelType(ExcelTypeEnum.XLSX)
+                .sheet()
+                .headRowNumber(0)
+                .doReadSync();
+        if (CollUtil.isEmpty(list)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "表格数据为空");
+        }
+        LinkedHashMap<Integer, String> headerMap = (LinkedHashMap) list.get(0);
+        // 取出表头
+        List<String> headerList = new ArrayList<>(headerMap.values());
+
+        // 统计字数
+            List<ChartData> insertData = new ArrayList<>();
+            // 获取封装后的数据
+            for (int i = 1; i < list.size(); i++) {
+                LinkedHashMap<Integer, String> dataMap = (LinkedHashMap) list.get(i);
+                // dataList存储当前行所有列的数据
+                List<String> dataList = new ArrayList<>(dataMap.values());
+                ChartData chartData = getDataMap(headerList, dataList);
+                if (chartData != null) insertData.add(chartData);
+            }
+            // 插入数据
+            insertMongoDB(id, insertData);
+        return id;
+    }
+
     /**
      * 类型推断
      *
@@ -236,6 +269,32 @@ public class ExcelUtils {
         }
         return csvData.toString();
 
+    }
+
+    public void saveDataToMySQL(InputStream inputStream, Long id) {
+        // 读取数据
+        List<Map<Integer, String>> list = null;
+        list = EasyExcel.read(inputStream)
+                .excelType(ExcelTypeEnum.XLSX)
+                .sheet()
+                .headRowNumber(0)
+                .doReadSync();
+        if (CollUtil.isEmpty(list)) {
+            return;
+        }
+        // 读取表头
+        LinkedHashMap<Integer, String> headerMap = (LinkedHashMap) list.get(0);// ["日期", "字符串", "小数"]
+        // 创建表
+        List<String> headerList = headerMap.values().stream().filter(ObjectUtils::isNotEmpty).map(s -> s.replace(".", "_")).
+                collect(Collectors.toList());
+            chartMapper.genChartDataTable(id, headerList);
+            // 读取数据
+            for (int i = 1; i < list.size(); i++) {
+                LinkedHashMap<Integer, String> dataMap = (LinkedHashMap) list.get(i);
+                // 插入数据
+                List<String> dataList = dataMap.values().stream().filter(ObjectUtils::isNotEmpty).collect(Collectors.toList());
+                chartMapper.insertDataToChartDataTable(id, headerList, dataList);
+            }
     }
 
     /**

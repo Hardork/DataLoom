@@ -4,8 +4,11 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.hwq.bi.model.dto.datasource.DataSourceConfig;
 import com.hwq.bi.model.dto.datasource.PreviewData;
 import com.hwq.bi.model.dto.datasource.PreviewDataRequest;
+import com.hwq.bi.model.dto.datasource.SchemaStructure;
 import com.hwq.bi.model.entity.DatasourceMetaInfo;
 import com.hwq.bi.model.entity.User;
+
+import java.util.List;
 
 /**
 * @author wqh
@@ -30,4 +33,11 @@ public interface DatasourceMetaInfoService extends IService<DatasourceMetaInfo> 
      * @return
      */
     Boolean saveDataSourceMetaInfo(DataSourceConfig dataSourceConfig, User loginUser);
+
+    /**
+     * 获取表结构
+     * @param datasourceMetaInfo
+     * @return
+     */
+    List<String> getSchemas(DatasourceMetaInfo datasourceMetaInfo);
 }
