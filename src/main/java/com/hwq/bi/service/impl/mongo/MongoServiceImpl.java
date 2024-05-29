@@ -14,6 +14,7 @@ import com.hwq.bi.model.entity.UserDataPermission;
 import com.hwq.bi.model.enums.UserDataPermissionEnum;
 import com.hwq.bi.model.vo.DataPage;
 import com.hwq.bi.mongo.entity.ChartData;
+import com.hwq.bi.mongo.entity.OptionData;
 import com.hwq.bi.service.MongoService;
 import com.hwq.bi.service.UserDataPermissionService;
 import com.hwq.bi.service.UserDataService;
@@ -32,6 +33,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.nio.file.OpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -184,6 +186,20 @@ public class MongoServiceImpl implements MongoService {
             mongoTemplate.insert(dataList, UserDataConstant.USER_CHART_DATA_PREFIX + dataId);
         } catch (Exception e) {
             log.error(e.getMessage());
+        }
+        return true;
+    }
+
+    @Override
+    public Boolean saveChartOptionToMongo(Long chartId, String option) {
+        ThrowUtils.throwIf(chartId == null, ErrorCode.PARAMS_ERROR, "chartId不得为空");
+        OptionData optionData = new OptionData();
+        optionData.setChartId(chartId);
+        optionData.setOption(option);
+        try {
+            mongoTemplate.insert(optionData, "chart_option");
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "插入图表配置失败");
         }
         return true;
     }

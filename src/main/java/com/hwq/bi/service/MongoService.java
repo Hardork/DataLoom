@@ -71,5 +71,7 @@ public interface MongoService {
      */
     Boolean copyDataToNewCollection(String sourceCollectionName, User user);
 
+    Boolean saveChartOptionToMongo(Long chartId, String option);
+
 
 }
