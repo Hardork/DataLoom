@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.hwq.bi.mapper.ServiceRecordMapper">
 
-    <resultMap id="BaseResultMap" type="com.hwq.bi.model.entity.ServiceRecord">
+    <resultMap id="BaseResultMap" type="com.hwq.dataloom.model.entity.ServiceRecord">
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="userId" column="userId" jdbcType="BIGINT"/>
             <result property="type" column="type" jdbcType="TINYINT"/>

@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.hwq.bi.mapper.ProductPointMapper">
+<mapper namespace="com.hwq.dataloom.mapper.ProductPointMapper">
 
-    <resultMap id="BaseResultMap" type="com.hwq.bi.model.entity.ProductPoint">
+    <resultMap id="BaseResultMap" type="com.hwq.dataloom.model.entity.ProductPoint">
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="name" column="name" jdbcType="VARCHAR"/>
             <result property="description" column="description" jdbcType="VARCHAR"/>

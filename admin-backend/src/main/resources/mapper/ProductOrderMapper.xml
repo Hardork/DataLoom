@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.hwq.bi.mapper.ProductOrderMapper">
+<mapper namespace="com.hwq.dataloom.mapper.ProductOrderMapper">
 
-    <resultMap id="BaseResultMap" type="com.hwq.bi.model.entity.ProductOrder">
+    <resultMap id="BaseResultMap" type="com.hwq.dataloom.model.entity.ProductOrder">
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="orderNo" column="orderNo" jdbcType="VARCHAR"/>
             <result property="codeUrl" column="codeUrl" jdbcType="VARCHAR"/>

@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.hwq.bi.mapper.UserCreateAssistantMapper">
 
-    <resultMap id="BaseResultMap" type="com.hwq.bi.model.entity.UserCreateAssistant">
+    <resultMap id="BaseResultMap" type="com.hwq.dataloom.model.entity.UserCreateAssistant">
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="assistantName" column="assistantName" jdbcType="VARCHAR"/>
             <result property="userId" column="userId" jdbcType="BIGINT"/>

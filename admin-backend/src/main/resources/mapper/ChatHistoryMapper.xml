@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.hwq.bi.mapper.ChatHistoryMapper">
+<mapper namespace="com.hwq.dataloom.mapper.ChatHistoryMapper">
 
-    <resultMap id="BaseResultMap" type="com.hwq.bi.model.entity.ChatHistory">
+    <resultMap id="BaseResultMap" type="com.hwq.dataloom.model.entity.ChatHistory">
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="chatRole" column="chatRole" jdbcType="TINYINT"/>
             <result property="chatId" column="chatId" jdbcType="BIGINT"/>

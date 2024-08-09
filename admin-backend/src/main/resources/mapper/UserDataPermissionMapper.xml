@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.hwq.bi.mapper.UserDataPermissionMapper">
 
-    <resultMap id="BaseResultMap" type="com.hwq.bi.model.entity.UserDataPermission">
+    <resultMap id="BaseResultMap" type="com.hwq.dataloom.model.entity.UserDataPermission">
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="dataId" column="dataId" jdbcType="BIGINT"/>
             <result property="userId" column="userId" jdbcType="BIGINT"/>

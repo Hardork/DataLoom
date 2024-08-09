@@ -34,6 +34,7 @@
     </modules>
     <properties>
         <java.version>1.8</java.version>
+        <framework.version>0.0.1-SNAPSHOT</framework.version>
         <spring.boot.version>2.7.2</spring.boot.version>
         <mybatis.spring.boot.version>2.2.2</mybatis.spring.boot.version>
         <mybatis.plus.boot.version>3.5.2</mybatis.plus.boot.version>
@@ -58,6 +59,11 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.hwq</groupId>
+                <artifactId>framework</artifactId>
+                <version>${framework.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-freemarker</artifactId>

@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.hwq.bi.mapper.DatasourceMetaInfoMapper">
+<mapper namespace="com.hwq.dataloom.mapper.DatasourceMetaInfoMapper">
 
-    <resultMap id="BaseResultMap" type="com.hwq.bi.model.entity.DatasourceMetaInfo">
+    <resultMap id="BaseResultMap" type="com.hwq.dataloom.model.entity.DatasourceMetaInfo">
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="userId" column="userId" jdbcType="BIGINT"/>
             <result property="name" column="name" jdbcType="VARCHAR"/>

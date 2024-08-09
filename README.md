@@ -76,23 +76,23 @@ DataLoom区别与传统的数据可视化平台，在用户上传数据源（支
 
 ## 目录结构 📑
 
-| src目录                                                   | 描述          |
-|---------------------------------------------------------|-------------|
-| **[annotation](./src/main/java/com/hwq/bi/annotation)** | 自定义注释目录     |
-| **[aop](./src/main/java/com/hwq/bi/aop)**               | aop目录       |
-| **[bizmq](./src/main/java/com/hwq/bi/bizmq)**           | 消息队列目录      |
-| **[common](./src/main/java/com/hwq/bi/common)**         | 公共模块目录      |
-| **[config](./src/main/java/com/hwq/bi/config)**         | 公共配置目录      |
-| **[constant](./src/main/java/com/hwq/bi/constant)**     | 常量目录        |
-| **[controller](./src/main/java/com/hwq/bi/controller)** | 接口目录        |
-| **[exception](./src/main/java/com/hwq/bi/exception)**  | 自定义异常目录     |
-| **[job](./src/main/java/com/hwq/bi/job)**        | 定时任务目录      |
-| **[manager](./src/main/java/com/hwq/bi/manager)**    | 服务、中间件目录    |
-| **[mapper](./src/main/java/com/hwq/bi/mapper)**     | mapper目录    |
-| **[model](./src/main/java/com/hwq/bi/model)**      | 模型目录        |
-| **[service](./src/main/java/com/hwq/bi/service)**    | service目录   |
-| **[utils](./src/main/java/com/hwq/bi/utils)**      | 工具包目录       |
-| **[websocket](./src/main/java/com/hwq/bi/websocket)**  | websocket目录 |
+| src目录                                                         | 描述          |
+|---------------------------------------------------------------|-------------|
+| **[annotation](./src/main/java/com/hwq/dataloom/annotation)** | 自定义注释目录     |
+| **[aop](./src/main/java/com/hwq/dataloom/aop)**               | aop目录       |
+| **[dataloomzmq](./src/main/java/com/hwq/dataloom/bizmq)**     | 消息队列目录      |
+| **[common](./src/main/java/com/hwq/dataloom/common)**         | 公共模块目录      |
+| **[config](./src/main/java/com/hwq/dataloom/config)**               | 公共配置目录      |
+| **[constant](./src/main/java/com/hwq/dataloom/constant)**           | 常量目录        |
+| **[controller](./src/main/java/com/hwq/dataloom/controller)**       | 接口目录        |
+| **[exception](./src/main/java/com/hwq/dataloom/exception)**         | 自定义异常目录     |
+| **[job](./src/main/java/com/hwq/dataloom/job)**                     | 定时任务目录      |
+| **[manager](./src/main/java/com/hwq/dataloom/manager)**             | 服务、中间件目录    |
+| **[mapper](./src/main/java/com/hwq/dataloom/mapper)**               | mapper目录    |
+| **[model](./src/main/java/com/hwq/dataloom/model)**                 | 模型目录        |
+| **[service](./src/main/java/com/hwq/dataloom/service)**             | service目录   |
+| **[utils](./src/main/java/com/hwq/dataloom/utils)**                 | 工具包目录       |
+| **[websocket](./src/main/java/com/hwq/dataloom/websocket)**         | websocket目录 |
 
 ## 项目流程 🗺️
 **智能图表分析**

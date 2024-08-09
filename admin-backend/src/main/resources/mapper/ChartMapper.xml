@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.hwq.bi.mapper.ChartMapper">
+<mapper namespace="com.hwq.dataloom.mapper.ChartMapper">
 
-    <resultMap id="BaseResultMap" type="com.hwq.bi.model.entity.Chart">
+    <resultMap id="BaseResultMap" type="com.hwq.dataloom.model.entity.Chart">
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="goal" column="goal" jdbcType="VARCHAR"/>
             <result property="name" column="name" jdbcType="VARCHAR"/>
