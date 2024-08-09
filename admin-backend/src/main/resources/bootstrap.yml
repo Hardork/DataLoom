@@ -8,10 +8,23 @@ spring:
     nacos:
       config:
         server-addr: ${nacos-server}:8848
-        file-extension: yaml
-        namespace: dev
-        shared-configs:
-          - data-id: base.yml
-            refresh: true
-  config:
-    import: nacos://${nacos-server}:8848  # 加上这一行来导入 Nacos 配置
+        file-extension: yml
+        namespace: d864e70c-94d2-45f1-b01d-af1d77da1f13
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  # session 配置
+  session:
+    # todo 取消注释开启分布式 session（须先配置 Redis）
+    # store-type: redis
+    # 30 天过期
+    timeout: 2592000
+server:
+  address: 0.0.0.0
+  port: 8081
+  servlet:
+    context-path: /api
+    # cookie 30 天过期
+    session:
+      cookie:
+        max-age: 2592000
