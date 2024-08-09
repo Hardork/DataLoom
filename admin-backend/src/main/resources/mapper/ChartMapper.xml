@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hwq.bi.mapper.ChartMapper">
+
+    <resultMap id="BaseResultMap" type="com.hwq.bi.model.entity.Chart">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="goal" column="goal" jdbcType="VARCHAR"/>
+            <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="userDataId" column="userDataId" jdbcType="BIGINT"/>
+            <result property="chartData" column="chartData" jdbcType="VARCHAR"/>
+            <result property="chartType" column="chartType" jdbcType="VARCHAR"/>
+            <result property="genChart" column="genChart" jdbcType="VARCHAR"/>
+            <result property="genResult" column="genResult" jdbcType="VARCHAR"/>
+            <result property="status" column="status" jdbcType="VARCHAR"/>
+            <result property="execMessage" column="execMessage" jdbcType="VARCHAR"/>
+            <result property="userId" column="userId" jdbcType="BIGINT"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+            <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,goal,name,
+        chartData,userDataId,chartType,genChart,
+        genResult,status,execMessage,
+        userId,createTime,updateTime,
+        isDelete
+    </sql>
+
+    <select id="genChartDataTable">
+        create table chart_${id}(
+            id bigint auto_increment primary key,
+            <foreach collection="headerList" item="field" separator=",">
+                ${field.originName} ${field.FieldType} null
+            </foreach>
+        );
+    </select>
+
+    <insert id="insertDataToChartDataTable">
+        insert into chart_${id} (<foreach collection="headerList" item="columnName" separator=",">
+        ${columnName}
+    </foreach>) values (<foreach collection="dataList" item="data" separator=",">
+        #{data}
+    </foreach> );
+    </insert>
+
+    <select id="DropTableAfterException">
+        drop table if exists chart_${id}
+    </select>
+</mapper>

@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: DataLoom
+  # 默认 dev 环境
+  profiles:
+    active: dev
+  cloud:
+    nacos:
+      config:
+        server-addr: ${nacos-server}:8848
+        file-extension: yaml
+        namespace: dev
+        shared-configs:
+          - data-id: base.yml
+            refresh: true
+  config:
+    import: nacos://${nacos-server}:8848  # 加上这一行来导入 Nacos 配置

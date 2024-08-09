@@ -574,4 +574,4 @@ create table datasource_meta_info (
     createTime  datetime      default CURRENT_TIMESTAMP null,
     updateTime  datetime      default CURRENT_TIMESTAMP null,
     isDelete    tinyint       default 0                 null
-)
+);
