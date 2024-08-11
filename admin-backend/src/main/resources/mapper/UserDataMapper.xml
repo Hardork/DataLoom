@@ -2,7 +2,7 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.hwq.bi.mapper.UserDataMapper">
+<mapper namespace="com.hwq.dataloom.mapper.UserDataMapper">
 
     <resultMap id="BaseResultMap" type="com.hwq.dataloom.model.entity.UserData">
             <id property="id" column="id" jdbcType="BIGINT"/>

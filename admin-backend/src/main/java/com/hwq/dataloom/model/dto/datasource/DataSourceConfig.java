@@ -8,7 +8,7 @@ import javax.validation.constraints.*;
 /**
  * @author HWQ
  * @date 2024/5/22 22:19
- * @description
+ * @description 数据库元数据配置
  */
 @Data
 public class DataSourceConfig {

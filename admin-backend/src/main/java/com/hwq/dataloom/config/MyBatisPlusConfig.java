@@ -15,7 +15,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @MapperScan("com.hwq.dataloom.mapper")
 public class MyBatisPlusConfig {
-
     /**
      * 拦截器配置
      *
