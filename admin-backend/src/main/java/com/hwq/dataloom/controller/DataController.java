@@ -11,7 +11,7 @@ import com.hwq.dataloom.model.dto.data.DataQueryRequest;
 import com.hwq.dataloom.model.dto.user_data.DeleteUserDataRequest;
 import com.hwq.dataloom.model.dto.user_data.ShareUserDataRequest;
 import com.hwq.dataloom.model.dto.user_data.UploadUserDataRequest;
-import com.hwq.dataloom.model.entity.User;
+import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.entity.UserData;
 import com.hwq.dataloom.model.vo.DataCollaboratorsVO;
 import com.hwq.dataloom.model.vo.DataPage;
@@ -24,7 +24,7 @@ import com.hwq.dataloom.service.MongoService;
 import com.hwq.dataloom.service.UserDataService;
 import com.hwq.dataloom.service.UserService;
 import com.hwq.dataloom.utils.datasource.ExcelUtils;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -59,7 +59,7 @@ public class DataController {
 
     @ReduceRewardPoint
     @PostMapping("/upload")
-    @ApiOperation("用户上传数据集")
+    @Operation(summary = "用户上传数据集")
     public BaseResponse<Long> uploadFileToMongo(@RequestPart("file") MultipartFile multipartFile, UploadUserDataRequest uploadUserDataRequest, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
@@ -75,7 +75,7 @@ public class DataController {
 
     @ReduceRewardPoint
     @PostMapping("/upload/mysql")
-    @ApiOperation("用户上传数据集到MySQL")
+    @Operation(summary = "用户上传数据集到MySQL")
     public BaseResponse<Long> uploadFileToMySQL(@RequestPart("file") MultipartFile multipartFile, UploadUserDataRequest uploadUserDataRequest, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
@@ -92,7 +92,7 @@ public class DataController {
 
 
     @PostMapping("/preview")
-    @ApiOperation("预览上传数据")
+    @Operation(summary = "预览上传数据")
     public BaseResponse<PreviewExcelDataVO> previewAndCheckExcelInfo(@RequestPart("file") MultipartFile multipartFile, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
@@ -105,7 +105,7 @@ public class DataController {
 
 
     @PostMapping("/share/userData")
-    @ApiOperation("共享用户数据集")
+    @Operation(summary = "共享用户数据集")
     public BaseResponse<String> shareUserData(@RequestBody ShareUserDataRequest shareUserDataRequest, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
@@ -119,7 +119,7 @@ public class DataController {
     }
 
     @GetMapping("/{dataId}/{type}/{secret}")
-    @ApiOperation("链接获取数据集权限")
+    @Operation(summary = "链接获取数据集权限")
     public BaseResponse<Boolean> getOtherUserData(@PathVariable Long dataId, @PathVariable Integer type, @PathVariable String secret, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
@@ -131,7 +131,7 @@ public class DataController {
     }
 
     @GetMapping("/list/collaborators/{dataId}")
-    @ApiOperation("查看数据协作者")
+    @Operation(summary = "查看数据协作者")
     public BaseResponse<List<DataCollaboratorsVO>> getDataCollaborators(@PathVariable Long dataId, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
@@ -141,7 +141,7 @@ public class DataController {
     }
 
     @PostMapping("/delete/userData")
-    @ApiOperation("删除用户数据集")
+    @Operation(summary = "删除用户数据集")
     public BaseResponse<Boolean> deleteUserData(@RequestBody DeleteUserDataRequest deleteUserDataRequest, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
@@ -159,7 +159,7 @@ public class DataController {
     }
 
     @GetMapping("/list/data/info")
-    @ApiOperation("显示用户所有数据集")
+    @Operation(summary = "显示用户所有数据集")
     public BaseResponse<List<UserData>> listUserDataInfo(HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
@@ -168,7 +168,7 @@ public class DataController {
     }
 
     @GetMapping("/list/data/info/mysql")
-    @ApiOperation("显示用户MySQL数据集")
+    @Operation(summary = "显示用户MySQL数据集")
     public BaseResponse<List<UserData>> listUserMySQLDataInfo(HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
@@ -177,7 +177,7 @@ public class DataController {
     }
 
     @PostMapping("/delete")
-    @ApiOperation("删除记录")
+    @Operation(summary = "删除记录")
     public BaseResponse<Boolean> deleteRecordById(@RequestBody DeleteChartDataRecordRequest deleteChartDataRecordRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(deleteChartDataRecordRequest == null, ErrorCode.PARAMS_ERROR);
         String id = deleteChartDataRecordRequest.getId();
@@ -189,7 +189,7 @@ public class DataController {
     }
 
     @PostMapping("/add")
-    @ApiOperation("添加记录")
+    @Operation(summary = "添加记录")
     public BaseResponse<Boolean> addOneRecord(@RequestBody AddChardDataRecordRequest addChardDataRecordRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(addChardDataRecordRequest == null, ErrorCode.PARAMS_ERROR);
         Long dataId = addChardDataRecordRequest.getDataId();
@@ -200,7 +200,7 @@ public class DataController {
     }
 
     @PostMapping("/edit")
-    @ApiOperation("修改记录")
+    @Operation(summary = "修改记录")
     public BaseResponse<Boolean> editRecordById(@RequestBody EditChartDataRecordRequest editChartDataRecordRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(editChartDataRecordRequest == null, ErrorCode.PARAMS_ERROR);
         String id = editChartDataRecordRequest.getId();
@@ -214,7 +214,7 @@ public class DataController {
     }
 
     @PostMapping("/list/page")
-    @ApiOperation("分页查询")
+    @Operation(summary = "分页查询")
     public BaseResponse<DataPage> listUserDataByPage(@RequestBody DataQueryRequest dataQueryRequest,
                                                                  HttpServletRequest request) {
         long current = dataQueryRequest.getCurrent() - 1;

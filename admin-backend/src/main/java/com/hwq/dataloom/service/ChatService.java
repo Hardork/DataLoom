@@ -2,7 +2,7 @@ package com.hwq.dataloom.service;
 
 import com.hwq.dataloom.model.entity.Chat;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.hwq.dataloom.model.entity.User;
+import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.vo.GetUserChatHistoryVO;
 
 import java.util.List;

@@ -2,7 +2,7 @@ package com.hwq.dataloom.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hwq.dataloom.annotation.AuthCheck;
-import com.hwq.dataloom.constant.UserConstant;
+import com.hwq.dataloom.framework.constants.UserConstant;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
@@ -14,7 +14,7 @@ import com.hwq.dataloom.model.dto.ai_role.AiRoleQueryRequest;
 import com.hwq.dataloom.model.dto.ai_role.AiRoleUpdateRequest;
 
 import com.hwq.dataloom.model.entity.AiRole;
-import com.hwq.dataloom.model.entity.User;
+import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.service.AiRoleService;
 import com.hwq.dataloom.service.UserService;
 import lombok.extern.slf4j.Slf4j;

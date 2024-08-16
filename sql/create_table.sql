@@ -43,6 +43,7 @@ create table if not exists bi.chart
     genResult   text                                   null comment '生成的分析结论',
     status      varchar(128) default 'wait'            not null comment 'wait,running,succeed,failed',
     execMessage text                                   null comment '执行信息',
+    userDataId  bigint                                 not null comment '引用数据',
     userId      bigint                                 null comment '创建用户 id',
     createTime  datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
     updateTime  datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
@@ -556,8 +557,8 @@ create table user_data_permission (
 
 
 # 用户数据库元数据
-drop table datasource_meta_info;
-create table datasource_meta_info (
+drop table if exists bi.datasource_meta_info;
+create table bi.datasource_meta_info (
     id bigint primary key auto_increment,
     userId bigint not null comment '创建人id',
     name varchar(255) not null default '未命名数据源' comment '数据源名称',

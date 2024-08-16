@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hwq.dataloom.model.entity.ServiceRecord;
 import com.hwq.dataloom.mapper.ServiceRecordMapper;
-import com.hwq.dataloom.model.entity.User;
+import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.enums.ServiceTypeEnums;
 import com.hwq.dataloom.model.vo.GetCurMonthServiceRecordVO;
 import com.hwq.dataloom.service.ServiceRecordService;

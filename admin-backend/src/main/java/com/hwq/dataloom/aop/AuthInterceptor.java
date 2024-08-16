@@ -3,7 +3,7 @@ package com.hwq.dataloom.aop;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.annotation.AuthCheck;
 import com.hwq.dataloom.framework.exception.BusinessException;
-import com.hwq.dataloom.model.entity.User;
+import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.enums.UserRoleEnum;
 import com.hwq.dataloom.service.UserService;
 import javax.annotation.Resource;

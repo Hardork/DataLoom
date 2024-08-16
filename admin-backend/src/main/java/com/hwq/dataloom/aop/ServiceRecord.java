@@ -2,7 +2,7 @@ package com.hwq.dataloom.aop;
 
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
-import com.hwq.dataloom.model.entity.User;
+import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.enums.ServiceTypeEnums;
 import com.hwq.dataloom.service.ServiceRecordService;
 import com.hwq.dataloom.service.UserService;

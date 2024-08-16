@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.hwq.dataloom.model.dto.chart.ChartQueryRequest;
 import com.hwq.dataloom.model.entity.Chart;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.hwq.dataloom.model.entity.User;
+import com.hwq.dataloom.framework.model.entity.User;
 
 /**
 * @author HWQ

@@ -6,7 +6,7 @@ import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.constant.CommonConstant;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.model.dto.ai_role.AiRoleQueryRequest;
-import com.hwq.dataloom.model.entity.User;
+import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.entity.UserCreateAssistant;
 import com.hwq.dataloom.service.UserCreateAssistantService;
 import com.hwq.dataloom.mapper.UserCreateAssistantMapper;

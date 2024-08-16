@@ -7,7 +7,7 @@ package com.hwq.dataloom.websocket;
  **/
 
 import cn.hutool.json.JSONUtil;
-import com.hwq.dataloom.websocket.vo.WebSocketMsgVO;
+import com.hwq.dataloom.framework.ws.vo.WebSocketMsgVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

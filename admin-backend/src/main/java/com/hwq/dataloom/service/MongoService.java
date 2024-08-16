@@ -1,6 +1,6 @@
 package com.hwq.dataloom.service;
 
-import com.hwq.dataloom.model.entity.User;
+import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.vo.DataPage;
 import com.hwq.dataloom.mongo.entity.ChartData;
 import org.springframework.stereotype.Service;

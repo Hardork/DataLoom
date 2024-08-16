@@ -8,7 +8,7 @@ import com.hwq.dataloom.constant.UserDataConstant;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.model.dto.datasource.TableFieldInfo;
-import com.hwq.dataloom.model.entity.User;
+import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.entity.UserData;
 import com.hwq.dataloom.model.entity.UserDataPermission;
 import com.hwq.dataloom.model.enums.UserDataPermissionEnum;

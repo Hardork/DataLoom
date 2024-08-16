@@ -7,7 +7,7 @@ import com.hwq.dataloom.framework.result.ResultUtils;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.model.dto.user_massage.UserMessageAddRequest;
-import com.hwq.dataloom.model.entity.User;
+import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.entity.UserMessage;
 import com.hwq.dataloom.model.enums.UserMessageIsReadEnum;
 import com.hwq.dataloom.service.UserMessageService;

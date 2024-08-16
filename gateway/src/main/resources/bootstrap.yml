@@ -1,0 +1,32 @@
+server:
+  port: 8090
+spring:
+  application:
+    name: gateway
+  main:
+    allow-circular-references: true
+  cloud:
+    nacos:
+      config:
+        server-addr: ${nacos-server}:8848
+        file-extension: yml
+        namespace: d864e70c-94d2-45f1-b01d-af1d77da1f13
+        shared-configs:
+          - data-id: gateway.yml
+            refresh: true
+      discovery:
+        server-addr: ${nacos-server}:8848
+dubbo:
+  consumer:
+    check: false
+  scan:
+    base-packages: com.hwq.dataloom
+  application:
+    name: gateway
+  protocol:
+    name: dubbo
+    port: -1
+  registry: #配置注册中心
+    address: nacos://${nacos-server}:8848
+
+

@@ -1,7 +1,7 @@
 package com.hwq.dataloom.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.hwq.dataloom.model.entity.User;
+import com.hwq.dataloom.framework.model.entity.User;
 
 /**
  * 用户数据库操作

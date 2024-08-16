@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.hwq.dataloom.model.dto.user.UserEmailRegisterRequest;
 import com.hwq.dataloom.model.dto.user.UserQueryRequest;
-import com.hwq.dataloom.model.entity.User;
+import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.vo.LoginUserVO;
 import com.hwq.dataloom.model.vo.UserVO;
 

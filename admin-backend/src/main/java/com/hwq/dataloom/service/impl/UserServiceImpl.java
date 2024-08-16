@@ -1,7 +1,7 @@
 package com.hwq.dataloom.service.impl;
 
 import static com.hwq.dataloom.constant.EmailConstant.CAPTCHA_CACHE_KEY;
-import static com.hwq.dataloom.constant.UserConstant.USER_LOGIN_STATE;
+import static com.hwq.dataloom.framework.constants.UserConstant.USER_LOGIN_STATE;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -11,7 +11,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.model.dto.user.UserEmailRegisterRequest;
 import com.hwq.dataloom.model.dto.user.UserQueryRequest;
-import com.hwq.dataloom.model.entity.User;
+import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.enums.UserRoleEnum;
 import com.hwq.dataloom.service.MongoService;
 import com.hwq.dataloom.utils.RedissonLockUtil;

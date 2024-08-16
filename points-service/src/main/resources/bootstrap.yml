@@ -1,0 +1,49 @@
+spring:
+  main:
+    allow-circular-references: true
+  application:
+    name: points-service
+  # 默认 dev 环境
+  profiles:
+    active: dev
+  cloud:
+    nacos:
+      config:
+        server-addr: ${nacos-server}:8848
+        file-extension: yml
+        namespace: d864e70c-94d2-45f1-b01d-af1d77da1f13
+        shared-configs:
+          - data-id: base.yml
+            refresh: true
+      discovery:
+        server-addr: ${nacos-server}:8848
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  # session 配置
+  session:
+    # todo 取消注释开启分布式 session（须先配置 Redis）
+    # store-type: redis
+    # 30 天过期
+    timeout: 2592000
+server:
+  address: 0.0.0.0
+  port: 8082
+  servlet:
+    context-path: /api
+    # cookie 30 天过期
+    session:
+      cookie:
+        max-age: 2592000
+dubbo:
+  consumer:
+    check: false
+  scan:
+    base-packages: com.hwq.dataloom
+  application:
+    name: points-service
+  protocol:
+    name: dubbo
+    port: -1
+  registry: #配置注册中心
+    address: nacos://${nacos-server}:8848

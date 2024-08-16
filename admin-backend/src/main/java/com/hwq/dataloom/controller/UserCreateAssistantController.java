@@ -10,7 +10,7 @@ import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.model.dto.ai_role.AiRoleAddRequest;
 import com.hwq.dataloom.model.dto.ai_role.AiRoleQueryRequest;
 import com.hwq.dataloom.model.dto.ai_role.AiRoleUpdateRequest;
-import com.hwq.dataloom.model.entity.User;
+import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.entity.UserCreateAssistant;
 import com.hwq.dataloom.service.UserCreateAssistantService;
 import com.hwq.dataloom.service.UserService;

@@ -1,4 +1,6 @@
 spring:
+  main:
+    allow-circular-references: true
   application:
     name: DataLoom
   # 默认 dev 环境
@@ -10,6 +12,8 @@ spring:
         server-addr: ${nacos-server}:8848
         file-extension: yml
         namespace: d864e70c-94d2-45f1-b01d-af1d77da1f13
+      discovery:
+        server-addr: ${nacos-server}:8848
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
@@ -28,3 +32,16 @@ server:
     session:
       cookie:
         max-age: 2592000
+dubbo:
+  consumer:
+    check: false
+  scan:
+    base-packages: com.hwq.dataloom.service
+  application:
+    name: DataLoom
+  protocol:
+    name: dubbo
+    port: -1
+  registry: #配置注册中心
+    address: nacos://${nacos-server}:8848
+

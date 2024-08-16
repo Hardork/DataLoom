@@ -9,7 +9,7 @@ import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.mapper.ChartMapper;
 import com.hwq.dataloom.model.dto.chart.ChartQueryRequest;
 import com.hwq.dataloom.model.entity.Chart;
-import com.hwq.dataloom.model.entity.User;
+import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.entity.UserData;
 import com.hwq.dataloom.service.ChartService;
 import com.hwq.dataloom.service.UserDataService;

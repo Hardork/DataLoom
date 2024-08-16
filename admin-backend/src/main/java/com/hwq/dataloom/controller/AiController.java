@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.hwq.dataloom.annotation.AiService;
 import com.hwq.dataloom.annotation.CheckPoint;
 import com.hwq.dataloom.annotation.ReduceRewardPoint;
+import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.framework.result.BaseResponse;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.result.ResultUtils;
@@ -22,7 +23,7 @@ import com.hwq.dataloom.service.*;
 import com.hwq.dataloom.utils.datasource.MySQLUtil;
 import com.hwq.dataloom.websocket.AskSQLWebSocket;
 import com.hwq.dataloom.websocket.vo.AskSQLWebSocketMsgVO;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -147,7 +148,7 @@ public class AiController {
         return ResultUtils.success(true);
     }
 
-    @ApiOperation("用户会话聊天")
+    @Operation(summary = "用户会话聊天")
     @ReduceRewardPoint
     @CheckPoint
     @AiService
@@ -187,7 +188,7 @@ public class AiController {
         return ResultUtils.success(true);
     }
 
-    @ApiOperation("智能问数")
+    @Operation(summary = "智能问数")
     @ReduceRewardPoint
     @CheckPoint
     @AiService
@@ -258,7 +259,7 @@ public class AiController {
         return ResultUtils.success(true);
     }
 
-    @ApiOperation("查询用户选择对话的信息")
+    @Operation(summary = "查询用户选择对话的信息")
     @PostMapping("/get/chat")
     public BaseResponse<GetUserChatHistoryVO> getChatById(@RequestBody GetChatRequest getChatRequest, HttpServletRequest request) {
         // 数据校验
@@ -287,7 +288,7 @@ public class AiController {
         return ResultUtils.success(getUserChatHistoryVO);
     }
 
-    @ApiOperation("查询用户是否添加了该聊天")
+    @Operation(summary = "查询用户是否添加了该聊天")
     @PostMapping("/chat/add")
     public BaseResponse<Long> userAddChat(@RequestBody UserAddChatRequest userAddChatRequest, HttpServletRequest request) {
         // 数据校验
@@ -310,7 +311,7 @@ public class AiController {
         return ResultUtils.success(chat.getId());
     }
 
-    @ApiOperation("用户获取AI对话历史")
+    @Operation(summary = "用户获取AI对话历史")
     @PostMapping("/get/chatRecord")
     public BaseResponse<List<ChatHistory>> getUserChatRecord(@RequestBody GetUserChatRecordRequest getUserChatRecordRequest, HttpServletRequest request) {
         // 数据校验
@@ -325,7 +326,7 @@ public class AiController {
         return ResultUtils.success(res);
     }
 
-    @ApiOperation("用户获取AI对话历史")
+    @Operation(summary = "用户获取AI对话历史")
     @PostMapping("/get/sql/chatRecord")
     public BaseResponse<List<GetUserSQLChatRecordVO>> getUserSQLChatRecord(@RequestBody GetUserChatRecordRequest getUserChatRecordRequest, HttpServletRequest request) {
         // 数据校验
@@ -341,7 +342,7 @@ public class AiController {
     }
 
 
-    @ApiOperation("用户创建AI对话")
+    @Operation(summary = "用户创建AI对话")
     @PostMapping("/add/history")
     public BaseResponse<Boolean> addUserChatHistory(@RequestBody AddUserChatHistory addUserChatHistory, HttpServletRequest request) {
         // 数据校验
@@ -353,7 +354,7 @@ public class AiController {
         return ResultUtils.success(res);
     }
 
-    @ApiOperation("用户创建智能问数对话")
+    @Operation(summary = "用户创建智能问数对话")
     @PostMapping("/add/askSql/history")
     public BaseResponse<Boolean> addUserAskSqlHistory(@RequestBody AddUserAskSqlHistoryRequest addUserAskSqlHistory, HttpServletRequest request) {
         // 数据校验
@@ -365,7 +366,7 @@ public class AiController {
         return ResultUtils.success(res);
     }
 
-    @ApiOperation("获取用户创建的AI对话")
+    @Operation(summary = "获取用户创建的AI对话")
     @GetMapping("/get/history")
     public BaseResponse<List<GetUserChatHistoryVO>> getUserChatHistory(HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);

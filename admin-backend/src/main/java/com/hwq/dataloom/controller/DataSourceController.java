@@ -8,7 +8,7 @@ import com.hwq.dataloom.model.dto.datasource.DataSourceConfig;
 import com.hwq.dataloom.model.dto.datasource.PreviewData;
 import com.hwq.dataloom.model.dto.datasource.PreviewDataRequest;
 import com.hwq.dataloom.model.entity.DatasourceMetaInfo;
-import com.hwq.dataloom.model.entity.User;
+import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.service.DatasourceMetaInfoService;
 import com.hwq.dataloom.service.UserService;
 import com.hwq.dataloom.utils.datasource.MySQLUtil;

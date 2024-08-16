@@ -13,14 +13,14 @@ import com.hwq.dataloom.annotation.*;
 import com.hwq.dataloom.bizmq.BiMessageProducer;
 
 import com.hwq.dataloom.constant.ChartConstant;
+import com.hwq.dataloom.framework.constants.UserConstant;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.request.DeleteRequest;
 import com.hwq.dataloom.framework.result.BaseResponse;
 import com.hwq.dataloom.framework.result.ResultUtils;
 import com.hwq.dataloom.model.dto.chart.*;
 import com.hwq.dataloom.model.entity.Chart;
-import com.hwq.dataloom.model.entity.User;
-import com.hwq.dataloom.constant.UserConstant;
+import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.model.enums.ChartStatusEnum;

@@ -29,12 +29,5 @@ public class BiMessageProducer {
         rabbitTemplate.convertAndSend(exchangeName, routingKey, message);
     }
 
-    /**
-     * 发送订单
-     * @param message
-     */
-    public void sendOrderMessage(String message) {
-        rabbitTemplate.convertAndSend(BiMqConstant.ORDER_DELAYED_EXCHANGE, BiMqConstant.ORDER_DELAYED_ROUTING_KEY, message);
-    }
 
 }
