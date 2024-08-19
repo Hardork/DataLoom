@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hwq.dataloom.mapper.CoreDatasourceTaskMapper">
+
+    <resultMap id="BaseResultMap" type="com.hwq.dataloom.model.entity.CoreDatasourceTask">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="ds_id" column="ds_id" jdbcType="BIGINT"/>
+            <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="update_type" column="update_type" jdbcType="VARCHAR"/>
+            <result property="start_time" column="start_time" jdbcType="BIGINT"/>
+            <result property="sync_rate" column="sync_rate" jdbcType="VARCHAR"/>
+            <result property="cron" column="cron" jdbcType="VARCHAR"/>
+            <result property="simple_cron_value" column="simple_cron_value" jdbcType="BIGINT"/>
+            <result property="simple_cron_type" column="simple_cron_type" jdbcType="VARCHAR"/>
+            <result property="end_limit" column="end_limit" jdbcType="VARCHAR"/>
+            <result property="end_time" column="end_time" jdbcType="BIGINT"/>
+            <result property="create_time" column="create_time" jdbcType="BIGINT"/>
+            <result property="last_exec_time" column="last_exec_time" jdbcType="BIGINT"/>
+            <result property="last_exec_status" column="last_exec_status" jdbcType="VARCHAR"/>
+            <result property="extra_data" column="extra_data" jdbcType="VARCHAR"/>
+            <result property="task_status" column="task_status" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,ds_id,name,
+        update_type,start_time,sync_rate,
+        cron,simple_cron_value,simple_cron_type,
+        end_limit,end_time,create_time,
+        last_exec_time,last_exec_status,extra_data,
+        task_status
+    </sql>
+</mapper>
