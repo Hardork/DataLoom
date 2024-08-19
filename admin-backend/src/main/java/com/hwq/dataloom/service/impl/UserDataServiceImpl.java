@@ -116,7 +116,7 @@ public class UserDataServiceImpl extends ServiceImpl<UserDataMapper, UserData>
         userDataPermission.setPermission(UserDataPermissionEnum.WRITE.getValue());
         boolean savePermission = userDataPermissionService.save(userDataPermission);
         // 将数据存储到MySQL中
-        excelUtils.saveDataToMongo(multipartFile, userData.getId());
+        excelUtils.saveDataToMySQL(multipartFile, userData.getId());
         ThrowUtils.throwIf(!savePermission, ErrorCode.SYSTEM_ERROR);
         // 将数据存储到MongoDB中
         List<TableFieldInfo> tableFieldInfos = excelUtils.saveDataToMongo(multipartFile, userData.getId());
