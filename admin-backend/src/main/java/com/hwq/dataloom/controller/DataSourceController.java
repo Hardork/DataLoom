@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * @author HWQ
  * @date 2024/5/24 01:28
- * @description
+ * @description 数据源接口
  */
 @RestController
 @RequestMapping("/datasource")
@@ -45,9 +45,16 @@ public class DataSourceController {
         validDataSourceConfig(dataSourceConfig);
         User loginUser = userService.getLoginUser(request);
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
+        // todo：改为策略模式动态选择校验方法
         return ResultUtils.success(MySQLUtil.checkConnectValid(dataSourceConfig));
     }
 
+    /**
+     * 获取表结构
+     * @param id
+     * @param request
+     * @return
+     */
     @GetMapping("/getSchemas/{id}")
     public BaseResponse<List<String>> getSchemas(@PathVariable("id") Long id, HttpServletRequest request) {
         // 校验参数
@@ -82,7 +89,7 @@ public class DataSourceController {
     }
 
     /**
-     * 保存数据源信息
+     * 新增数据源信息
      * @param dataSourceConfig
      * @param request
      * @return

@@ -28,7 +28,6 @@ public class WxOpenConfig {
 
     /**
      * 单例模式（不用 @Bean 是为了防止和公众号的 service 冲突）
-     *
      * @return
      */
     public WxMpService getWxMpService() {

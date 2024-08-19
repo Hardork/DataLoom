@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hwq.dataloom.mapper.CoreDatasourceMapper">
+
+    <resultMap id="BaseResultMap" type="com.hwq.dataloom.model.entity.CoreDatasource">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="description" column="description" jdbcType="VARCHAR"/>
+            <result property="type" column="type" jdbcType="VARCHAR"/>
+            <result property="pid" column="pid" jdbcType="BIGINT"/>
+            <result property="editType" column="editType" jdbcType="VARCHAR"/>
+            <result property="configuration" column="configuration" jdbcType="VARCHAR"/>
+            <result property="status" column="status" jdbcType="VARCHAR"/>
+            <result property="taskStatus" column="taskStatus" jdbcType="VARCHAR"/>
+            <result property="enableDataFill" column="enableDataFill" jdbcType="TINYINT"/>
+            <result property="userId" column="userId" jdbcType="BIGINT"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+            <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,name,description,
+        type,pid,editType,
+        configuration,status,taskStatus,
+        enableDataFill,userId,createTime,
+        updateTime,isDelete
+    </sql>
+</mapper>
