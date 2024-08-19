@@ -8,13 +8,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
+import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.framework.result.BaseResponse;
 import com.hwq.dataloom.framework.result.ResultUtils;
 import com.hwq.dataloom.model.dto.newdatasource.ApiDefinition;
 import com.hwq.dataloom.model.dto.newdatasource.ApiDefinitionRequest;
 import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
 import com.hwq.dataloom.model.entity.CoreDatasource;
-import com.hwq.dataloom.model.entity.User;
 import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.service.CoreDatasourceTaskService;
 import com.hwq.dataloom.service.UserService;
@@ -42,7 +42,11 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+
+import static com.hwq.dataloom.utils.ApiUtils.handleStr;
 
 /**
  * 新数据源接口
@@ -87,11 +91,11 @@ public class NewDataSourceController {
         coreDatasource.setDescription(datasourceDTO.getDescription());
         coreDatasource.setType(datasourceDTO.getType());
         coreDatasource.setPid(datasourceDTO.getPid());
-        coreDatasource.setEdit_type(datasourceDTO.getEditType().toString());
+        coreDatasource.setEditType(datasourceDTO.getEditType().toString());
         coreDatasource.setConfiguration(datasourceDTO.getConfiguration());
         coreDatasource.setStatus(datasourceDTO.getStatus());
-        coreDatasource.setTask_status(datasourceDTO.getTaskStatus());
-        coreDatasource.setEnable_data_fill(coreDatasource.getEnable_data_fill());
+        coreDatasource.setTaskStatus(datasourceDTO.getTaskStatus());
+        coreDatasource.setEnableDataFill(coreDatasource.getEnableDataFill());
         User loginUser = userService.getLoginUser(request);
         coreDatasource.setUserId(loginUser.getId());
 
@@ -164,11 +168,22 @@ public class NewDataSourceController {
 
         // 获取结果
         CloseableHttpResponse response = httpClient.execute(request);
+        int code = response.getCode();
+        if (code != 200) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR,"调用接口失败！");
+        }
         String responseBody = EntityUtils.toString(response.getEntity());
         System.out.println(responseBody);
 
         // 处理结果
-
+        List<Map<String,Object>> fields = new ArrayList<>();
+        String rootPath = "";
+        try {
+            handleStr(responseBody,fields,rootPath);
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR,"调用接口失败！");
+        }
+        apiDefinition.setJsonFields(fields);
 
         return ResultUtils.success(apiDefinition);
     }

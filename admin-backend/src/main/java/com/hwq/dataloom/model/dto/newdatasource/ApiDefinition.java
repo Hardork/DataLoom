@@ -1,6 +1,5 @@
 package com.hwq.dataloom.model.dto.newdatasource;
 
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -47,7 +46,6 @@ public class ApiDefinition {
     /**
      * 接口调用请求
      */
-    @ApiModelProperty
     private ApiDefinitionRequest request;
 
     /**
