@@ -51,7 +51,7 @@ public class DataSourceTreeController {
      * @param request
      * @return
      */
-    @GetMapping("/move")
+    @PostMapping("/move")
     public BaseResponse<Boolean> moveDatasourceDirNode(@RequestBody @Valid MoveDatasourceDirNodeRequest moveDatasourceDirNodeRequest, HttpServletRequest request) {
         return ResultUtils.success(datasourceDirTreeService.moveDatasourceDirNode(moveDatasourceDirNodeRequest, request));
     }

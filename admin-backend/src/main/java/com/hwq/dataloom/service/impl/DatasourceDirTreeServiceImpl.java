@@ -140,10 +140,13 @@ public class DatasourceDirTreeServiceImpl extends ServiceImpl<DatasourceDirTreeM
             if (Objects.equals(datasourceDirTree.getPid(), rootNode.getId())) {
                 // 构造子节点
                 ListDatasourceTreeVO sonNode = new ListDatasourceTreeVO();
-                BeanUtils.copyProperties(sonNode, datasourceDirTree);
+                BeanUtils.copyProperties(datasourceDirTree, sonNode);
+                if (rootNode.getChildren() == null) {
+                    rootNode.setChildren(new ArrayList<>());
+                }
                 rootNode.getChildren().add(sonNode);
                 // 递归构造
-                buildTree(rootNode, datasourceDirNodeList);
+                buildTree(sonNode, datasourceDirNodeList);
             }
         }
     }
