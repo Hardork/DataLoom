@@ -193,7 +193,6 @@ public class ExcelUtils {
             if (type.equalsIgnoreCase("DOUBLE") && tableFieldInfo.getFieldType().equalsIgnoreCase("LONG")) {
                 tableFieldInfo.setFieldType(type);
             }
-
         }
 
     }

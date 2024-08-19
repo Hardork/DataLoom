@@ -2,6 +2,7 @@ package com.hwq.dataloom.service;
 
 import com.hwq.dataloom.model.dto.datasource.MoveDatasourceDirNodeRequest;
 import com.hwq.dataloom.model.dto.datasource_tree.AddDatasourceDirRequest;
+import com.hwq.dataloom.model.dto.datasource_tree.DeleteDatasourceDirNodeRequest;
 import com.hwq.dataloom.model.entity.DatasourceDirTree;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.hwq.dataloom.model.vo.datasource.ListDatasourceTreeVO;
@@ -39,4 +40,12 @@ public interface DatasourceDirTreeService extends IService<DatasourceDirTree> {
      * @return
      */
     Boolean moveDatasourceDirNode(MoveDatasourceDirNodeRequest moveDatasourceDirNodeRequest, HttpServletRequest request);
+
+    /**
+     * 删除文件树节点
+     * @param deleteDatasourceDirNodeRequest
+     * @param request
+     * @return
+     */
+    Boolean deleteDatasourceDirNode(DeleteDatasourceDirNodeRequest deleteDatasourceDirNodeRequest, HttpServletRequest request);
 }
