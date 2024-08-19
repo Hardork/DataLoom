@@ -25,9 +25,14 @@ public class DataSourceConfig {
     private String description;
 
     /**
-     * 类型
+     * 数据源类型
      */
     private String type;
+
+    /**
+     * 所属文件夹
+     */
+    private Long pid;
 
     /**
      * 主机地址
@@ -79,6 +84,7 @@ public class DataSourceConfig {
     @Max(value = 127, message = "maxConNum最大为127")
     @Min(value = 1, message = "maxConNum最小为1")
     private Integer maxConNum;
+
 
     /**
      * 超时时间

@@ -576,3 +576,41 @@ create table bi.datasource_meta_info (
     updateTime  datetime      default CURRENT_TIMESTAMP null,
     isDelete    tinyint       default 0                 null
 );
+
+-- 数据源信息
+DROP TABLE if exists core_datasource;
+create table core_datasource
+(
+    id               bigint auto_increment comment '主键' primary key,
+    name             varchar(255)      not null comment '名称',
+    description      varchar(255)      null comment '描述',
+    type             varchar(50)       not null comment '类型',
+    pid              bigint            null comment '父级ID --文件夹',
+    editType         varchar(50)       null comment '更新方式：0：替换；1：追加',
+    configuration    longtext          not null comment '详细信息',
+    status           longtext          null comment '状态',
+    taskStatus      varchar(50)       null comment '任务状态',
+    enableDataFill tinyint default 0  null comment '启用数据填报功能 0-不填报 1-填报',
+    userId           bigint            not null comment '创建的用户ID',
+    createTime      datetime           null default CURRENT_TIMESTAMP comment '创建时间',
+    updateTime      datetime           null default CURRENT_TIMESTAMP comment '更新时间',
+    isDelete        tinyint            default 0  null comment '逻辑删除'
+) comment '数据源表';
+
+-- 数据源目录树
+DROP TABLE if exists datasource_dir_tree;
+create table datasource_dir_tree
+(
+    id               bigint auto_increment comment '主键' primary key,
+    name             varchar(255)      not null comment '名称',
+    type             varchar(50)       not null comment '类型 dir（目录）、file（文件）',
+    pid              bigint            null comment '父级ID --文件夹',
+    wight           int                not null default 0,
+    userId           bigint            not null comment '创建的用户ID',
+    datasourceId     bigint            null comment '数据源id',
+    createTime      datetime           null default CURRENT_TIMESTAMP comment '创建时间',
+    updateTime      datetime           null default CURRENT_TIMESTAMP comment '更新时间',
+    isDelete        tinyint            default 0  null comment '逻辑删除'
+) comment '数据源目录树';
+-- 插入根节点
+insert into datasource_dir_tree(id, name, type, pid, wight, userId) values (0, '数据源', 'dir', 0, 1, 1697633200786403330);

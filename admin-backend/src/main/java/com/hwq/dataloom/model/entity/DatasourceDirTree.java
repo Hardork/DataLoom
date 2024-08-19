@@ -1,18 +1,20 @@
 package com.hwq.dataloom.model.entity;
 
-import com.baomidou.mybatisplus.annotation.*;
-
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.util.Date;
 import lombok.Data;
 
 /**
- * 数据源表
- * @TableName core_datasource
+ * 数据源目录树
+ * @TableName datasource_dir_tree
  */
-@TableName(value ="core_datasource")
+@TableName(value ="datasource_dir_tree")
 @Data
-public class CoreDatasource implements Serializable {
+public class DatasourceDirTree implements Serializable {
     /**
      * 主键
      */
@@ -25,14 +27,15 @@ public class CoreDatasource implements Serializable {
     private String name;
 
     /**
-     * 描述
-     */
-    private String description;
-
-    /**
-     * 类型
+     * 类型 dir（目录）、file（文件）
      */
     private String type;
+
+
+    /**
+     * 数据源id
+     */
+    private Long datasourceId;
 
     /**
      * 父级ID --文件夹
@@ -40,29 +43,9 @@ public class CoreDatasource implements Serializable {
     private Long pid;
 
     /**
-     * 更新方式：0：替换；1：追加
+     * 权重
      */
-    private String editType;
-
-    /**
-     * 详细信息
-     */
-    private String configuration;
-
-    /**
-     * 状态
-     */
-    private String status;
-
-    /**
-     * 任务状态
-     */
-    private String taskStatus;
-
-    /**
-     * 启用数据填报功能 0-不填报 1-填报
-     */
-    private Integer enableDataFill;
+    private Integer wight;
 
     /**
      * 创建的用户ID
@@ -82,7 +65,6 @@ public class CoreDatasource implements Serializable {
     /**
      * 逻辑删除
      */
-    @TableLogic
     private Integer isDelete;
 
     @TableField(exist = false)

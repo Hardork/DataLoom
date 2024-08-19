@@ -51,7 +51,6 @@ public class ServiceRecord {
         RequestAttributes requestAttributes = RequestContextHolder.currentRequestAttributes();
         HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
         User loginUser = userService.getLoginUser(request);
-
         // 保存记录
         com.hwq.dataloom.model.entity.ServiceRecord serviceRecord = new com.hwq.dataloom.model.entity.ServiceRecord();
         serviceRecord.setUserId(loginUser.getId());
