@@ -1,9 +1,5 @@
 package com.hwq.dataloom.controller;
 
-import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONUtil;
-import com.alibaba.nacos.common.http.HttpClientConfig;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
@@ -31,9 +27,7 @@ import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.util.Timeout;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -52,9 +46,9 @@ import static com.hwq.dataloom.utils.ApiUtils.handleStr;
  * 新数据源接口
  */
 @RestController
-@RequestMapping("/newdatasource")
+@RequestMapping("/coreDatasource")
 @Slf4j
-public class NewDataSourceController {
+public class CoreDataSourceController {
 
     @Resource
     private UserService userService;
@@ -65,25 +59,8 @@ public class NewDataSourceController {
     @Resource
     private CoreDatasourceTaskService coreDatasourceTaskService;
 
-    @PostMapping("/folder")
-    public BaseResponse<Long> addFolder(Long pid, String name, HttpServletRequest request) {
-        if (name == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请添加文件夹名称");
-        }
-        CoreDatasource coreDatasource = new CoreDatasource();
-        coreDatasource.setName(name);
-        coreDatasource.setType("folder");
-        coreDatasource.setPid(pid);
-        User loginUser = userService.getLoginUser(request);
-        coreDatasource.setUserId(loginUser.getId());
-        boolean save = coreDatasourceService.save(coreDatasource);
-        ThrowUtils.throwIf(!save, ErrorCode.OPERATION_ERROR);
-        Long id = coreDatasource.getId();
-        return ResultUtils.success(id);
-    }
-
-    @PostMapping("/datasource")
-    public BaseResponse<Long> addDatasource(DatasourceDTO datasourceDTO, HttpServletRequest request) {
+    @PostMapping("/add/api")
+    public BaseResponse<Long> addApiDatasource(DatasourceDTO datasourceDTO, HttpServletRequest request) {
         ThrowUtils.throwIf(datasourceDTO == null, ErrorCode.PARAMS_ERROR);
         // 新增数据源
         CoreDatasource coreDatasource = new CoreDatasource();
@@ -108,6 +85,24 @@ public class NewDataSourceController {
         Long id = coreDatasource.getId();
         return ResultUtils.success(id);
     }
+
+    /**
+     * 添加数据源
+     * @param datasourceDTO
+     * @param request
+     * @return
+     */
+    @PostMapping("/add")
+    public BaseResponse<Long> addDatasource(@RequestBody DatasourceDTO datasourceDTO, HttpServletRequest request) {
+        ThrowUtils.throwIf(datasourceDTO == null, ErrorCode.PARAMS_ERROR);
+        CoreDatasource coreDatasource = new CoreDatasource();
+        BeanUtils.copyProperties(datasourceDTO, coreDatasource);
+        User loginUser = userService.getLoginUser(request);
+        coreDatasource.setUserId(loginUser.getId());
+        Long id = coreDatasourceService.addDatasource(datasourceDTO, loginUser);
+        return ResultUtils.success(id);
+    }
+
 
     @PostMapping("/checkApiDatasource")
     public BaseResponse<ApiDefinition> checkApiDatasource(@RequestBody ApiDefinition apiDefinition) throws IOException, ParseException {

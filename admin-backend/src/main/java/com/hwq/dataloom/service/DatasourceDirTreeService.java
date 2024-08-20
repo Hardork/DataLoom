@@ -1,5 +1,6 @@
 package com.hwq.dataloom.service;
 
+import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.dto.datasource.MoveDatasourceDirNodeRequest;
 import com.hwq.dataloom.model.dto.datasource_tree.AddDatasourceDirRequest;
 import com.hwq.dataloom.model.dto.datasource_tree.DeleteDatasourceDirNodeRequest;
@@ -20,10 +21,10 @@ public interface DatasourceDirTreeService extends IService<DatasourceDirTree> {
     /**
      * 新建文件夹
      * @param addDatasourceDirRequest
-     * @param request
+     * @param user
      * @return
      */
-    Boolean addDatasourceDirNode(AddDatasourceDirRequest addDatasourceDirRequest, HttpServletRequest request);
+    Boolean addDatasourceDirNode(AddDatasourceDirRequest addDatasourceDirRequest, User user);
 
 
     /**

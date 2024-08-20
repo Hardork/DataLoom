@@ -42,7 +42,7 @@ public class DatasourceDirTreeServiceImpl extends ServiceImpl<DatasourceDirTreeM
     @Resource
     private CoreDatasourceService coreDatasourceService;
     @Override
-    public Boolean addDatasourceDirNode(AddDatasourceDirRequest addDatasourceDirRequest, HttpServletRequest request) {
+    public Boolean addDatasourceDirNode(AddDatasourceDirRequest addDatasourceDirRequest, User loginUser) {
         String name = addDatasourceDirRequest.getName();
         String type = addDatasourceDirRequest.getType();
         // 获取目录类型枚举
@@ -51,8 +51,6 @@ public class DatasourceDirTreeServiceImpl extends ServiceImpl<DatasourceDirTreeM
         Long pid = addDatasourceDirRequest.getPid();
         // 权重, 用于排序
         Integer wight = addDatasourceDirRequest.getWight();
-        // 获取用户信息
-        User loginUser = userService.getLoginUser(request);
         // 如果插入的父节点是目录根节点就直接插入
         if (pid == 0) {
             // 插入
@@ -72,7 +70,8 @@ public class DatasourceDirTreeServiceImpl extends ServiceImpl<DatasourceDirTreeM
                 eq(DatasourceDirTree::getUserId, loginUser.getId());
         DatasourceDirTree parentDir = this.getOne(lambdaQueryWrapper);
         ThrowUtils.throwIf(parentDir == null, ErrorCode.NOT_FOUND_ERROR, "插入目录不存在");
-        // 插入
+        ThrowUtils.throwIf(parentDir.getType().equals(DirTypeEnum.FILE.getText()), ErrorCode.OPERATION_ERROR, "不可将文件或目录插入到文件下");
+        // 插入节点到目标目录下
         DatasourceDirTree datasourceDirTree = new DatasourceDirTree();
         datasourceDirTree.setName(name);
         datasourceDirTree.setType(type);

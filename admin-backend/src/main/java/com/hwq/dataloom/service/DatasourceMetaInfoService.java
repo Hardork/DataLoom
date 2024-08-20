@@ -1,7 +1,7 @@
 package com.hwq.dataloom.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.hwq.dataloom.model.dto.datasource.DataSourceConfig;
+import com.hwq.dataloom.model.json.StructDatabaseConfiguration;
 import com.hwq.dataloom.model.dto.datasource.PreviewData;
 import com.hwq.dataloom.model.dto.datasource.PreviewDataRequest;
 import com.hwq.dataloom.model.entity.DatasourceMetaInfo;
@@ -27,11 +27,11 @@ public interface DatasourceMetaInfoService extends IService<DatasourceMetaInfo> 
 
     /**
      * 存储数据源元数据
-     * @param dataSourceConfig
+     * @param structDatabaseConfiguration
      * @param loginUser
      * @return
      */
-    Boolean saveDataSourceMetaInfo(DataSourceConfig dataSourceConfig, User loginUser);
+    Boolean saveDataSourceMetaInfo(StructDatabaseConfiguration structDatabaseConfiguration, User loginUser);
 
     /**
      * 获取表结构

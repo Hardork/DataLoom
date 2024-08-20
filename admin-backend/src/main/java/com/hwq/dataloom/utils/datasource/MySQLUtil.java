@@ -6,7 +6,7 @@ package com.hwq.dataloom.utils.datasource;/**
 
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
-import com.hwq.dataloom.model.dto.datasource.DataSourceConfig;
+import com.hwq.dataloom.model.json.StructDatabaseConfiguration;
 import com.hwq.dataloom.model.dto.datasource.PreviewData;
 import com.hwq.dataloom.model.dto.datasource.SchemaStructure;
 import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
@@ -29,13 +29,13 @@ public class MySQLUtil {
 
     /**
      * 校验连接
-     * @param dataSourceConfig
+     * @param structDatabaseConfiguration
      * @return
      * @throws SQLException
      */
-    public static boolean checkConnectValid(DataSourceConfig dataSourceConfig) {
+    public static boolean checkConnectValid(StructDatabaseConfiguration structDatabaseConfiguration) {
         try {
-            Connection conn = getConByConfig(dataSourceConfig);
+            Connection conn = getConByConfig(structDatabaseConfiguration);
            if (conn != null) {
                conn.close();
            }
@@ -47,12 +47,12 @@ public class MySQLUtil {
 
     /**
      * 获取数据库连接
-     * @param dataSourceConfig
+     * @param structDatabaseConfiguration
      * @param tableName
      * @return
      */
-    public static List<SchemaStructure> structure(DataSourceConfig dataSourceConfig, String tableName) {
-        Connection conn = getConByConfig(dataSourceConfig);
+    public static List<SchemaStructure> structure(StructDatabaseConfiguration structDatabaseConfiguration, String tableName) {
+        Connection conn = getConByConfig(structDatabaseConfiguration);
         List<SchemaStructure> schemaStructuresList = new ArrayList<>();
         try {
             // 通过 DruidDataSourceFactory 创建连接池
@@ -83,11 +83,11 @@ public class MySQLUtil {
 
     /**
      * 获取数据库的表名
-     * @param dataSourceConfig
+     * @param structDatabaseConfiguration
      * @return
      */
-    public static List<String> getSchemas(DataSourceConfig dataSourceConfig) {
-        Connection conn = getConByConfig(dataSourceConfig);
+    public static List<String> getSchemas(StructDatabaseConfiguration structDatabaseConfiguration) {
+        Connection conn = getConByConfig(structDatabaseConfiguration);
         List<String> tables = new ArrayList<>();
         try {
             // 获取数据库连接
@@ -106,8 +106,8 @@ public class MySQLUtil {
         return tables;
     }
 
-    public static PreviewData getPreviewData(DataSourceConfig dataSourceConfig, String tableName) {
-        Connection conn = getConByConfig(dataSourceConfig);
+    public static PreviewData getPreviewData(StructDatabaseConfiguration structDatabaseConfiguration, String tableName) {
+        Connection conn = getConByConfig(structDatabaseConfiguration);
         List<SchemaStructure> schemaStructuresList = new ArrayList<>();
         List<Map<String, String>> data = new ArrayList<>();
         PreviewData previewData = new PreviewData();
@@ -158,10 +158,10 @@ public class MySQLUtil {
 
     /**
      * 获取自定义SQL的结果
-     * @param dataSourceConfig
+     * @param structDatabaseConfiguration
      */
-    public static QueryAICustomSQLVO queryCustomSQL(DataSourceConfig dataSourceConfig, String customSQL) {
-        Connection conn = getConByConfig(dataSourceConfig, false);
+    public static QueryAICustomSQLVO queryCustomSQL(StructDatabaseConfiguration structDatabaseConfiguration, String customSQL) {
+        Connection conn = getConByConfig(structDatabaseConfiguration, false);
         QueryAICustomSQLVO queryAICustomSQLVO = new QueryAICustomSQLVO();
         List<String> columns = new ArrayList<>();
         List<Map<String, Object>> res = new ArrayList<>();
@@ -195,27 +195,27 @@ public class MySQLUtil {
     }
 
     public static QueryAICustomSQLVO queryCustomSqlWithDefaultCon(String customSQL) {
-        DataSourceConfig dataSourceConfig = new DataSourceConfig();
-        dataSourceConfig.setName("null");
-        dataSourceConfig.setDescription("");
-        dataSourceConfig.setType("MySQL");
-        dataSourceConfig.setHost("localhost");
-        dataSourceConfig.setPort("3306");
-        dataSourceConfig.setDataBaseName("bi");
-        dataSourceConfig.setUserName("root");
-        dataSourceConfig.setPassword("hwq2003121");
-        return queryCustomSQL(dataSourceConfig, customSQL);
+        StructDatabaseConfiguration structDatabaseConfiguration = new StructDatabaseConfiguration();
+        structDatabaseConfiguration.setName("null");
+        structDatabaseConfiguration.setDescription("");
+        structDatabaseConfiguration.setType("MySQL");
+        structDatabaseConfiguration.setHost("localhost");
+        structDatabaseConfiguration.setPort("3306");
+        structDatabaseConfiguration.setDataBaseName("bi");
+        structDatabaseConfiguration.setUserName("root");
+        structDatabaseConfiguration.setPassword("hwq2003121");
+        return queryCustomSQL(structDatabaseConfiguration, customSQL);
     }
 
-    public static Connection getConByConfig(DataSourceConfig dataSourceConfig, boolean encrypt) {
-        if (dataSourceConfig == null) {
+    public static Connection getConByConfig(StructDatabaseConfiguration structDatabaseConfiguration, boolean encrypt) {
+        if (structDatabaseConfiguration == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "dataSourceConfig不存在");
         }
-        String host = dataSourceConfig.getHost();
-        String port = dataSourceConfig.getPort();
-        String dataBaseName = dataSourceConfig.getDataBaseName();
-        String userName = dataSourceConfig.getUserName();
-        String password = dataSourceConfig.getPassword();
+        String host = structDatabaseConfiguration.getHost();
+        String port = structDatabaseConfiguration.getPort();
+        String dataBaseName = structDatabaseConfiguration.getDataBaseName();
+        String userName = structDatabaseConfiguration.getUserName();
+        String password = structDatabaseConfiguration.getPassword();
         // 构造URL
         StringBuilder url = new StringBuilder();
         url.append("jdbc:mysql://" )
@@ -233,15 +233,15 @@ public class MySQLUtil {
         return conn;
     }
 
-    public static Connection getConByConfig(DataSourceConfig dataSourceConfig) {
-        if (dataSourceConfig == null) {
+    public static Connection getConByConfig(StructDatabaseConfiguration structDatabaseConfiguration) {
+        if (structDatabaseConfiguration == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "dataSourceConfig不存在");
         }
-        String host = dataSourceConfig.getHost();
-        String port = dataSourceConfig.getPort();
-        String dataBaseName = dataSourceConfig.getDataBaseName();
-        String userName = dataSourceConfig.getUserName();
-        String password = dataSourceConfig.getPassword();
+        String host = structDatabaseConfiguration.getHost();
+        String port = structDatabaseConfiguration.getPort();
+        String dataBaseName = structDatabaseConfiguration.getDataBaseName();
+        String userName = structDatabaseConfiguration.getUserName();
+        String password = structDatabaseConfiguration.getPassword();
         // 解密
         password = AESUtils.decrypt(password, secretKey);
         // 构造URL

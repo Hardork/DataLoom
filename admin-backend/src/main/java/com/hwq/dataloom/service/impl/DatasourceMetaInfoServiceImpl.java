@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.mapper.DatasourceMetaInfoMapper;
-import com.hwq.dataloom.model.dto.datasource.DataSourceConfig;
+import com.hwq.dataloom.model.json.StructDatabaseConfiguration;
 import com.hwq.dataloom.model.dto.datasource.PreviewData;
 import com.hwq.dataloom.model.dto.datasource.PreviewDataRequest;
 import com.hwq.dataloom.model.entity.DatasourceMetaInfo;
@@ -28,19 +28,19 @@ public class DatasourceMetaInfoServiceImpl extends ServiceImpl<DatasourceMetaInf
     public PreviewData PreviewData(PreviewDataRequest previewDataRequest, DatasourceMetaInfo datasourceMetaInfo) {
         // check
         String dataName = previewDataRequest.getDataName();
-        DataSourceConfig dataSourceConfig = new DataSourceConfig();
-        BeanUtils.copyProperties(datasourceMetaInfo, dataSourceConfig);
-        dataSourceConfig.setType("");
-        return MySQLUtil.getPreviewData(dataSourceConfig, dataName);
+        StructDatabaseConfiguration structDatabaseConfiguration = new StructDatabaseConfiguration();
+        BeanUtils.copyProperties(datasourceMetaInfo, structDatabaseConfiguration);
+        structDatabaseConfiguration.setType("");
+        return MySQLUtil.getPreviewData(structDatabaseConfiguration, dataName);
     }
 
     @Override
-    public Boolean saveDataSourceMetaInfo(DataSourceConfig dataSourceConfig, User loginUser) {
-        ThrowUtils.throwIf(dataSourceConfig == null, ErrorCode.PARAMS_ERROR);
+    public Boolean saveDataSourceMetaInfo(StructDatabaseConfiguration structDatabaseConfiguration, User loginUser) {
+        ThrowUtils.throwIf(structDatabaseConfiguration == null, ErrorCode.PARAMS_ERROR);
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
         Long userId = loginUser.getId();
         DatasourceMetaInfo datasourceMetaInfo = new DatasourceMetaInfo();
-        BeanUtils.copyProperties(dataSourceConfig, datasourceMetaInfo);
+        BeanUtils.copyProperties(structDatabaseConfiguration, datasourceMetaInfo);
         datasourceMetaInfo.setUserId(userId);
         boolean save = this.save(datasourceMetaInfo);
         ThrowUtils.throwIf(!save, ErrorCode.SYSTEM_ERROR);
@@ -49,9 +49,9 @@ public class DatasourceMetaInfoServiceImpl extends ServiceImpl<DatasourceMetaInf
 
     @Override
     public List<String> getSchemas(DatasourceMetaInfo datasourceMetaInfo) {
-        DataSourceConfig dataSourceConfig = new DataSourceConfig();
-        BeanUtils.copyProperties(datasourceMetaInfo, dataSourceConfig);
-        return MySQLUtil.getSchemas(dataSourceConfig);
+        StructDatabaseConfiguration structDatabaseConfiguration = new StructDatabaseConfiguration();
+        BeanUtils.copyProperties(datasourceMetaInfo, structDatabaseConfiguration);
+        return MySQLUtil.getSchemas(structDatabaseConfiguration);
     }
 }
 
