@@ -5,6 +5,7 @@ import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.dto.datasource_tree.AddDatasourceDirRequest;
 import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
+import com.hwq.dataloom.model.entity.CoreDatasetTable;
 import com.hwq.dataloom.model.entity.CoreDatasource;
 import com.hwq.dataloom.model.enums.DataSourceTypeEnum;
 import com.hwq.dataloom.model.enums.DirTypeEnum;
@@ -16,6 +17,8 @@ import com.hwq.dataloom.utils.datasource.MySQLUtil;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author HWQ
@@ -46,7 +49,7 @@ public class MySQLDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
         String configuration = datasourceDTO.getConfiguration();
         // 将JSON转换为对象
         StructDatabaseConfiguration structDatabaseConfiguration = JSONUtil.toBean(configuration, StructDatabaseConfiguration.class);
-        // 重新进行一次校验
+        // 重新进行一次数据源校验
         MySQLUtil.checkConnectValid(structDatabaseConfiguration);
         // 根据pid存储到数据源文件树中
         AddDatasourceDirRequest addDatasourceDirRequest = AddDatasourceDirRequest
@@ -73,5 +76,24 @@ public class MySQLDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
         // 将JSON转换为对象
         StructDatabaseConfiguration structDatabaseConfiguration = JSONUtil.toBean(configuration, StructDatabaseConfiguration.class);
         return MySQLUtil.checkConnectValid(structDatabaseConfiguration);
+    }
+
+    @Override
+    public List<CoreDatasetTable> getTables(CoreDatasource coreDatasource) {
+        String configuration = coreDatasource.getConfiguration();
+        // 将JSON转换为对象
+        StructDatabaseConfiguration structDatabaseConfiguration = JSONUtil.toBean(configuration, StructDatabaseConfiguration.class);
+        // 获取对应数据源所有的表名
+        List<String> tableNames = MySQLUtil.getSchemas(structDatabaseConfiguration);
+        // 封装返回类
+        List<CoreDatasetTable> coreDatasetTables = new ArrayList<>();
+        for (String tableName : tableNames) {
+            CoreDatasetTable coreDatasetTable = new CoreDatasetTable();
+            coreDatasetTable.setTableName(tableName);
+            coreDatasetTable.setDatasourceId(coreDatasource.getId());
+            coreDatasetTable.setType(coreDatasource.getType());
+            coreDatasetTables.add(coreDatasetTable);
+        }
+        return coreDatasetTables;
     }
 }

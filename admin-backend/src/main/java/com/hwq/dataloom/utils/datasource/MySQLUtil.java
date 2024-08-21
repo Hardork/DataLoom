@@ -46,7 +46,7 @@ public class MySQLUtil {
     }
 
     /**
-     * 获取数据库连接
+     * 获取数据库
      * @param structDatabaseConfiguration
      * @param tableName
      * @return
@@ -242,8 +242,6 @@ public class MySQLUtil {
         String dataBaseName = structDatabaseConfiguration.getDataBaseName();
         String userName = structDatabaseConfiguration.getUserName();
         String password = structDatabaseConfiguration.getPassword();
-        // 解密
-        password = AESUtils.decrypt(password, secretKey);
         // 构造URL
         StringBuilder url = new StringBuilder();
         url.append("jdbc:mysql://" )

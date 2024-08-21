@@ -80,6 +80,13 @@ public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<Datas
 
     @Override
     public Boolean validDatasource(DatasourceDTO datasourceDTO) {
+        // zzx TODO: 校验API数据
+        return null;
+    }
+
+    @Override
+    public List<CoreDatasetTable> getTables(CoreDatasource coreDatasource) {
+        // zzx TODO: 获取数据源表信息
         return null;
     }
 }

@@ -1,7 +1,10 @@
 package com.hwq.dataloom.service.basic;
 
 import com.hwq.dataloom.framework.model.entity.User;
+import com.hwq.dataloom.model.entity.CoreDatasetTable;
 import com.hwq.dataloom.model.entity.CoreDatasource;
+
+import java.util.List;
 
 /**
  * @author HWQ
@@ -32,4 +35,11 @@ public interface DatasourceExecuteStrategy<REQ> {
      */
     Boolean validDatasource(REQ req);
 
+
+    /**
+     * 获取数据源所有表信息
+     * @param coreDatasource 数据源信息
+     * @return
+     */
+    List<CoreDatasetTable> getTables(CoreDatasource coreDatasource);
 }

@@ -10,6 +10,7 @@ import com.hwq.dataloom.framework.result.ResultUtils;
 import com.hwq.dataloom.model.dto.newdatasource.ApiDefinition;
 import com.hwq.dataloom.model.dto.newdatasource.ApiDefinitionRequest;
 import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
+import com.hwq.dataloom.model.entity.CoreDatasetTable;
 import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -25,10 +26,7 @@ import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.util.Timeout;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -54,6 +52,12 @@ public class CoreDataSourceController {
     private CoreDatasourceService coreDatasourceService;
 
 
+    /**
+     * 添加数据源
+     * @param datasourceDTO
+     * @param request
+     * @return
+     */
     @PostMapping("/add")
     public BaseResponse<Long> addDatasource(@RequestBody DatasourceDTO datasourceDTO, HttpServletRequest request) {
         ThrowUtils.throwIf(datasourceDTO == null, ErrorCode.PARAMS_ERROR);
@@ -61,6 +65,7 @@ public class CoreDataSourceController {
         // 根据不同类型configuration新增表 （用策略模式优化）
         return ResultUtils.success(coreDatasourceService.addDatasource(datasourceDTO, loginUser));
     }
+
 
     /**
      * 校验数据源
@@ -72,6 +77,15 @@ public class CoreDataSourceController {
         ThrowUtils.throwIf(datasourceDTO == null, ErrorCode.PARAMS_ERROR);
         // 根据不同类型configuration校验表 （用策略模式优化）
         return ResultUtils.success(coreDatasourceService.validDatasourceConfiguration(datasourceDTO));
+    }
+
+
+    @GetMapping("/getTables")
+    public BaseResponse<List<CoreDatasetTable>> getTablesByDatasourceId(Long datasourceId, HttpServletRequest request) {
+        ThrowUtils.throwIf(datasourceId == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        // 根据不同数据源类型
+        return ResultUtils.success(coreDatasourceService.getTablesByDatasourceId(datasourceId, loginUser));
     }
 
     @PostMapping("/checkApiDatasource")
