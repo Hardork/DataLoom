@@ -1,16 +1,21 @@
 package com.hwq.dataloom.service.impl.strategy;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.json.JSONUtil;
+import com.alibaba.spring.util.BeanUtils;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.dto.newdatasource.ApiDefinition;
 import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
+import com.hwq.dataloom.model.dto.newdatasource.TableField;
 import com.hwq.dataloom.model.entity.CoreDatasetTable;
 import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.entity.CoreDatasource;
 import com.hwq.dataloom.model.enums.DataSourceTypeEnum;
+
+import com.hwq.dataloom.service.CoreDatasetTableFieldService;
 import com.hwq.dataloom.service.CoreDatasetTableService;
 import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.service.CoreDatasourceTaskService;
@@ -20,9 +25,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -30,6 +37,7 @@ import java.util.List;
  * @date 2024/8/21 09:55
  * @description API数据源策略实现类
  */
+@Component
 public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<DatasourceDTO> {
 
     @Resource
@@ -40,6 +48,9 @@ public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<Datas
 
     @Resource
     private CoreDatasourceService coreDatasourceService;
+
+    @Resource
+    private CoreDatasetTableFieldService coreDatasetTableFieldService;
 
     @Override
     public String mark() {
@@ -69,7 +80,7 @@ public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<Datas
         ThrowUtils.throwIf(!save, ErrorCode.OPERATION_ERROR, "新增数据源失败！");
         Long id = coreDatasource.getId();
         List<ApiDefinition> apiDefinitions = JSONUtil.toList(datasourceDTO.getConfiguration(), ApiDefinition.class);
-        // 循环新增数据表和数据源同步任务
+        // 循环新增数据表 、 数据源同步任务 、 数据字段
         for (ApiDefinition apiDefinition : apiDefinitions) {
             CoreDatasetTable coreDatasetTable = new CoreDatasetTable();
             coreDatasetTable.setName(apiDefinition.getName());
@@ -80,8 +91,30 @@ public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<Datas
             coreDatasetTable.setSqlVariableDetails(null);
             Long datasetTableId = coreDatasetTableService.addDatasetTable(coreDatasetTable);
             ThrowUtils.throwIf(datasetTableId < 0, ErrorCode.OPERATION_ERROR, "新增数据表失败！");
+
+            datasourceDTO.setId(id);
             Long datasourceTaskId = coreDatasourceTaskService.addTask(datasourceDTO, datasetTableId);
             ThrowUtils.throwIf(datasourceTaskId < 0, ErrorCode.OPERATION_ERROR, "新增定时任务失败！");
+
+            Long lastExecTime = coreDatasourceTaskService.getById(datasourceTaskId).getLastExecTime();
+
+            List<TableField> fields = apiDefinition.getFields();
+            int columnIndex = 0;
+            ArrayList<CoreDatasetTableField> coreDatasetTableFieldList = new ArrayList<>();
+            for (TableField field : fields) {
+                // TODO 识别原始字段类型
+                columnIndex++;
+                CoreDatasetTableField coreDatasetTableField = new CoreDatasetTableField();
+                BeanUtil.copyProperties(field,coreDatasetTableField);
+                coreDatasetTableField.setDatasourceId(id);
+                coreDatasetTableField.setDatasetTableId(datasetTableId);
+                coreDatasetTableField.setColumnIndex(columnIndex);
+                coreDatasetTableField.setLastSyncTime(lastExecTime);
+                coreDatasetTableField.setGroupType("d");
+                coreDatasetTableFieldList.add(coreDatasetTableField);
+            }
+            boolean savedBatch = coreDatasetTableFieldService.saveBatch(coreDatasetTableFieldList);
+            ThrowUtils.throwIf(!savedBatch,ErrorCode.OPERATION_ERROR,"新增字段失败！");
         }
         return id;
     }

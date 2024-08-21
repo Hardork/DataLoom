@@ -14,6 +14,7 @@ import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.mapper.CoreDatasourceMapper;
 import com.hwq.dataloom.service.basic.DatasourceExecuteStrategy;
 import com.hwq.dataloom.service.basic.DatasourceStrategyChoose;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;

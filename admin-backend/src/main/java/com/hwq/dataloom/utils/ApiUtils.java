@@ -245,7 +245,6 @@ public class ApiUtils {
                 if (!ObjectUtils.isEmpty(map.get("jsonPath")) && StringUtils.isNotEmpty(field.getJsonPath()) && field.getJsonPath().equals(map.get("jsonPath").toString())) {
                     map.put("checked", true);
                     map.put("name", field.getName());
-                    map.put("deExtractType", field.getDeExtractType());
                 }
             }
         }
