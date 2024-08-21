@@ -10,11 +10,8 @@ import com.hwq.dataloom.framework.result.ResultUtils;
 import com.hwq.dataloom.model.dto.newdatasource.ApiDefinition;
 import com.hwq.dataloom.model.dto.newdatasource.ApiDefinitionRequest;
 import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
-import com.hwq.dataloom.model.entity.CoreDatasource;
 import com.hwq.dataloom.service.CoreDatasourceService;
-import com.hwq.dataloom.service.CoreDatasourceTaskService;
 import com.hwq.dataloom.service.UserService;
-import com.hwq.dataloom.utils.strategy.DataSourceStrategyManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
@@ -28,7 +25,6 @@ import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.util.Timeout;
-import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,32 +53,25 @@ public class CoreDataSourceController {
     @Resource
     private CoreDatasourceService coreDatasourceService;
 
-    @Resource
-    private CoreDatasourceTaskService coreDatasourceTaskService;
 
     @PostMapping("/add")
     public BaseResponse<Long> addDatasource(@RequestBody DatasourceDTO datasourceDTO, HttpServletRequest request) {
         ThrowUtils.throwIf(datasourceDTO == null, ErrorCode.PARAMS_ERROR);
-        // 新增数据源
-        CoreDatasource coreDatasource = new CoreDatasource();
-        coreDatasource.setName(datasourceDTO.getName());
-        coreDatasource.setDescription(datasourceDTO.getDescription());
-        coreDatasource.setType(datasourceDTO.getType());
-        coreDatasource.setPid(datasourceDTO.getPid());
-        coreDatasource.setEditType(datasourceDTO.getEditType().toString());
-        coreDatasource.setConfiguration(datasourceDTO.getConfiguration());
-        coreDatasource.setStatus(datasourceDTO.getStatus());
-        coreDatasource.setTaskStatus(datasourceDTO.getTaskStatus());
-        coreDatasource.setEnableDataFill(coreDatasource.getEnableDataFill());
         User loginUser = userService.getLoginUser(request);
-        coreDatasource.setUserId(loginUser.getId());
-        boolean save = coreDatasourceService.save(coreDatasource);
-        ThrowUtils.throwIf(!save,ErrorCode.OPERATION_ERROR,"新增数据源失败！");
-        Long id = coreDatasource.getId();
         // 根据不同类型configuration新增表 （用策略模式优化）
-        DataSourceStrategyManager dataSourceStrategyManager = new DataSourceStrategyManager();
-        dataSourceStrategyManager.handleConfiguration(coreDatasource,datasourceDTO);
-        return ResultUtils.success(id);
+        return ResultUtils.success(coreDatasourceService.addDatasource(datasourceDTO, loginUser));
+    }
+
+    /**
+     * 校验数据源
+     * @param datasourceDTO
+     * @return
+     */
+    @PostMapping("/check")
+    public BaseResponse<Boolean> checkDatasource(@RequestBody DatasourceDTO datasourceDTO) {
+        ThrowUtils.throwIf(datasourceDTO == null, ErrorCode.PARAMS_ERROR);
+        // 根据不同类型configuration校验表 （用策略模式优化）
+        return ResultUtils.success(coreDatasourceService.validDatasourceConfiguration(datasourceDTO));
     }
 
     @PostMapping("/checkApiDatasource")
