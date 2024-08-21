@@ -5,11 +5,10 @@ import lombok.Data;
 /**
  * @author HWQ
  * @date 2024/5/24 00:16
- * @description
+ * @description 表结构信息
  */
 @Data
 public class SchemaStructure {
-    private Integer id;
     /**
      * 对应的数据源id
      */

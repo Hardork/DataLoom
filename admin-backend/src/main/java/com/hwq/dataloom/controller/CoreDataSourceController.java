@@ -7,10 +7,12 @@ import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.framework.result.BaseResponse;
 import com.hwq.dataloom.framework.result.ResultUtils;
+import com.hwq.dataloom.model.dto.datasource.GetTableFieldsDTO;
 import com.hwq.dataloom.model.dto.newdatasource.ApiDefinition;
 import com.hwq.dataloom.model.dto.newdatasource.ApiDefinitionRequest;
 import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
 import com.hwq.dataloom.model.entity.CoreDatasetTable;
+import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -27,9 +29,9 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.util.Timeout;
 import org.springframework.web.bind.annotation.*;
-
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +68,6 @@ public class CoreDataSourceController {
         return ResultUtils.success(coreDatasourceService.addDatasource(datasourceDTO, loginUser));
     }
 
-
     /**
      * 校验数据源
      * @param datasourceDTO
@@ -79,13 +80,32 @@ public class CoreDataSourceController {
         return ResultUtils.success(coreDatasourceService.validDatasourceConfiguration(datasourceDTO));
     }
 
-
+    /**
+     * 获取数据源所有表信息
+     * @param datasourceId
+     * @param request
+     * @return
+     */
     @GetMapping("/getTables")
     public BaseResponse<List<CoreDatasetTable>> getTablesByDatasourceId(Long datasourceId, HttpServletRequest request) {
         ThrowUtils.throwIf(datasourceId == null, ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(request);
         // 根据不同数据源类型
         return ResultUtils.success(coreDatasourceService.getTablesByDatasourceId(datasourceId, loginUser));
+    }
+
+    /**
+     * 获取数据源指定表所有字段信息
+     * @param getTableFieldsDTO
+     * @param request
+     * @return
+     */
+    @GetMapping("/getTableFields")
+    public BaseResponse<List<CoreDatasetTableField>> getTableFieldsByDatasourceIdAndTableName(@RequestBody @Valid GetTableFieldsDTO getTableFieldsDTO, HttpServletRequest request) {
+        ThrowUtils.throwIf(getTableFieldsDTO == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        // 根据不同数据源类型
+        return ResultUtils.success(coreDatasourceService.getTableFieldsByDatasourceIdAndTableName(getTableFieldsDTO, loginUser));
     }
 
     @PostMapping("/checkApiDatasource")

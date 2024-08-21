@@ -7,6 +7,7 @@ import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.dto.newdatasource.ApiDefinition;
 import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
 import com.hwq.dataloom.model.entity.CoreDatasetTable;
+import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.entity.CoreDatasource;
 import com.hwq.dataloom.model.enums.DataSourceTypeEnum;
 import com.hwq.dataloom.service.CoreDatasetTableService;
@@ -87,6 +88,11 @@ public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<Datas
     @Override
     public List<CoreDatasetTable> getTables(CoreDatasource coreDatasource) {
         // zzx TODO: 获取数据源表信息
+        return null;
+    }
+
+    @Override
+    public List<CoreDatasetTableField> getTableFields(CoreDatasource coreDatasource, String tableName) {
         return null;
     }
 }

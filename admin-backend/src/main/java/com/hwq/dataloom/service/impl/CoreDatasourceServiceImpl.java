@@ -1,17 +1,21 @@
 package com.hwq.dataloom.service.impl;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.alibaba.druid.util.MySqlUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.framework.model.entity.User;
+import com.hwq.dataloom.model.dto.datasource.GetTableFieldsDTO;
 import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
 import com.hwq.dataloom.model.entity.CoreDatasetTable;
+import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.entity.CoreDatasource;
 import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.mapper.CoreDatasourceMapper;
 import com.hwq.dataloom.service.basic.DatasourceExecuteStrategy;
 import com.hwq.dataloom.service.basic.DatasourceStrategyChoose;
+import com.hwq.dataloom.utils.datasource.MySQLUtil;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -52,6 +56,18 @@ public class CoreDatasourceServiceImpl extends ServiceImpl<CoreDatasourceMapper,
         ThrowUtils.throwIf(!coreDatasource.getUserId().equals(loginUser.getId()), ErrorCode.NO_AUTH_ERROR);
         DatasourceExecuteStrategy executeStrategy = datasourceStrategyChoose.choose(coreDatasource.getType());
         return executeStrategy.getTables(coreDatasource);
+    }
+
+    @Override
+    public List<CoreDatasetTableField> getTableFieldsByDatasourceIdAndTableName(GetTableFieldsDTO getTableFieldsDTO, User loginUser) {
+        Long datasourceId = getTableFieldsDTO.getDatasourceId();
+        String tableName = getTableFieldsDTO.getTableName();
+        CoreDatasource coreDatasource = this.getById(datasourceId);
+        ThrowUtils.throwIf(coreDatasource == null, ErrorCode.PARAMS_ERROR);
+        // 鉴权
+        ThrowUtils.throwIf(!coreDatasource.getUserId().equals(loginUser.getId()), ErrorCode.NO_AUTH_ERROR);
+        DatasourceExecuteStrategy executeStrategy = datasourceStrategyChoose.choose(coreDatasource.getType());
+        return executeStrategy.getTableFields(coreDatasource, tableName);
     }
 
 

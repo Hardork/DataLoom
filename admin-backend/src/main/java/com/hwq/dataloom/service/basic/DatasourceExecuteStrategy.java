@@ -2,6 +2,7 @@ package com.hwq.dataloom.service.basic;
 
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.entity.CoreDatasetTable;
+import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.entity.CoreDatasource;
 
 import java.util.List;
@@ -28,6 +29,7 @@ public interface DatasourceExecuteStrategy<REQ> {
      */
     Long addCoreData(REQ req, User loginUser);
 
+
     /**
      * 校验数据
      * @param req 数据源
@@ -42,4 +44,12 @@ public interface DatasourceExecuteStrategy<REQ> {
      * @return
      */
     List<CoreDatasetTable> getTables(CoreDatasource coreDatasource);
+
+    /**
+     * 获取数据源指定表的所有字段信息
+     * @param coreDatasource
+     * @param tableName
+     * @return
+     */
+    List<CoreDatasetTableField> getTableFields(CoreDatasource coreDatasource, String tableName);
 }

@@ -3,9 +3,11 @@ import cn.hutool.json.JSONUtil;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.framework.model.entity.User;
+import com.hwq.dataloom.model.dto.datasource.SchemaStructure;
 import com.hwq.dataloom.model.dto.datasource_tree.AddDatasourceDirRequest;
 import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
 import com.hwq.dataloom.model.entity.CoreDatasetTable;
+import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.entity.CoreDatasource;
 import com.hwq.dataloom.model.enums.DataSourceTypeEnum;
 import com.hwq.dataloom.model.enums.DirTypeEnum;
@@ -95,5 +97,20 @@ public class MySQLDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
             coreDatasetTables.add(coreDatasetTable);
         }
         return coreDatasetTables;
+    }
+
+    @Override
+    public List<CoreDatasetTableField> getTableFields(CoreDatasource coreDatasource, String tableName) {
+        String configuration = coreDatasource.getConfiguration();
+        StructDatabaseConfiguration structDatabaseConfiguration = JSONUtil.toBean(configuration, StructDatabaseConfiguration.class);
+        List<SchemaStructure> structure = MySQLUtil.structure(structDatabaseConfiguration, tableName);
+        List<CoreDatasetTableField> tableFieldList = new ArrayList<>();
+        for (SchemaStructure schemaStructure : structure) {
+            CoreDatasetTableField field = new CoreDatasetTableField();
+            field.setName(schemaStructure.getComment()); // 注释
+            // TODO:设置表字段
+            tableFieldList.add(field);
+        }
+        return null;
     }
 }

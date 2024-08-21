@@ -55,8 +55,6 @@ public class MySQLUtil {
         Connection conn = getConByConfig(structDatabaseConfiguration);
         List<SchemaStructure> schemaStructuresList = new ArrayList<>();
         try {
-            // 通过 DruidDataSourceFactory 创建连接池
-            // 其他配置项...
             // 获取数据库元数据
             DatabaseMetaData metaData = conn.getMetaData();
             // 获取指定表的列信息

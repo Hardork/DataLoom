@@ -1,8 +1,10 @@
 package com.hwq.dataloom.service;
 
 import com.hwq.dataloom.framework.model.entity.User;
+import com.hwq.dataloom.model.dto.datasource.GetTableFieldsDTO;
 import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
 import com.hwq.dataloom.model.entity.CoreDatasetTable;
+import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.entity.CoreDatasource;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -32,10 +34,18 @@ public interface CoreDatasourceService extends IService<CoreDatasource> {
     Boolean validDatasourceConfiguration(DatasourceDTO datasourceDTO);
 
     /**
-     * 获取数据源表信息
+     * 获取数据源所有表信息
      * @param datasourceId
      * @param loginUser
      * @return
      */
     List<CoreDatasetTable> getTablesByDatasourceId(Long datasourceId, User loginUser);
+
+    /**
+     * 获取数据源指定表的字段信息
+     * @param getTableFieldsDTO
+     * @param loginUser
+     * @return
+     */
+    List<CoreDatasetTableField> getTableFieldsByDatasourceIdAndTableName(GetTableFieldsDTO getTableFieldsDTO, User loginUser);
 }
