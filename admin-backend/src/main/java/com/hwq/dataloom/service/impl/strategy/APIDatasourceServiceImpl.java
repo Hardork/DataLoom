@@ -2,6 +2,7 @@ package com.hwq.dataloom.service.impl.strategy;
 
 import cn.hutool.json.JSONUtil;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
+import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.dto.newdatasource.ApiDefinition;
@@ -14,8 +15,14 @@ import com.hwq.dataloom.service.CoreDatasetTableService;
 import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.service.CoreDatasourceTaskService;
 import com.hwq.dataloom.service.basic.DatasourceExecuteStrategy;
+import com.hwq.dataloom.utils.ApiUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -59,7 +66,7 @@ public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<Datas
         coreDatasource.setEnableDataFill(coreDatasource.getEnableDataFill());
         coreDatasource.setUserId(loginUser.getId());
         boolean save = coreDatasourceService.save(coreDatasource);
-        ThrowUtils.throwIf(!save,ErrorCode.OPERATION_ERROR,"新增数据源失败！");
+        ThrowUtils.throwIf(!save, ErrorCode.OPERATION_ERROR, "新增数据源失败！");
         Long id = coreDatasource.getId();
         List<ApiDefinition> apiDefinitions = JSONUtil.toList(datasourceDTO.getConfiguration(), ApiDefinition.class);
         // 循环新增数据表和数据源同步任务
@@ -81,8 +88,25 @@ public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<Datas
 
     @Override
     public Boolean validDatasource(DatasourceDTO datasourceDTO) {
-        // zzx TODO: 校验API数据
-        return null;
+        // 校验API数据
+        String configuration = datasourceDTO.getConfiguration();
+        ApiDefinition apiDefinition = JSONUtil.toBean(configuration, ApiDefinition.class);
+        String responseBody = null;
+        try {
+            // 向API发送请求
+            CloseableHttpResponse response = ApiUtils.getApiResponse(apiDefinition);
+            int code = response.getCode();
+            if (code != 200) {
+                throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "调用接口失败！错误码为：" + code);
+            }
+            responseBody = EntityUtils.toString(response.getEntity());
+            if (StringUtils.isEmpty(responseBody)) {
+                throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "接口调用失败！接口请求结果为空！");
+            }
+        } catch (IOException | ParseException e) {
+            throw new RuntimeException(e);
+        }
+        return true;
     }
 
     @Override

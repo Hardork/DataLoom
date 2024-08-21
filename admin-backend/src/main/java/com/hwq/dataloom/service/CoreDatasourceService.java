@@ -1,6 +1,7 @@
 package com.hwq.dataloom.service;
 
 import com.hwq.dataloom.framework.model.entity.User;
+import com.hwq.dataloom.model.dto.newdatasource.ApiDefinition;
 import com.hwq.dataloom.model.dto.datasource.GetTableFieldsDTO;
 import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
 import com.hwq.dataloom.model.entity.CoreDatasetTable;
@@ -8,7 +9,6 @@ import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.entity.CoreDatasource;
 import com.baomidou.mybatisplus.extension.service.IService;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
@@ -40,6 +40,13 @@ public interface CoreDatasourceService extends IService<CoreDatasource> {
      * @return
      */
     List<CoreDatasetTable> getTablesByDatasourceId(Long datasourceId, User loginUser);
+
+    /**
+     * 处理API返回结果
+     * @param apiDefinition
+     * @param responseBody
+     */
+    void handleApiResponse(ApiDefinition apiDefinition,String responseBody);
 
     /**
      * 获取数据源指定表的字段信息

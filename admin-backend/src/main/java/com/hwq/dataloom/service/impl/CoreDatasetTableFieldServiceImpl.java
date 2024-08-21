@@ -1,9 +1,9 @@
 package com.hwq.dataloom.service.impl;
 
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.hwq.dataloom.model.entity.CoreDatasetTableField;
-import com.hwq.dataloom.service.CoreDatasetTableFieldService;
 import com.hwq.dataloom.mapper.CoreDatasetTableFieldMapper;
+import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import org.springframework.stereotype.Service;
 
 /**
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 */
 @Service
 public class CoreDatasetTableFieldServiceImpl extends ServiceImpl<CoreDatasetTableFieldMapper, CoreDatasetTableField>
-    implements CoreDatasetTableFieldService{
+    implements IService<CoreDatasetTableField> {
 
 }
 

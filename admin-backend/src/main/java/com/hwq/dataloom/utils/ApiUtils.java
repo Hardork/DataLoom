@@ -9,11 +9,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonArray;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
+import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.model.dto.newdatasource.ApiDefinition;
+import com.hwq.dataloom.model.dto.newdatasource.ApiDefinitionRequest;
 import com.hwq.dataloom.model.dto.newdatasource.TableField;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.util.Timeout;
 
+import java.io.IOException;
 import java.util.*;
 
 public class ApiUtils {
@@ -22,6 +35,78 @@ public class ApiUtils {
 
     public static ObjectMapper objectMapper = new ObjectMapper();
 
+    /**
+     * 请求第三方API获取返回
+     * @param apiDefinition
+     * @return
+     * @throws IOException
+     */
+    public static CloseableHttpResponse getApiResponse(ApiDefinition apiDefinition) throws IOException {
+        ThrowUtils.throwIf(apiDefinition == null, ErrorCode.PARAMS_ERROR, "请求为空");
+        ApiDefinitionRequest apiDefinitionRequest = apiDefinition.getRequest();
+
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+        HttpUriRequestBase request = null;
+
+        // 根据请求方法创建对应的请求对象
+        switch (apiDefinition.getMethod().toUpperCase()) {
+            case "POST":
+                request = new HttpPost(apiDefinition.getUrl());
+                break;
+            case "GET":
+                // 构建 GET 请求的URL
+                String url = apiDefinition.getUrl();
+                if (!apiDefinitionRequest.getArguments().isEmpty()) {
+                    StringBuilder stringBuilder = new StringBuilder(url);
+                    stringBuilder.append("?");
+                    for (Map<String, String> argument : apiDefinitionRequest.getArguments()) {
+                        for (Map.Entry<String, String> entry : argument.entrySet()) {
+                            stringBuilder.append(entry.getKey())
+                                    .append("=")
+                                    .append(entry.getValue())
+                                    .append("&");
+                        }
+                    }
+                    url = stringBuilder.toString().replaceAll("&$", "");
+                }
+                request = new HttpGet(url);
+                break;
+            default:
+                throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        // 设置超时时间
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectTimeout(Timeout.ofSeconds(30000))
+                .setResponseTimeout(Timeout.ofSeconds(apiDefinition.getApiQueryTimeout() * 1000))
+                .build();
+        request.setConfig(requestConfig);
+
+        // 设置请求头
+        for (Map<String, String> header : apiDefinition.getRequest().getHeaders()) {
+            for (Map.Entry<String, String> entry : header.entrySet()) {
+                request.setHeader(entry.getKey(), entry.getValue());
+            }
+        }
+
+        // 设置请求体
+        if (apiDefinition.getMethod().equalsIgnoreCase("POST")) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonBody = null;
+            try {
+                jsonBody = objectMapper.writeValueAsString(apiDefinition.getRequest().getBody());
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+            ((HttpPost) request).setEntity(new StringEntity(jsonBody, ContentType.APPLICATION_JSON));
+        }
+
+        // 获取结果
+        CloseableHttpResponse response = null;
+        response = httpClient.execute(request);
+        return response;
+    }
 
     /**
      * 处理接口返回的JSON

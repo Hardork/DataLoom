@@ -6,25 +6,25 @@
 
     <resultMap id="BaseResultMap" type="com.hwq.dataloom.model.entity.CoreDatasetTableField">
             <id property="id" column="id" jdbcType="BIGINT"/>
-            <result property="datasource_id" column="datasource_id" jdbcType="BIGINT"/>
-            <result property="dataset_table_id" column="dataset_table_id" jdbcType="BIGINT"/>
-            <result property="dataset_group_id" column="dataset_group_id" jdbcType="BIGINT"/>
-            <result property="chart_id" column="chart_id" jdbcType="BIGINT"/>
-            <result property="origin_name" column="origin_name" jdbcType="VARCHAR"/>
+            <result property="datasourceId" column="datasourceId" jdbcType="BIGINT"/>
+            <result property="datasetTableId" column="datasetTableId" jdbcType="BIGINT"/>
+            <result property="datasetGroupId" column="datasetGroupId" jdbcType="BIGINT"/>
+            <result property="chartId" column="chartId" jdbcType="BIGINT"/>
+            <result property="originName" column="originName" jdbcType="VARCHAR"/>
             <result property="name" column="name" jdbcType="VARCHAR"/>
             <result property="description" column="description" jdbcType="VARCHAR"/>
-            <result property="group_type" column="group_type" jdbcType="VARCHAR"/>
+            <result property="groupType" column="groupType" jdbcType="VARCHAR"/>
             <result property="type" column="type" jdbcType="VARCHAR"/>
             <result property="checked" column="checked" jdbcType="TINYINT"/>
-            <result property="column_index" column="column_index" jdbcType="INTEGER"/>
-            <result property="last_sync_time" column="last_sync_time" jdbcType="BIGINT"/>
+            <result property="columnIndex" column="columnIndex" jdbcType="INTEGER"/>
+            <result property="lastSyncTime" column="lastSyncTime" jdbcType="BIGINT"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,datasource_id,dataset_table_id,
-        dataset_group_id,chart_id,origin_name,
-        name,description,group_type,
-        type,checked,column_index,
-        last_sync_time
+        id,datasourceId,datasetTableId,
+        datasetGroupId,chartId,originName,
+        name,description,groupType,
+        type,checked,columnIndex,
+        lastSyncTime
     </sql>
 </mapper>
