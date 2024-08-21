@@ -1,5 +1,6 @@
 package com.hwq.dataloom.service;
 
+import com.hwq.dataloom.framework.result.BaseResponse;
 import com.hwq.dataloom.model.entity.CoreDatasetTable;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -9,5 +10,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 * @createDate 2024-08-13 14:45:15
 */
 public interface CoreDatasetTableService extends IService<CoreDatasetTable> {
+
+    Long addDatasetTable(CoreDatasetTable coreDatasetTable);
 
 }

@@ -1,22 +1,18 @@
-package com.hwq.dataloom.model.entity;
+package com.hwq.dataloom.model.vo.datasource;
 
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 
-/**
- * table数据集
- * @TableName core_dataset_table
- */
-@TableName(value ="core_dataset_table")
+import java.io.Serializable;
+
 @Data
-public class CoreDatasetTable implements Serializable {
+public class DatasetTableVO implements Serializable {
+
     /**
      * ID
      */
-    @TableId
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
     /**
@@ -32,11 +28,13 @@ public class CoreDatasetTable implements Serializable {
     /**
      * 数据源ID
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long datasourceId;
 
     /**
      * 数据集ID
      */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long datasetGroupId;
 
     /**
@@ -54,6 +52,11 @@ public class CoreDatasetTable implements Serializable {
      */
     private String sqlVariableDetails;
 
-    @TableField(exist = false)
-    private static final long serialVersionUID = 1L;
+    private Long lastUpdateTime = 0L;
+
+    /**
+     * 定时任务状态
+     */
+    private String status;
+
 }

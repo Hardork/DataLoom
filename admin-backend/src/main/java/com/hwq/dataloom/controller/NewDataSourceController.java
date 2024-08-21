@@ -14,11 +14,15 @@ import com.hwq.dataloom.framework.result.ResultUtils;
 import com.hwq.dataloom.model.dto.newdatasource.ApiDefinition;
 import com.hwq.dataloom.model.dto.newdatasource.ApiDefinitionRequest;
 import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
+import com.hwq.dataloom.model.entity.CoreDatasetTable;
 import com.hwq.dataloom.model.entity.CoreDatasource;
+import com.hwq.dataloom.service.CoreDatasetTableService;
 import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.service.CoreDatasourceTaskService;
 import com.hwq.dataloom.service.UserService;
+import com.hwq.dataloom.utils.strategy.DataSourceStrategyManager;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
@@ -45,6 +49,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.hwq.dataloom.utils.ApiUtils.handleStr;
 
@@ -65,6 +70,9 @@ public class NewDataSourceController {
     @Resource
     private CoreDatasourceTaskService coreDatasourceTaskService;
 
+    @Resource
+    private CoreDatasetTableService coreDatasetTableService;
+
     @PostMapping("/folder")
     public BaseResponse<Long> addFolder(Long pid, String name, HttpServletRequest request) {
         if (name == null) {
@@ -83,7 +91,7 @@ public class NewDataSourceController {
     }
 
     @PostMapping("/datasource")
-    public BaseResponse<Long> addDatasource(DatasourceDTO datasourceDTO, HttpServletRequest request) {
+    public BaseResponse<Long> addDatasource(@RequestBody DatasourceDTO datasourceDTO, HttpServletRequest request) {
         ThrowUtils.throwIf(datasourceDTO == null, ErrorCode.PARAMS_ERROR);
         // 新增数据源
         CoreDatasource coreDatasource = new CoreDatasource();
@@ -98,14 +106,12 @@ public class NewDataSourceController {
         coreDatasource.setEnableDataFill(coreDatasource.getEnableDataFill());
         User loginUser = userService.getLoginUser(request);
         coreDatasource.setUserId(loginUser.getId());
-
-        // 新增数据源同步任务
-        coreDatasourceTaskService.addTask(datasourceDTO);
-
-        // 进行接口校验 异步
-
-
+        boolean save = coreDatasourceService.save(coreDatasource);
+        ThrowUtils.throwIf(!save,ErrorCode.OPERATION_ERROR,"新增数据源失败！");
         Long id = coreDatasource.getId();
+        // 根据不同类型configuration新增表 （用策略模式优化）
+        DataSourceStrategyManager dataSourceStrategyManager = new DataSourceStrategyManager();
+        dataSourceStrategyManager.handleConfiguration(coreDatasource,datasourceDTO);
         return ResultUtils.success(id);
     }
 
@@ -179,11 +185,13 @@ public class NewDataSourceController {
         List<Map<String,Object>> fields = new ArrayList<>();
         String rootPath = "";
         try {
-            handleStr(responseBody,fields,rootPath);
+            handleStr(apiDefinition,responseBody,fields,rootPath);
         } catch (Exception e) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR,"调用接口失败！");
         }
         apiDefinition.setJsonFields(fields);
+
+        // TODO 修改同步任务的最新同步时间
 
         return ResultUtils.success(apiDefinition);
     }

@@ -7,17 +7,17 @@
     <resultMap id="BaseResultMap" type="com.hwq.dataloom.model.entity.CoreDatasetTable">
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="name" column="name" jdbcType="VARCHAR"/>
-            <result property="table_name" column="table_name" jdbcType="VARCHAR"/>
-            <result property="datasource_id" column="datasource_id" jdbcType="BIGINT"/>
-            <result property="dataset_group_id" column="dataset_group_id" jdbcType="BIGINT"/>
+            <result property="tableName" column="tableName" jdbcType="VARCHAR"/>
+            <result property="datasourceId" column="datasourceId" jdbcType="BIGINT"/>
+            <result property="datasetGroupId" column="datasetGroupId" jdbcType="BIGINT"/>
             <result property="type" column="type" jdbcType="VARCHAR"/>
             <result property="info" column="info" jdbcType="VARCHAR"/>
-            <result property="sql_variable_details" column="sql_variable_details" jdbcType="VARCHAR"/>
+            <result property="sqlVariableDetails" column="sqlVariableDetails" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,name,table_name,
-        datasource_id,dataset_group_id,type,
-        info,sql_variable_details
+        id,name,tableName,
+        datasourceId,datasetGroupId,type,
+        info,sqlVariableDetails
     </sql>
 </mapper>

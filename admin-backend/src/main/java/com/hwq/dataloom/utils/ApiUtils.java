@@ -9,6 +9,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonArray;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
+import com.hwq.dataloom.model.dto.newdatasource.ApiDefinition;
+import com.hwq.dataloom.model.dto.newdatasource.TableField;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,7 +30,7 @@ public class ApiUtils {
      * @param fields
      * @param rootPath
      */
-    public static void handleStr(String jsonStr, List<Map<String, Object>> fields, String rootPath) {
+    public static void handleStr(ApiDefinition apiDefinition,String jsonStr, List<Map<String, Object>> fields, String rootPath) {
         if (jsonStr.startsWith("[")) {
             // 当JSON为数组时
             TypeReference<List<Object>> listTypeReference = new TypeReference<List<Object>>() {
@@ -41,7 +43,7 @@ public class ApiUtils {
                 throw new RuntimeException(e);
             }
             for (Object o : jsonArray) {
-                handleStr(o.toString(), fields, rootPath);
+                handleStr(apiDefinition,o.toString(), fields, rootPath);
             }
         } else {
             // 当JSON不为数组时
@@ -73,7 +75,7 @@ public class ApiUtils {
                             }
                         }
                         for (JsonNode node : jsonArray) {
-                            handleStr(node.toString(), childrenField, rootPath + "." + String.format(path, fieldName) + "[*]");
+                            handleStr(apiDefinition,node.toString(), childrenField, rootPath + "." + String.format(path, fieldName) + "[*]");
                         }
                         map.put("children", childrenField);
                         map.put("childrenDataType", "LIST");
@@ -84,7 +86,7 @@ public class ApiUtils {
                     }
                     map.put("jsonPath", rootPath + "." + String.format(path, fieldName));
 
-                    setProperty(map, fieldName);
+                    setProperty(apiDefinition,map, fieldName);
 
                     // 相同字段合并
                     if (!hasItem(fields,map)){
@@ -99,7 +101,7 @@ public class ApiUtils {
                     try {
                         JsonNode jsonNode1 = objectMapper.readTree(value);
                         List<Map<String, Object>> children = new ArrayList<>();
-                        handleStr(value, children, rootPath + "." + String.format(path, fieldName));
+                        handleStr(apiDefinition,value, children, rootPath + "." + String.format(path, fieldName));
                         map.put("children", children);
                         map.put("childrenDataType", "OBJECT");
                         map.put("jsonPath", rootPath + "." + fieldName);
@@ -110,7 +112,7 @@ public class ApiUtils {
                         map.put("value", array);
                     }
 
-                    setProperty(map, fieldName);
+                    setProperty(apiDefinition,map, fieldName);
 
                     // 相同字段合并
                     if (!hasItem(fields,map)){
@@ -126,7 +128,7 @@ public class ApiUtils {
                     array.add(StringUtils.isNotEmpty(value) ? value : "");
                     map.put("value", array);
 
-                    setProperty(map, fieldName);
+                    setProperty(apiDefinition,map, fieldName);
 
                     // 相同字段合并
                     if (!hasItem(fields,map)){
@@ -145,7 +147,7 @@ public class ApiUtils {
      * @param map
      * @param s
      */
-    public static void setProperty(Map<String, Object> map, String s) {
+    public static void setProperty(ApiDefinition apiDefinition,Map<String, Object> map, String s) {
         map.put("originName", s);
         map.put("name", s);
         map.put("type", "STRING");
@@ -153,15 +155,15 @@ public class ApiUtils {
         map.put("deExtractType", 0);
         map.put("deType", 0);
         map.put("checked", false);
-//        if (!apiDefinition.isUseJsonPath()) {
-//            for (TableField field : apiDefinition.getFields()) {
-//                if (!ObjectUtils.isEmpty(o.get("jsonPath")) && StringUtils.isNotEmpty(field.getJsonPath()) && field.getJsonPath().equals(o.get("jsonPath").toString())) {
-//                    o.put("checked", true);
-//                    o.put("name", field.getName());
-//                    o.put("deExtractType", field.getDeExtractType());
-//                }
-//            }
-//        }
+        if (!apiDefinition.isUseJsonPath()) {
+            for (TableField field : apiDefinition.getFields()) {
+                if (!ObjectUtils.isEmpty(map.get("jsonPath")) && StringUtils.isNotEmpty(field.getJsonPath()) && field.getJsonPath().equals(map.get("jsonPath").toString())) {
+                    map.put("checked", true);
+                    map.put("name", field.getName());
+                    map.put("deExtractType", field.getDeExtractType());
+                }
+            }
+        }
     }
 
     public static boolean hasItem(List<Map<String, Object>> fields, Map<String, Object> item) {
