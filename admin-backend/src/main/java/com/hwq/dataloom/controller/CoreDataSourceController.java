@@ -14,6 +14,7 @@ import com.hwq.dataloom.model.entity.CoreDatasource;
 import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.service.CoreDatasourceTaskService;
 import com.hwq.dataloom.service.UserService;
+import com.hwq.dataloom.utils.strategy.DataSourceStrategyManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
@@ -59,8 +60,8 @@ public class CoreDataSourceController {
     @Resource
     private CoreDatasourceTaskService coreDatasourceTaskService;
 
-    @PostMapping("/add/api")
-    public BaseResponse<Long> addApiDatasource(DatasourceDTO datasourceDTO, HttpServletRequest request) {
+    @PostMapping("/add")
+    public BaseResponse<Long> addDatasource(@RequestBody DatasourceDTO datasourceDTO, HttpServletRequest request) {
         ThrowUtils.throwIf(datasourceDTO == null, ErrorCode.PARAMS_ERROR);
         // 新增数据源
         CoreDatasource coreDatasource = new CoreDatasource();
@@ -75,34 +76,14 @@ public class CoreDataSourceController {
         coreDatasource.setEnableDataFill(coreDatasource.getEnableDataFill());
         User loginUser = userService.getLoginUser(request);
         coreDatasource.setUserId(loginUser.getId());
-
-        // 新增数据源同步任务
-        coreDatasourceTaskService.addTask(datasourceDTO);
-
-        // 进行接口校验 异步
-
-
+        boolean save = coreDatasourceService.save(coreDatasource);
+        ThrowUtils.throwIf(!save,ErrorCode.OPERATION_ERROR,"新增数据源失败！");
         Long id = coreDatasource.getId();
+        // 根据不同类型configuration新增表 （用策略模式优化）
+        DataSourceStrategyManager dataSourceStrategyManager = new DataSourceStrategyManager();
+        dataSourceStrategyManager.handleConfiguration(coreDatasource,datasourceDTO);
         return ResultUtils.success(id);
     }
-
-    /**
-     * 添加数据源
-     * @param datasourceDTO
-     * @param request
-     * @return
-     */
-    @PostMapping("/add")
-    public BaseResponse<Long> addDatasource(@RequestBody DatasourceDTO datasourceDTO, HttpServletRequest request) {
-        ThrowUtils.throwIf(datasourceDTO == null, ErrorCode.PARAMS_ERROR);
-        CoreDatasource coreDatasource = new CoreDatasource();
-        BeanUtils.copyProperties(datasourceDTO, coreDatasource);
-        User loginUser = userService.getLoginUser(request);
-        coreDatasource.setUserId(loginUser.getId());
-        Long id = coreDatasourceService.addDatasource(datasourceDTO, loginUser);
-        return ResultUtils.success(id);
-    }
-
 
     @PostMapping("/checkApiDatasource")
     public BaseResponse<ApiDefinition> checkApiDatasource(@RequestBody ApiDefinition apiDefinition) throws IOException, ParseException {
@@ -174,11 +155,13 @@ public class CoreDataSourceController {
         List<Map<String,Object>> fields = new ArrayList<>();
         String rootPath = "";
         try {
-            handleStr(responseBody,fields,rootPath);
+            handleStr(apiDefinition,responseBody,fields,rootPath);
         } catch (Exception e) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR,"调用接口失败！");
         }
         apiDefinition.setJsonFields(fields);
+
+        // TODO 修改同步任务的最新同步时间
 
         return ResultUtils.success(apiDefinition);
     }
