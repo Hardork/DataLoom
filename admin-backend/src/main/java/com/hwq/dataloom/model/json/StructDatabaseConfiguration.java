@@ -1,4 +1,4 @@
-package com.hwq.dataloom.model.dto.datasource;
+package com.hwq.dataloom.model.json;
 
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
@@ -11,7 +11,7 @@ import javax.validation.constraints.*;
  * @description 数据库元数据配置
  */
 @Data
-public class DataSourceConfig {
+public class StructDatabaseConfiguration {
     /**
      * 名称
      */
@@ -28,11 +28,6 @@ public class DataSourceConfig {
      * 数据源类型
      */
     private String type;
-
-    /**
-     * 所属文件夹
-     */
-    private Long pid;
 
     /**
      * 主机地址

@@ -1,7 +1,11 @@
 package com.hwq.dataloom.service;
 
+import com.hwq.dataloom.framework.model.entity.User;
+import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
 import com.hwq.dataloom.model.entity.CoreDatasource;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
 * @author wqh
@@ -10,4 +14,18 @@ import com.baomidou.mybatisplus.extension.service.IService;
 */
 public interface CoreDatasourceService extends IService<CoreDatasource> {
 
+    /**
+     * 添加数据源
+     * @param datasourceDTO
+     * @param user
+     * @return
+     */
+    Long addDatasource(DatasourceDTO datasourceDTO, User user);
+
+    /**
+     * 校验数据源配置
+     * @param datasourceDTO
+     * @return
+     */
+    Boolean validDatasourceConfiguration(DatasourceDTO datasourceDTO);
 }

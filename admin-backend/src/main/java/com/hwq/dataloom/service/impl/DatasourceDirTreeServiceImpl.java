@@ -7,21 +7,25 @@ import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.dto.datasource.MoveDatasourceDirNodeRequest;
 import com.hwq.dataloom.model.dto.datasource_tree.AddDatasourceDirRequest;
+import com.hwq.dataloom.model.dto.datasource_tree.DeleteDatasourceDirNodeRequest;
 import com.hwq.dataloom.model.entity.DatasourceDirTree;
 import com.hwq.dataloom.model.enums.DirTypeEnum;
 import com.hwq.dataloom.model.vo.datasource.ListDatasourceTreeVO;
+import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.service.DatasourceDirTreeService;
 import com.hwq.dataloom.mapper.DatasourceDirTreeMapper;
 import com.hwq.dataloom.service.UserService;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
 * @author wqh
@@ -35,8 +39,10 @@ public class DatasourceDirTreeServiceImpl extends ServiceImpl<DatasourceDirTreeM
     @Resource
     private UserService userService;
 
+    @Resource
+    private CoreDatasourceService coreDatasourceService;
     @Override
-    public Boolean addDatasourceDirNode(AddDatasourceDirRequest addDatasourceDirRequest, HttpServletRequest request) {
+    public Boolean addDatasourceDirNode(AddDatasourceDirRequest addDatasourceDirRequest, User loginUser) {
         String name = addDatasourceDirRequest.getName();
         String type = addDatasourceDirRequest.getType();
         // 获取目录类型枚举
@@ -45,8 +51,6 @@ public class DatasourceDirTreeServiceImpl extends ServiceImpl<DatasourceDirTreeM
         Long pid = addDatasourceDirRequest.getPid();
         // 权重, 用于排序
         Integer wight = addDatasourceDirRequest.getWight();
-        // 获取用户信息
-        User loginUser = userService.getLoginUser(request);
         // 如果插入的父节点是目录根节点就直接插入
         if (pid == 0) {
             // 插入
@@ -66,7 +70,8 @@ public class DatasourceDirTreeServiceImpl extends ServiceImpl<DatasourceDirTreeM
                 eq(DatasourceDirTree::getUserId, loginUser.getId());
         DatasourceDirTree parentDir = this.getOne(lambdaQueryWrapper);
         ThrowUtils.throwIf(parentDir == null, ErrorCode.NOT_FOUND_ERROR, "插入目录不存在");
-        // 插入
+        ThrowUtils.throwIf(parentDir.getType().equals(DirTypeEnum.FILE.getText()), ErrorCode.OPERATION_ERROR, "不可将文件或目录插入到文件下");
+        // 插入节点到目标目录下
         DatasourceDirTree datasourceDirTree = new DatasourceDirTree();
         datasourceDirTree.setName(name);
         datasourceDirTree.setType(type);
@@ -111,6 +116,76 @@ public class DatasourceDirTreeServiceImpl extends ServiceImpl<DatasourceDirTreeM
         datasourceDirTreeNode.setPid(newPid);
         ThrowUtils.throwIf(!this.updateById(datasourceDirTreeNode), ErrorCode.SYSTEM_ERROR);
         return true;
+    }
+
+    @Override
+    @Transactional
+    public Boolean deleteDatasourceDirNode(DeleteDatasourceDirNodeRequest deleteDatasourceDirNodeRequest, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        Long id = deleteDatasourceDirNodeRequest.getId();
+        // 1.鉴权
+        DatasourceDirTree datasourceDirTree = this.getById(id);
+        ThrowUtils.throwIf(datasourceDirTree == null, ErrorCode.NOT_FOUND_ERROR, "文件不存在");
+        ThrowUtils.throwIf(!datasourceDirTree.getUserId().equals(loginUser.getId()), ErrorCode.NO_AUTH_ERROR);
+        // 2.如果是文件，要删除数据源中对应的信息
+        if (DirTypeEnum.FILE.getText().equals(datasourceDirTree.getType())) {
+            // 删除文件
+            ThrowUtils.throwIf(!coreDatasourceService.removeById(datasourceDirTree.getDatasourceId()), ErrorCode.SYSTEM_ERROR);
+            return true;
+        }
+        // 3.如果是目录，要迭代删除文件夹中的目录和数据源中对应的信息
+        if (DirTypeEnum.DIR.getText().equals(datasourceDirTree.getType())) {
+            // 递归删除当前目录下的所有目录与文件
+            // 查询出用户所有的文件
+            LambdaQueryWrapper<DatasourceDirTree> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+            lambdaQueryWrapper
+                    .eq(DatasourceDirTree::getUserId, loginUser.getId());
+            List<DatasourceDirTree> datasourceDirTreeList = this.list(lambdaQueryWrapper);
+            // 递归删除目录下的文件
+            dfsDeleteUserDir(datasourceDirTree, datasourceDirTreeList);
+        }
+        return true;
+    }
+
+    /**
+     * 递归删除用户目录
+     * @param datasourceDirTree
+     * @param datasourceDirTreeList
+     */
+    @Transactional
+    public void dfsDeleteUserDir(DatasourceDirTree datasourceDirTree, List<DatasourceDirTree> datasourceDirTreeList) {
+        // 取出datasourceDirTree的所有子文件
+        List<DatasourceDirTree> readyToDel = new ArrayList<>();
+        // 删除包括自身
+        readyToDel.add(datasourceDirTree);
+        findAllChildrenNode(datasourceDirTree, datasourceDirTreeList, readyToDel);
+        // 开始删除,确保数据一致性，所有操作同时成功
+        List<Long> readyToDelIds = readyToDel.stream().map(DatasourceDirTree::getId).collect(Collectors.toList());
+        ThrowUtils.throwIf(!this.removeBatchByIds(readyToDelIds), ErrorCode.SYSTEM_ERROR);
+        // 如果是文件类型，要删除数据源元数据
+        List<Long> datasourceIds = readyToDel
+                .stream()
+                .filter(item -> DirTypeEnum.FILE.getText().equals(item.getType()))
+                .map(DatasourceDirTree::getDatasourceId)
+                .collect(Collectors.toList());
+        ThrowUtils.throwIf(!coreDatasourceService.removeBatchByIds(datasourceIds), ErrorCode.SYSTEM_ERROR);
+    }
+
+    /**
+     * 递归找出datasourceDirTree的所有子节点
+     * @param datasourceDirTree
+     * @param datasourceDirTreeList
+     * @param readyToDel
+     */
+    public void findAllChildrenNode(DatasourceDirTree datasourceDirTree, List<DatasourceDirTree> datasourceDirTreeList, List<DatasourceDirTree> readyToDel) {
+        if (datasourceDirTree == null) return;
+        for (DatasourceDirTree node : datasourceDirTreeList) {
+            if (node.getPid().equals(datasourceDirTree.getId())) {
+                readyToDel.add(node);
+                // 递归添加
+                findAllChildrenNode(node, datasourceDirTreeList, readyToDel);
+            }
+        }
     }
 
     /**

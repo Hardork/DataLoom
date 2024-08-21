@@ -1,9 +1,5 @@
 package com.hwq.dataloom.controller;
 
-import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONUtil;
-import com.alibaba.nacos.common.http.HttpClientConfig;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
@@ -14,15 +10,11 @@ import com.hwq.dataloom.framework.result.ResultUtils;
 import com.hwq.dataloom.model.dto.newdatasource.ApiDefinition;
 import com.hwq.dataloom.model.dto.newdatasource.ApiDefinitionRequest;
 import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
-import com.hwq.dataloom.model.entity.CoreDatasetTable;
 import com.hwq.dataloom.model.entity.CoreDatasource;
-import com.hwq.dataloom.service.CoreDatasetTableService;
 import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.service.CoreDatasourceTaskService;
 import com.hwq.dataloom.service.UserService;
-import com.hwq.dataloom.utils.strategy.DataSourceStrategyManager;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
@@ -35,9 +27,7 @@ import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.util.Timeout;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -49,7 +39,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import static com.hwq.dataloom.utils.ApiUtils.handleStr;
 
@@ -57,9 +46,9 @@ import static com.hwq.dataloom.utils.ApiUtils.handleStr;
  * 新数据源接口
  */
 @RestController
-@RequestMapping("/newdatasource")
+@RequestMapping("/coreDatasource")
 @Slf4j
-public class NewDataSourceController {
+public class CoreDataSourceController {
 
     @Resource
     private UserService userService;
@@ -70,28 +59,8 @@ public class NewDataSourceController {
     @Resource
     private CoreDatasourceTaskService coreDatasourceTaskService;
 
-    @Resource
-    private CoreDatasetTableService coreDatasetTableService;
-
-    @PostMapping("/folder")
-    public BaseResponse<Long> addFolder(Long pid, String name, HttpServletRequest request) {
-        if (name == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请添加文件夹名称");
-        }
-        CoreDatasource coreDatasource = new CoreDatasource();
-        coreDatasource.setName(name);
-        coreDatasource.setType("folder");
-        coreDatasource.setPid(pid);
-        User loginUser = userService.getLoginUser(request);
-        coreDatasource.setUserId(loginUser.getId());
-        boolean save = coreDatasourceService.save(coreDatasource);
-        ThrowUtils.throwIf(!save, ErrorCode.OPERATION_ERROR);
-        Long id = coreDatasource.getId();
-        return ResultUtils.success(id);
-    }
-
-    @PostMapping("/datasource")
-    public BaseResponse<Long> addDatasource(@RequestBody DatasourceDTO datasourceDTO, HttpServletRequest request) {
+    @PostMapping("/add/api")
+    public BaseResponse<Long> addApiDatasource(DatasourceDTO datasourceDTO, HttpServletRequest request) {
         ThrowUtils.throwIf(datasourceDTO == null, ErrorCode.PARAMS_ERROR);
         // 新增数据源
         CoreDatasource coreDatasource = new CoreDatasource();
@@ -106,14 +75,34 @@ public class NewDataSourceController {
         coreDatasource.setEnableDataFill(coreDatasource.getEnableDataFill());
         User loginUser = userService.getLoginUser(request);
         coreDatasource.setUserId(loginUser.getId());
-        boolean save = coreDatasourceService.save(coreDatasource);
-        ThrowUtils.throwIf(!save,ErrorCode.OPERATION_ERROR,"新增数据源失败！");
+
+        // 新增数据源同步任务
+        coreDatasourceTaskService.addTask(datasourceDTO);
+
+        // 进行接口校验 异步
+
+
         Long id = coreDatasource.getId();
-        // 根据不同类型configuration新增表 （用策略模式优化）
-        DataSourceStrategyManager dataSourceStrategyManager = new DataSourceStrategyManager();
-        dataSourceStrategyManager.handleConfiguration(coreDatasource,datasourceDTO);
         return ResultUtils.success(id);
     }
+
+    /**
+     * 添加数据源
+     * @param datasourceDTO
+     * @param request
+     * @return
+     */
+    @PostMapping("/add")
+    public BaseResponse<Long> addDatasource(@RequestBody DatasourceDTO datasourceDTO, HttpServletRequest request) {
+        ThrowUtils.throwIf(datasourceDTO == null, ErrorCode.PARAMS_ERROR);
+        CoreDatasource coreDatasource = new CoreDatasource();
+        BeanUtils.copyProperties(datasourceDTO, coreDatasource);
+        User loginUser = userService.getLoginUser(request);
+        coreDatasource.setUserId(loginUser.getId());
+        Long id = coreDatasourceService.addDatasource(datasourceDTO, loginUser);
+        return ResultUtils.success(id);
+    }
+
 
     @PostMapping("/checkApiDatasource")
     public BaseResponse<ApiDefinition> checkApiDatasource(@RequestBody ApiDefinition apiDefinition) throws IOException, ParseException {
@@ -185,13 +174,11 @@ public class NewDataSourceController {
         List<Map<String,Object>> fields = new ArrayList<>();
         String rootPath = "";
         try {
-            handleStr(apiDefinition,responseBody,fields,rootPath);
+            handleStr(responseBody,fields,rootPath);
         } catch (Exception e) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR,"调用接口失败！");
         }
         apiDefinition.setJsonFields(fields);
-
-        // TODO 修改同步任务的最新同步时间
 
         return ResultUtils.success(apiDefinition);
     }

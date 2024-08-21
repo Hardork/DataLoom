@@ -4,7 +4,7 @@ import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.result.BaseResponse;
 import com.hwq.dataloom.framework.result.ResultUtils;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
-import com.hwq.dataloom.model.dto.datasource.DataSourceConfig;
+import com.hwq.dataloom.model.json.StructDatabaseConfiguration;
 import com.hwq.dataloom.model.dto.datasource.PreviewData;
 import com.hwq.dataloom.model.dto.datasource.PreviewDataRequest;
 import com.hwq.dataloom.model.entity.DatasourceMetaInfo;
@@ -35,18 +35,18 @@ public class DataSourceController {
 
     /**
      * 检验连接
-     * @param dataSourceConfig
+     * @param structDatabaseConfiguration
      * @param request
      * @return
      */
     @PostMapping("/checkValid")
-    public BaseResponse<Boolean> checkConnect(@RequestBody @Valid DataSourceConfig dataSourceConfig, HttpServletRequest request) {
+    public BaseResponse<Boolean> checkConnect(@RequestBody @Valid StructDatabaseConfiguration structDatabaseConfiguration, HttpServletRequest request) {
         // 校验参数
-        validDataSourceConfig(dataSourceConfig);
+        validDataSourceConfig(structDatabaseConfiguration);
         User loginUser = userService.getLoginUser(request);
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
         // todo：改为策略模式动态选择校验方法
-        return ResultUtils.success(MySQLUtil.checkConnectValid(dataSourceConfig));
+        return ResultUtils.success(MySQLUtil.checkConnectValid(structDatabaseConfiguration));
     }
 
     /**
@@ -90,31 +90,31 @@ public class DataSourceController {
 
     /**
      * 新增数据源信息
-     * @param dataSourceConfig
+     * @param structDatabaseConfiguration
      * @param request
      * @return
      */
     @PostMapping("/save")
-    public BaseResponse<Boolean> saveDataSourceMetaInfo(@RequestBody @Valid DataSourceConfig dataSourceConfig, HttpServletRequest request) {
+    public BaseResponse<Boolean> saveDataSourceMetaInfo(@RequestBody @Valid StructDatabaseConfiguration structDatabaseConfiguration, HttpServletRequest request) {
         // 校验参数
-        validDataSourceConfig(dataSourceConfig);
+        validDataSourceConfig(structDatabaseConfiguration);
         User loginUser = userService.getLoginUser(request);
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
-        return ResultUtils.success(datasourceMetaInfoService.saveDataSourceMetaInfo(dataSourceConfig, loginUser));
+        return ResultUtils.success(datasourceMetaInfoService.saveDataSourceMetaInfo(structDatabaseConfiguration, loginUser));
     }
 
     /**
      * 校验数据
-     * @param dataSourceConfig
+     * @param structDatabaseConfiguration
      */
-    public void validDataSourceConfig(DataSourceConfig dataSourceConfig) {
-        ThrowUtils.throwIf(dataSourceConfig == null, ErrorCode.PARAMS_ERROR);
-        String name = dataSourceConfig.getName();
-        String host = dataSourceConfig.getHost();
-        String port = dataSourceConfig.getPort();
-        String dataBaseName = dataSourceConfig.getDataBaseName();
-        String userName = dataSourceConfig.getUserName();
-        String password = dataSourceConfig.getPassword();
+    public void validDataSourceConfig(StructDatabaseConfiguration structDatabaseConfiguration) {
+        ThrowUtils.throwIf(structDatabaseConfiguration == null, ErrorCode.PARAMS_ERROR);
+        String name = structDatabaseConfiguration.getName();
+        String host = structDatabaseConfiguration.getHost();
+        String port = structDatabaseConfiguration.getPort();
+        String dataBaseName = structDatabaseConfiguration.getDataBaseName();
+        String userName = structDatabaseConfiguration.getUserName();
+        String password = structDatabaseConfiguration.getPassword();
         ThrowUtils.throwIf(StringUtils.isEmpty(name), ErrorCode.PARAMS_ERROR, "name不得为空");
         ThrowUtils.throwIf(StringUtils.isEmpty(host), ErrorCode.PARAMS_ERROR, "host不得为空");
         ThrowUtils.throwIf(StringUtils.isEmpty(port), ErrorCode.PARAMS_ERROR, "port不得为空");

@@ -1,6 +1,9 @@
 package com.hwq.dataloom.model.dto.datasource_tree;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -13,6 +16,9 @@ import javax.validation.constraints.Null;
  * @description 添加数据源请求类
  */
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class AddDatasourceDirRequest {
 
     /**
