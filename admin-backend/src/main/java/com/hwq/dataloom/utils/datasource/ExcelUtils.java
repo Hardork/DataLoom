@@ -179,7 +179,7 @@ public class ExcelUtils {
      * @param tableFieldInfo
      * @return
      */
-    private void cellType(String value, TableFieldInfo tableFieldInfo) {
+    public void cellType(String value, TableFieldInfo tableFieldInfo) {
         if (StringUtils.isEmpty(value)) {
             return;
         }
@@ -197,7 +197,7 @@ public class ExcelUtils {
 
     }
 
-    private String cellType(String value) {
+    public String cellType(String value) {
         if( value.length() > 19){
             return "TEXT";
         }
