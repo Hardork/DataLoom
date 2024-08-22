@@ -44,4 +44,26 @@ dubbo:
     port: -1
   registry: #配置注册中心
     address: nacos://${nacos-server}:8848
+datasource-list:
+  sources:
+    - driverClassName: com.mysql.jdbc.Driver
+      url: jdbc:mysql://121.36.48.205:3306/data_warehouse_0
+      username: root
+      password: hwq2003121
+    - driverClassName: com.mysql.jdbc.Driver
+      url: jdbc:mysql://121.36.48.205:3306/data_warehouse_1
+      username: root
+      password: hwq2003121
+    - driverClassName: com.mysql.jdbc.Driver
+      url: jdbc:mysql://121.36.48.205:3306/data_warehouse_2
+      username: root
+      password: hwq2003121
+    - driverClassName: com.mysql.jdbc.Driver
+      url: jdbc:mysql://121.36.48.205:3306/data_warehouse_3
+      username: root
+      password: hwq2003121
+    - driverClassName: com.mysql.jdbc.Driver
+      url: jdbc:mysql://121.36.48.205:3306/data_warehouse_4
+      username: root
+      password: hwq2003121
 
