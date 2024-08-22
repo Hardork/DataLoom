@@ -14,6 +14,7 @@ import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.mapper.CoreDatasourceMapper;
 import com.hwq.dataloom.service.basic.DatasourceExecuteStrategy;
 import com.hwq.dataloom.service.basic.DatasourceStrategyChoose;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -39,7 +40,7 @@ public class CoreDatasourceServiceImpl extends ServiceImpl<CoreDatasourceMapper,
     @Override
     public Long addDatasource(DatasourceDTO datasourceDTO, User user) {
         // 根据type找到对应的策略实现类，进行对应的数据源添加操作
-        DatasourceExecuteStrategy executeStrategy = datasourceStrategyChoose.choose(datasourceDTO.getType());
+         DatasourceExecuteStrategy executeStrategy = datasourceStrategyChoose.choose(datasourceDTO.getType());
         return executeStrategy.addCoreData(datasourceDTO, user);
     }
 

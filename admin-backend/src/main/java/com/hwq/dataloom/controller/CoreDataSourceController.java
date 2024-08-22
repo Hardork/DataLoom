@@ -102,7 +102,7 @@ public class CoreDataSourceController {
      * @throws ParseException
      */
     @PostMapping("/handleApiResponse")
-    public BaseResponse<ApiDefinition> checkApiDatasource(@RequestBody ApiDefinition apiDefinition) throws IOException, ParseException {
+    public BaseResponse<ApiDefinition> handleApiResponse(@RequestBody ApiDefinition apiDefinition) throws IOException, ParseException {
         // 向API发送请求
         CloseableHttpResponse response = ApiUtils.getApiResponse(apiDefinition);
         String responseBody = null;
@@ -116,8 +116,6 @@ public class CoreDataSourceController {
         }
         // 处理结果
         coreDatasourceService.handleApiResponse(apiDefinition,responseBody);
-
-        // TODO 修改同步任务的最新同步时间
 
         return ResultUtils.success(apiDefinition);
     }

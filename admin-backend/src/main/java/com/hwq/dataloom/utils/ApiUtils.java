@@ -13,6 +13,7 @@ import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.model.dto.newdatasource.ApiDefinition;
 import com.hwq.dataloom.model.dto.newdatasource.ApiDefinitionRequest;
 import com.hwq.dataloom.model.dto.newdatasource.TableField;
+import com.hwq.dataloom.utils.datasource.ExcelUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
@@ -116,6 +117,8 @@ public class ApiUtils {
      * @param rootPath
      */
     public static void handleStr(ApiDefinition apiDefinition,String jsonStr, List<Map<String, Object>> fields, String rootPath) {
+        // 用于做类型判断
+        ExcelUtils excelUtils = new ExcelUtils();
         if (jsonStr.startsWith("[")) {
             // 当JSON为数组时
             TypeReference<List<Object>> listTypeReference = new TypeReference<List<Object>>() {
@@ -212,7 +215,9 @@ public class ApiUtils {
                     JSONArray array = new JSONArray();
                     array.add(StringUtils.isNotEmpty(value) ? value : "");
                     map.put("value", array);
-
+                    // 识别原始字段类型
+                    String type = excelUtils.cellType(StringUtils.isNotEmpty(value) ? value : "");
+                    map.put("type", type);
                     setProperty(apiDefinition,map, fieldName);
 
                     // 相同字段合并
@@ -235,7 +240,9 @@ public class ApiUtils {
     public static void setProperty(ApiDefinition apiDefinition,Map<String, Object> map, String s) {
         map.put("originName", s);
         map.put("name", s);
-        map.put("type", "STRING");
+        if (ObjectUtils.isEmpty(map.get("type"))) {
+            map.put("type", "TEXT");
+        }
         map.put("size", 65535);
         map.put("deExtractType", 0);
         map.put("deType", 0);
@@ -245,7 +252,6 @@ public class ApiUtils {
                 if (!ObjectUtils.isEmpty(map.get("jsonPath")) && StringUtils.isNotEmpty(field.getJsonPath()) && field.getJsonPath().equals(map.get("jsonPath").toString())) {
                     map.put("checked", true);
                     map.put("name", field.getName());
-                    map.put("deExtractType", field.getDeExtractType());
                 }
             }
         }
