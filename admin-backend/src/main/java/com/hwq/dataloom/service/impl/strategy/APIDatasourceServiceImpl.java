@@ -20,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.io.IOException;
@@ -30,6 +31,7 @@ import java.util.List;
  * @date 2024/8/21 09:55
  * @description API数据源策略实现类
  */
+@Component
 public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<DatasourceDTO> {
 
     @Resource

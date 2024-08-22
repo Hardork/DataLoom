@@ -16,6 +16,7 @@ import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.service.DatasourceDirTreeService;
 import com.hwq.dataloom.service.basic.DatasourceExecuteStrategy;
 import com.hwq.dataloom.utils.datasource.MySQLUtil;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
@@ -27,6 +28,7 @@ import java.util.List;
  * @date 2024/8/20 23:49
  * @description MySQL数据源策略实现类
  */
+@Component
 public class MySQLDatasourceServiceImpl implements DatasourceExecuteStrategy<DatasourceDTO> {
 
     @Resource
@@ -107,8 +109,10 @@ public class MySQLDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
         List<CoreDatasetTableField> tableFieldList = new ArrayList<>();
         for (SchemaStructure schemaStructure : structure) {
             CoreDatasetTableField field = new CoreDatasetTableField();
-            field.setName(schemaStructure.getComment()); // 注释
-            // TODO:设置表字段
+            field.setName(schemaStructure.getComment());
+            field.setType(schemaStructure.getType());
+            field.setOriginName(schemaStructure.getColumnName());
+            field.setDatasourceId(coreDatasource.getId());
             tableFieldList.add(field);
         }
         return null;
