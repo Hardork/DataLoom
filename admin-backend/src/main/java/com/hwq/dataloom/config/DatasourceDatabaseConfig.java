@@ -1,11 +1,12 @@
-package com.hwq.dataloom.utils.datasource;
+package com.hwq.dataloom.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.Resource;
 import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.List;
@@ -13,14 +14,15 @@ import java.util.Map;
 
 /**
  * @author HWQ
- * @date 2024/8/23 00:42
- * @description 数据源连接管理
+ * @date 2024/8/23 09:21
+ * @description 存储数据源数据库配置
  */
 @Configuration
-public class DatasourceConnectionManager {
+@ConfigurationProperties(prefix = "datasource-list")
+@Data
+public class DatasourceDatabaseConfig {
 
-    @Resource
-    private DataSourceProperties dataSourceProperties;
+    private List<DataSourceConfig> sources;
 
     /**
      * 数据源连接池获取
@@ -29,7 +31,6 @@ public class DatasourceConnectionManager {
     @Bean
     public Map<Integer, DataSource> dataSourceMap() {
         Map<Integer, DataSource> dataSourceMap = new HashMap<>();
-        List<DataSourceConfig> sources = dataSourceProperties.getSources();
         for (int i = 0; i < sources.size(); i++) {
             DataSourceConfig config = sources.get(i);
             HikariConfig hikariConfig = new HikariConfig();
@@ -45,4 +46,11 @@ public class DatasourceConnectionManager {
         return dataSourceMap;
     }
 
+    @Data
+    public static class DataSourceConfig {
+        private String driverClassName;
+        private String url;
+        private String username;
+        private String password;
+    }
 }
