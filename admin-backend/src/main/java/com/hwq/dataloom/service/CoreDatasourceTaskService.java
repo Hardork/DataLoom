@@ -1,5 +1,6 @@
 package com.hwq.dataloom.service;
 
+import com.hwq.dataloom.model.dto.newdatasource.ApiDefinition;
 import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.hwq.dataloom.model.entity.CoreDatasourceTask;
@@ -18,4 +19,10 @@ public interface CoreDatasourceTaskService extends IService<CoreDatasourceTask> 
      */
     Long addTask(DatasourceDTO datasourceDTO,Long datasetTableId);
 
+    /**
+     * 添加Xxl Job定时任务
+     * @param datasourceDTO
+     * @param apiDefinition
+     */
+    void addXxlJob(DatasourceDTO datasourceDTO, ApiDefinition apiDefinition);
 }

@@ -191,6 +191,12 @@
             <artifactId>httpclient5</artifactId>
             <version>5.1</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.xuxueli/xxl-job-core -->
+        <dependency>
+            <groupId>com.xuxueli</groupId>
+            <artifactId>xxl-job-core</artifactId>
+            <version>2.4.0</version>
+        </dependency>
         <!--   guava-retrying     -->
         <dependency>
             <groupId>com.github.rholder</groupId>
@@ -231,6 +237,12 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>33.3.0-jre</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 

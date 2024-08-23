@@ -10,6 +10,7 @@ import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.dto.newdatasource.ApiDefinition;
 import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
 import com.hwq.dataloom.model.dto.newdatasource.TableField;
+import com.hwq.dataloom.model.dto.newdatasource.TaskDTO;
 import com.hwq.dataloom.model.entity.CoreDatasetTable;
 import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.entity.CoreDatasource;
@@ -95,6 +96,14 @@ public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<Datas
             datasourceDTO.setId(id);
             Long datasourceTaskId = coreDatasourceTaskService.addTask(datasourceDTO, datasetTableId);
             ThrowUtils.throwIf(datasourceTaskId < 0, ErrorCode.OPERATION_ERROR, "新增定时任务失败！");
+
+            // 添加XXL JOB定时任务
+            TaskDTO taskDTO = datasourceDTO.getSyncSetting();
+            if (!taskDTO.getUpdateType().equals("RIGHTNOW")) {
+                coreDatasourceTaskService.addXxlJob(datasourceDTO, apiDefinition);
+            }
+
+            // TODO 将请求获得的数据添加到数据仓库
 
             Long lastExecTime = coreDatasourceTaskService.getById(datasourceTaskId).getLastExecTime();
 
