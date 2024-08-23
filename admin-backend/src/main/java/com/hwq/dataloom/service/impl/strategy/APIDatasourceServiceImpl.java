@@ -21,7 +21,6 @@ import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.service.CoreDatasourceTaskService;
 import com.hwq.dataloom.service.basic.DatasourceExecuteStrategy;
 import com.hwq.dataloom.utils.ApiUtils;
-import com.hwq.dataloom.utils.datasource.ExcelUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.core5.http.ParseException;

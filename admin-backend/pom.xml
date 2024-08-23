@@ -30,10 +30,15 @@
             <type>pom</type>
             <scope>import</scope>
         </dependency>
-
+        <!-- 项目基础包 -->
         <dependency>
             <groupId>com.hwq</groupId>
             <artifactId>framework</artifactId>
+        </dependency>
+        <!--  HikariCP连接池      -->
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
