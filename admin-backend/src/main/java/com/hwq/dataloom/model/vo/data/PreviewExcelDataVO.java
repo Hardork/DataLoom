@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * @author HWQ
  * @date 2024/6/17 15:18
- * @description
+ * @description 预览文件数据接口
  */
 @Data
 public class PreviewExcelDataVO {
