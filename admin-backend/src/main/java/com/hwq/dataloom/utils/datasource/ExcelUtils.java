@@ -2,12 +2,15 @@ package com.hwq.dataloom.utils.datasource;
 
 import cn.hutool.core.collection.CollUtil;
 import com.alibaba.excel.EasyExcel;
+import com.alibaba.excel.ExcelReader;
+import com.alibaba.excel.read.metadata.ReadSheet;
 import com.alibaba.excel.support.ExcelTypeEnum;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.constant.UserDataConstant;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.mapper.ChartMapper;
 import com.hwq.dataloom.model.dto.datasource.TableFieldInfo;
+import com.hwq.dataloom.model.enums.TableFieldTypeEnum;
 import com.hwq.dataloom.model.vo.data.PreviewExcelDataVO;
 import com.hwq.dataloom.mongo.entity.ChartData;
 import lombok.extern.slf4j.Slf4j;
@@ -102,7 +105,7 @@ public class ExcelUtils {
         // 取出表头
         List<String> headerList = new ArrayList<>(headerMap.values());
         // 校验表头是否包含特殊字符
-        MongoDBColumnValidator.validateColumnNames(headerList);
+        DBColumnValidator.validateColumnNames(headerList);
         // 存储字段头
         List<TableFieldInfo> fields = new ArrayList<>();
         // 初始化表头字段
@@ -142,39 +145,8 @@ public class ExcelUtils {
     }
 
 
-    public Long saveDataToMongo(InputStream inputStream, Long id) {
-        // 读取数据
-        List<Map<Integer, String>> list = null;
-        list = EasyExcel.read(inputStream)
-                .excelType(ExcelTypeEnum.XLSX)
-                .sheet()
-                .headRowNumber(0)
-                .doReadSync();
-        if (CollUtil.isEmpty(list)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "表格数据为空");
-        }
-        LinkedHashMap<Integer, String> headerMap = (LinkedHashMap) list.get(0);
-        // 取出表头
-        List<String> headerList = new ArrayList<>(headerMap.values());
-
-        // 统计字数
-            List<ChartData> insertData = new ArrayList<>();
-            // 获取封装后的数据
-            for (int i = 1; i < list.size(); i++) {
-                LinkedHashMap<Integer, String> dataMap = (LinkedHashMap) list.get(i);
-                // dataList存储当前行所有列的数据
-                List<String> dataList = new ArrayList<>(dataMap.values());
-                ChartData chartData = getDataMap(headerList, dataList);
-                if (chartData != null) insertData.add(chartData);
-            }
-            // 插入数据
-            insertMongoDB(id, insertData);
-        return id;
-    }
-
     /**
-     * 类型推断
-     *
+     * 表字段类型推断
      * @param value
      * @param tableFieldInfo
      * @return
@@ -187,33 +159,33 @@ public class ExcelUtils {
         if (tableFieldInfo.getFieldType() == null) {
             tableFieldInfo.setFieldType(type);
         } else {
-            if (type.equalsIgnoreCase("TEXT")) {
-                tableFieldInfo.setFieldType(type);
+            if (type.equalsIgnoreCase(TableFieldTypeEnum.TEXT.getValue())) {
+                tableFieldInfo.setFieldType(TableFieldTypeEnum.TEXT.getValue());
             }
-            if (type.equalsIgnoreCase("DOUBLE") && tableFieldInfo.getFieldType().equalsIgnoreCase("LONG")) {
-                tableFieldInfo.setFieldType(type);
+            if (type.equalsIgnoreCase(TableFieldTypeEnum.DOUBLE.getValue()) && tableFieldInfo.getFieldType().equalsIgnoreCase(TableFieldTypeEnum.BIGINT.getValue())) {
+                tableFieldInfo.setFieldType(TableFieldTypeEnum.DOUBLE.getValue());
             }
         }
 
     }
 
     public String cellType(String value) {
-        if( value.length() > 19){
-            return "TEXT";
+        if(value.length() > 19){
+            return TableFieldTypeEnum.TEXT.getValue();
         }
         if (DateTimeValidator.isDateTime(value)) {
-            return "DATETIME";
+            return TableFieldTypeEnum.DATETIME.getValue();
         }
         try {
             Double d = Double.valueOf(value);
             double eps = 1e-10;
             if (d - Math.floor(d) < eps) {
-                return "BIGINT";
+                return TableFieldTypeEnum.BIGINT.getValue();
             } else {
-                return "DOUBLE";
+                return TableFieldTypeEnum.DOUBLE.getValue();
             }
         } catch (Exception e2) {
-            return "TEXT";
+            return TableFieldTypeEnum.TEXT.getValue();
         }
     }
 
@@ -288,7 +260,7 @@ public class ExcelUtils {
         // 取出表头
         List<String> headerList = new ArrayList<>(headerMap.values());
         // 校验表头是否包含特殊字符
-        MongoDBColumnValidator.validateColumnNames(headerList);
+        DBColumnValidator.validateColumnNames(headerList);
         // 校验表头的匹配度
         try {
             // 生成数据表
@@ -353,9 +325,9 @@ public class ExcelUtils {
         PreviewExcelDataVO dataPage = new PreviewExcelDataVO();
 
         // 校验表头是否包含特殊字符
-        if(!MongoDBColumnValidator.validateColumnNames(headerList)) {
+        if(!DBColumnValidator.validateColumnNames(headerList)) {
             dataPage.setIsValid(false);
-            dataPage.setErrorMessage("列名中不得包含特殊字符：" + MongoDBColumnValidator.SPECIAL_CHARACTERS);
+            dataPage.setErrorMessage("列名中不得包含特殊字符：" + DBColumnValidator.SPECIAL_CHARACTERS);
         }
         // 存储字段头
         List<TableFieldInfo> fields = new ArrayList<>();
@@ -433,7 +405,7 @@ public class ExcelUtils {
         // 取出表头
         List<String> headerList = new ArrayList<>(headerMap.values());
         // 校验表头是否包含特殊字符
-        MongoDBColumnValidator.validateColumnNames(headerList);
+        DBColumnValidator.validateColumnNames(headerList);
         // 存储字段头
         List<TableFieldInfo> fields = new ArrayList<>();
         // 初始化表头字段
@@ -451,7 +423,10 @@ public class ExcelUtils {
             for (int i = 1; i < list.size(); i++) {
                 LinkedHashMap<Integer, String> dataMap = (LinkedHashMap) list.get(i);
                 // 插入数据
-                List<String> dataList = dataMap.values().stream().filter(ObjectUtils::isNotEmpty).collect(Collectors.toList());
+                List<String> dataList = dataMap.values()
+                        .stream()
+                        .filter(ObjectUtils::isNotEmpty)
+                        .collect(Collectors.toList());
                 chartMapper.insertDataToChartDataTable(id, headerList, dataList);
             }
         } catch (Exception e) {
@@ -460,5 +435,144 @@ public class ExcelUtils {
             chartMapper.DropTableAfterException(id);
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "请根据文件规范，检查上传文件是否正常,列字段不能包含特殊字符");
         }
+    }
+
+    public PreviewExcelDataVO queryAllDataFields(MultipartFile multipartFile) {
+        // 用于存储所有 Sheet 的数据
+        List<List<Map<Integer, String>>> allSheetData = new ArrayList<>();
+
+        try {
+            // 使用 EasyExcel 读取文件
+            ExcelReader excelReader = EasyExcel.read(multipartFile.getInputStream()).build();
+            // 获取所有 sheet
+            List<ReadSheet> sheets = excelReader.excelExecutor().sheetList();
+
+            // 遍历每个 Sheet
+            for (ReadSheet sheet : sheets) {
+                List<Map<Integer, String>> list = EasyExcel.read(multipartFile.getInputStream())
+                        .excelType(ExcelTypeEnum.XLSX)
+                        .sheet(sheet.getSheetNo())
+                        .headRowNumber(0)
+                        .doReadSync();
+
+                if (CollUtil.isNotEmpty(list)) {
+                    allSheetData.add(list);
+                }
+            }
+        } catch (IOException e) {
+            log.error("表格处理错误", e);
+        }
+
+        if (CollUtil.isEmpty(allSheetData)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "表格数据为空");
+        }
+
+        // 结果类
+        PreviewExcelDataVO dataPage = new PreviewExcelDataVO();
+
+        // 用于存储所有 Sheet 的字段信息和预览数据
+        List<TableFieldInfo> fields = new ArrayList<>();
+        List<ChartData> previewDataList = new ArrayList<>();
+
+        // 遍历每个 Sheet 的数据
+        for (List<Map<Integer, String>> sheetData : allSheetData) {
+            LinkedHashMap<Integer, String> headerMap = (LinkedHashMap) sheetData.get(0);
+            // 取出表头
+            List<String> headerList = new ArrayList<>(headerMap.values());
+
+            // 校验表头是否包含特殊字符
+            if (!DBColumnValidator.validateColumnNames(headerList)) {
+                dataPage.setIsValid(false);
+                dataPage.setErrorMessage("列名中不得包含特殊字符：" + DBColumnValidator.SPECIAL_CHARACTERS);
+            }
+
+            // 初始化表头字段
+            for (String s : headerList) {
+                TableFieldInfo tableFiled = new TableFieldInfo();
+                tableFiled.setFieldType(null);
+                tableFiled.setName(s);
+                tableFiled.setOriginName(s);
+                fields.add(tableFiled);
+            }
+
+            // 统计字数并进行预览
+            try {
+                // 取出前5行作为预览数据
+                for (int i = 1; i < 6 && i < sheetData.size(); i++) {
+                    LinkedHashMap<Integer, String> dataMap = (LinkedHashMap) sheetData.get(i); // [1, 2]
+                    // dataList存储当前行所有列的数据
+                    List<String> dataList = new ArrayList<>(dataMap.values());
+                    ChartData chartData = new ChartData();
+                    Map<String, Object> data = new HashMap<>();
+                    // 遍历每一个元素
+                    for (int j = 0; j < dataList.size(); j++) {
+                        if (j < headerList.size()) {
+                            data.put(headerList.get(j), dataList.get(j));
+                        }
+                    }
+                    chartData.setData(data);
+                    previewDataList.add(chartData);
+                }
+
+                // 只校验前200行数据
+                for (int i = 1; i < sheetData.size() && i < 200; i++) {
+                    LinkedHashMap<Integer, String> dataMap = (LinkedHashMap) sheetData.get(i); // [1, 2]
+                    // dataList存储当前行所有列的数据
+                    List<String> dataList = new ArrayList<>(dataMap.values());
+                    // 校验数据类型
+                    // 遍历每一个元素
+                    for (int j = 0; j < dataList.size(); j++) {
+                        if (j < headerList.size()) {
+                            cellType(dataList.get(j), fields.get(j));
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.error(e.getMessage());
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "请根据文件规范，检查上传文件是否正常");
+            }
+        }
+
+        // 将字段信息和数据列表设置到结果对象中
+        dataPage.setTableFieldInfosList(fields);
+        dataPage.setDataList(previewDataList);
+        return dataPage;
+    }
+
+    /**
+     * 存储数据源数据到MongoDB
+     * @param inputStream
+     * @param id
+     * @return
+     */
+    @Deprecated
+    public Long saveDataToMongo(InputStream inputStream, Long id) {
+        // 读取数据
+        List<Map<Integer, String>> list = null;
+        list = EasyExcel.read(inputStream)
+                .excelType(ExcelTypeEnum.XLSX)
+                .sheet()
+                .headRowNumber(0)
+                .doReadSync();
+        if (CollUtil.isEmpty(list)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "表格数据为空");
+        }
+        LinkedHashMap<Integer, String> headerMap = (LinkedHashMap) list.get(0);
+        // 取出表头
+        List<String> headerList = new ArrayList<>(headerMap.values());
+
+        // 统计字数
+        List<ChartData> insertData = new ArrayList<>();
+        // 获取封装后的数据
+        for (int i = 1; i < list.size(); i++) {
+            LinkedHashMap<Integer, String> dataMap = (LinkedHashMap) list.get(i);
+            // dataList存储当前行所有列的数据
+            List<String> dataList = new ArrayList<>(dataMap.values());
+            ChartData chartData = getDataMap(headerList, dataList);
+            if (chartData != null) insertData.add(chartData);
+        }
+        // 插入数据
+        insertMongoDB(id, insertData);
+        return id;
     }
 }

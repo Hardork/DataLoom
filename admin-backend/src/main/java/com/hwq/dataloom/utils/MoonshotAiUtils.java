@@ -18,6 +18,9 @@ import java.util.List;
 import java.util.Optional;
 
 
+/**
+ * KimiAI
+ */
 public class MoonshotAiUtils {
 
     private static final String API_KEY = "sk-kF3606EaoCCIhQzV1OM6PG7JW5tO3B1vSxt2pPTODHB0gsMA";

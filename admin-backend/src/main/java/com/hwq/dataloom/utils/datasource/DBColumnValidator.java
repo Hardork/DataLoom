@@ -6,7 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
-public class MongoDBColumnValidator {
+public class DBColumnValidator {
 
     public static final String SPECIAL_CHARACTERS = "~,.<>/;'\"`+-=|!@#$%^&*()[]{}";
 
