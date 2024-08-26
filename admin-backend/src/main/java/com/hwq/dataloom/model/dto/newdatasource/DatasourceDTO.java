@@ -3,10 +3,10 @@ package com.hwq.dataloom.model.dto.newdatasource;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.io.*;
 
 @Data
 public class DatasourceDTO implements Serializable {
@@ -83,6 +83,11 @@ public class DatasourceDTO implements Serializable {
      * 上次成功更新时间
      */
     private Long lastSyncTime;
+
+    /**
+     * 本地文件
+     */
+    private MultipartFile multipartFile;
 
     /**
      * 任务状态TaskDTO

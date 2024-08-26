@@ -13,6 +13,7 @@ import java.util.List;
  */
 @Data
 public class PreviewExcelDataVO {
+    private String sheetName;
     private Boolean isValid;
     private String errorMessage;
     private List<ChartData> dataList;

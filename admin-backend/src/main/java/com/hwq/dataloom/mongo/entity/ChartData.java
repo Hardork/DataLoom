@@ -2,8 +2,6 @@ package com.hwq.dataloom.mongo.entity;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.springframework.data.mongodb.core.mapping.FieldType;
-import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import java.util.Map;
 
@@ -14,8 +12,16 @@ import java.util.Map;
  */
 @Data
 @Accessors(chain = true)
-public class ChartData{
-    @MongoId(FieldType.STRING)
+public class ChartData {
+
+    /**
+     * id 可不填
+     */
     private String id;
+
+    /**
+     * 数据
+     */
     private Map<String, Object> data;
+
 }

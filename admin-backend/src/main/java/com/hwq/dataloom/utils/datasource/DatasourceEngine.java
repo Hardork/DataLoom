@@ -1,4 +1,6 @@
 package com.hwq.dataloom.utils.datasource;
+import com.hwq.dataloom.framework.errorcode.ErrorCode;
+import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.enums.TableFieldTypeEnum;
 import lombok.SneakyThrows;
@@ -32,7 +34,7 @@ public class DatasourceEngine {
      * @return 结果集
      */
     @SneakyThrows
-    private ResultSet execSelectSql(Long datasourceId, String sql, Object... parameters) {
+    public ResultSet execSelectSql(Long datasourceId, String sql, Object... parameters) {
         int dsIndex = (int) (datasourceId % (dataSourceMap.size()));
         // 获取对应连接池
         DataSource dataSource = dataSourceMap.get(dsIndex);
@@ -56,7 +58,7 @@ public class DatasourceEngine {
      * @return 影响行数
      */
     @SneakyThrows
-    private int execUpdateSql(Long datasourceId, String sql, Object... parameters) {
+    public int execUpdateSql(Long datasourceId, String sql, Object... parameters) {
         int dsIndex = (int) (datasourceId % (dataSourceMap.size()));
         // 获取对应连接池
         DataSource dataSource = dataSourceMap.get(dsIndex);
@@ -73,8 +75,17 @@ public class DatasourceEngine {
         }
     }
 
+    /**
+     * 执行insert语句
+     * @param datasourceId 数据源id
+     * @param name 表名
+     * @param dataList 所有行数据
+     * @param page 当前插入页
+     * @param pageNumber 一页插入数量
+     * @return 影响行数
+     */
     @SneakyThrows
-    private int execInsert(Long datasourceId, String name, List<String[]> dataList, int page, int pageNumber) {
+    public int execInsert(Long datasourceId, String name, List<String[]> dataList, int page, int pageNumber) {
         int dsIndex = (int) (datasourceId % (dataSourceMap.size()));
         // 获取对应连接池
         DataSource dataSource = dataSourceMap.get(dsIndex);
@@ -85,6 +96,41 @@ public class DatasourceEngine {
             return preparedStatement.executeUpdate();
         }
     }
+
+    /**
+     * 执行create建表语句
+     * @param datasourceId 数据源id
+     * @param tableName 表名
+     * @param tableFields 字段信息
+     */
+    @SneakyThrows
+    public void exeCreateTable(Long datasourceId, String tableName, List<CoreDatasetTableField> tableFields) {
+        int dsIndex = (int) (datasourceId % (dataSourceMap.size()));
+        // 获取对应连接池
+        DataSource dataSource = dataSourceMap.get(dsIndex);
+        ThrowUtils.throwIf(tableFields.isEmpty(), ErrorCode.PARAMS_ERROR, "字段不得为空");
+        String tableSql = createTableSql(tableName, tableFields);
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(tableSql)) {
+            // Execute the query or update
+            preparedStatement.executeUpdate();
+        }
+    }
+
+    @SneakyThrows
+    public void exeDropTable(Long datasourceId, String tableName) {
+        int dsIndex = (int) (datasourceId % (dataSourceMap.size()));
+        // 获取对应连接池
+        DataSource dataSource = dataSourceMap.get(dsIndex);
+        String dropTableSql = dropTable(tableName);
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(dropTableSql)) {
+            // Execute the query or update
+            preparedStatement.executeUpdate();
+        }
+    }
+
+
 
 
     private static final String creatTableSql =

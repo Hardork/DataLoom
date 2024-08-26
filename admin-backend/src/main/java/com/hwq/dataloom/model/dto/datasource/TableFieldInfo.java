@@ -6,9 +6,6 @@ import lombok.Data;
  * @author HWQ
  * @date 2024/5/26 15:16
  * @description
- * tableFiled.setFieldType(null);
- *             tableFiled.setName(s);
- *             tableFiled.setOriginName(s);
  */
 @Data
 public class TableFieldInfo {
