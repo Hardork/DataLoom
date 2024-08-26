@@ -2,7 +2,7 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.hwq.dataloom.mapper.CoreDatasourceTaskMapper">
+<mapper namespace="generator.mapper.CoreDatasourceTaskMapper">
 
     <resultMap id="BaseResultMap" type="com.hwq.dataloom.model.entity.CoreDatasourceTask">
             <id property="id" column="id" jdbcType="BIGINT"/>
@@ -10,18 +10,19 @@
             <result property="datasetTableId" column="datasetTableId" jdbcType="BIGINT"/>
             <result property="name" column="name" jdbcType="VARCHAR"/>
             <result property="updateType" column="updateType" jdbcType="VARCHAR"/>
-            <result property="startTime" column="startTime" jdbcType="BIGINT"/>
+            <result property="startTime" column="startTime" jdbcType="TIMESTAMP"/>
             <result property="syncRate" column="syncRate" jdbcType="VARCHAR"/>
             <result property="cron" column="cron" jdbcType="VARCHAR"/>
             <result property="simpleCronValue" column="simpleCronValue" jdbcType="BIGINT"/>
             <result property="simpleCronType" column="simpleCronType" jdbcType="VARCHAR"/>
             <result property="endLimit" column="endLimit" jdbcType="VARCHAR"/>
-            <result property="endTime" column="endTime" jdbcType="BIGINT"/>
+            <result property="endTime" column="endTime" jdbcType="TIMESTAMP"/>
             <result property="createTime" column="createTime" jdbcType="BIGINT"/>
             <result property="lastExecTime" column="lastExecTime" jdbcType="BIGINT"/>
             <result property="lastExecStatus" column="lastExecStatus" jdbcType="VARCHAR"/>
             <result property="extraData" column="extraData" jdbcType="VARCHAR"/>
             <result property="taskStatus" column="taskStatus" jdbcType="VARCHAR"/>
+            <result property="jobId" column="jobId" jdbcType="INTEGER"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -30,6 +31,6 @@
         syncRate,cron,simpleCronValue,
         simpleCronType,endLimit,endTime,
         createTime,lastExecTime,lastExecStatus,
-        extraData,taskStatus
+        extraData,taskStatus,jobId
     </sql>
 </mapper>

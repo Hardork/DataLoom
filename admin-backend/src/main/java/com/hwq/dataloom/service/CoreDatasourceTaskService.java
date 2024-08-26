@@ -17,12 +17,14 @@ public interface CoreDatasourceTaskService extends IService<CoreDatasourceTask> 
      * @param datasourceDTO
      * @return
      */
-    Long addTask(DatasourceDTO datasourceDTO,Long datasetTableId);
+    Long addTask(DatasourceDTO datasourceDTO,Long datasetTableId,Integer xxlJobId);
 
     /**
      * 添加Xxl Job定时任务
+     *
      * @param datasourceDTO
      * @param apiDefinition
+     * @return
      */
-    void addXxlJob(DatasourceDTO datasourceDTO, ApiDefinition apiDefinition);
+    int addXxlJob(DatasourceDTO datasourceDTO, ApiDefinition apiDefinition);
 }

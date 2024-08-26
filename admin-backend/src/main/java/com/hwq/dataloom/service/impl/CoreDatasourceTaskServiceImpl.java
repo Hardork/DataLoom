@@ -24,8 +24,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.Date;
-import java.util.List;
-import java.util.Objects;
 
 @Service
 @Slf4j
@@ -42,7 +40,7 @@ public class CoreDatasourceTaskServiceImpl extends ServiceImpl<CoreDatasourceTas
     private String loginPwd;
 
     // XXL-JOB登录
-    private void xxljob_login()
+    public void xxljob_login()
     {
         try {
             XxlJobUtil.login(adminAddresses,loginUsername,loginPwd);
@@ -56,7 +54,7 @@ public class CoreDatasourceTaskServiceImpl extends ServiceImpl<CoreDatasourceTas
     private CoreDatasourceTaskService coreDatasourceTaskService;
 
     @Override
-    public Long addTask(DatasourceDTO datasourceDTO, Long datasetTableId) {
+    public Long addTask(DatasourceDTO datasourceDTO, Long datasetTableId, Integer xxlJobId) {
         CoreDatasourceTask coreDatasourceTask = new CoreDatasourceTask();
         coreDatasourceTask.setDataSourceId(datasourceDTO.getId());
         TaskDTO taskDTO = datasourceDTO.getSyncSetting();
@@ -72,6 +70,7 @@ public class CoreDatasourceTaskServiceImpl extends ServiceImpl<CoreDatasourceTas
         coreDatasourceTask.setEndLimit(taskDTO.getEndLimit());
         coreDatasourceTask.setEndTime(taskDTO.getEndTime());
         coreDatasourceTask.setTaskStatus("执行中");
+        coreDatasourceTask.setJobId(xxlJobId);
 
         boolean save = coreDatasourceTaskService.save(coreDatasourceTask);
         ThrowUtils.throwIf(!save, ErrorCode.OPERATION_ERROR);
@@ -80,8 +79,7 @@ public class CoreDatasourceTaskServiceImpl extends ServiceImpl<CoreDatasourceTas
         return id;
     }
 
-    public void addXxlJob(DatasourceDTO datasourceDTO,ApiDefinition apiDefinition) {
-        // TODO 通过延迟队列添加XXL-JOB定时任务 实现设置任务的开始时间和结束时间
+    public int addXxlJob(DatasourceDTO datasourceDTO, ApiDefinition apiDefinition) {
         TaskDTO taskDTO = datasourceDTO.getSyncSetting();
         // 创建并执行定时任务
         XxlJobInfo xxlJobInfo=new XxlJobInfo();
@@ -124,12 +122,14 @@ public class CoreDatasourceTaskServiceImpl extends ServiceImpl<CoreDatasourceTas
             if (response.containsKey("code") && 200 == (Integer) response.get("code")) {
                 String jobId = response.getString("content");
                 log.info("新增成功,jobId:" + jobId);
+                xxlJobInfo.setId(Integer.parseInt(jobId));
             } else {
                 throw new BusinessException(ErrorCode.OPERATION_ERROR,"新增任务失败！");
             }
         } catch (IOException | ParseException e) {
             throw new RuntimeException(e);
         }
+        return xxlJobInfo.getId();
     }
 
 

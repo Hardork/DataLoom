@@ -5,7 +5,10 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
+import java.util.Date;
+
 import lombok.Data;
+import org.joda.time.DateTime;
 
 /**
  * 数据源定时同步任务
@@ -43,7 +46,7 @@ public class CoreDatasourceTask implements Serializable {
     /**
      * 开始时间
      */
-    private Long startTime;
+    private Date startTime;
 
     /**
      * 执行频率：0 一次性 1 cron
@@ -73,7 +76,7 @@ public class CoreDatasourceTask implements Serializable {
     /**
      * 结束时间
      */
-    private Long endTime;
+    private Date endTime;
 
     /**
      * 创建时间
@@ -99,6 +102,11 @@ public class CoreDatasourceTask implements Serializable {
      * 任务状态
      */
     private String taskStatus;
+
+    /**
+     * xxljob定时任务ID
+     */
+    private Integer jobId;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
