@@ -36,9 +36,9 @@ public class DatasourceDatabaseConfig {
             HikariConfig hikariConfig = new HikariConfig();
             hikariConfig.setConnectionTimeout(3000); // 超时时间3s
             hikariConfig.setPassword(config.getPassword());
+            hikariConfig.setMaximumPoolSize(5);
             hikariConfig.setUsername(config.getUsername());
             hikariConfig.setDriverClassName(config.getDriverClassName());
-//            hikariConfig.setMaximumPoolSize(); // CPU核心数量的两倍
             hikariConfig.setJdbcUrl(config.getUrl()); // 设置jdbc连接的额外字符串
             hikariConfig.setPoolName("ds_" + i);
             dataSourceMap.put(i, new HikariDataSource(hikariConfig));
@@ -47,7 +47,7 @@ public class DatasourceDatabaseConfig {
     }
 
     @Data
-    public static class DataSourceConfig {
+    static class DataSourceConfig {
         private String driverClassName;
         private String url;
         private String username;
