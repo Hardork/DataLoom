@@ -3,8 +3,10 @@ package com.hwq.dataloom.model.dto.newdatasource;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
+import org.joda.time.DateTime;
 
 import java.io.Serializable;
+import java.util.Date;
 
 @Data
 public class TaskDTO implements Serializable {
@@ -35,12 +37,12 @@ public class TaskDTO implements Serializable {
     /**
      * 开始时间
      */
-    private Long startTime;
+    private Date startTime;
 
     /**
      * 结束时间
      */
-    private Long endTime;
+    private Date endTime;
 
 
     private String endLimit;

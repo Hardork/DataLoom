@@ -7,11 +7,16 @@ import com.hwq.dataloom.service.CoreDatasetTableFieldService;
 import org.springframework.stereotype.Service;
 
 /**
- * @author HWQ
- * @date 2024/8/23 01:15
- * @description
- */
+* @author 25020
+* @description 针对表【core_dataset_table_field(table数据集表字段)】的数据库操作Service实现
+* @createDate 2024-08-21 17:22:45
+*/
 @Service
 public class CoreDatasetTableFieldServiceImpl extends ServiceImpl<CoreDatasetTableFieldMapper, CoreDatasetTableField>
-        implements CoreDatasetTableFieldService {
+    implements CoreDatasetTableFieldService {
+
 }
+
+
+
+
