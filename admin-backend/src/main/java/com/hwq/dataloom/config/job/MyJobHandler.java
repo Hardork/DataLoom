@@ -1,5 +1,6 @@
 package com.hwq.dataloom.config.job;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -9,7 +10,9 @@ import com.google.common.net.HttpHeaders;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.model.dto.newdatasource.ApiDefinition;
+import com.hwq.dataloom.model.dto.newdatasource.TableField;
 import com.hwq.dataloom.model.entity.CoreDatasetTable;
+import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.entity.CoreDatasourceTask;
 import com.hwq.dataloom.service.CoreDatasetTableFieldService;
 import com.hwq.dataloom.service.CoreDatasetTableService;
@@ -37,10 +40,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
 import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -73,19 +73,50 @@ public class MyJobHandler {
      * @throws ParseException
      */
     @XxlJob("dataLoomJobHandler")
-    public void DataLoomJobHandler() throws IOException, ParseException {
+    public void DataLoomJobHandler() {
         String jobParam = XxlJobHelper.getJobParam();
+        Date now = new Date();
         ApiDefinition apiDefinition = JSONUtil.toBean(jobParam, ApiDefinition.class);
         String tableName = apiDefinition.getDeTableName();
-        CoreDatasetTable datasetTable = coreDatasetTableService.getOne(new QueryWrapper<CoreDatasetTable>().eq("table_name", tableName));
+        QueryWrapper<CoreDatasetTable> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("tableName", tableName);
+        CoreDatasetTable datasetTable = coreDatasetTableService.getOne(queryWrapper);
         ThrowUtils.throwIf(ObjectUtils.isEmpty(datasetTable), ErrorCode.PARAMS_ERROR, "数据表不存在");
         Long datasetTableId = datasetTable.getId();
-        CloseableHttpResponse response = ApiUtils.getApiResponse(apiDefinition);
-        String responseBody = EntityUtils.toString(response.getEntity());
-        System.out.println(responseBody);
-        coreDatasourceService.handleApiResponse(apiDefinition,responseBody);
-        System.out.println(apiDefinition);
-        // TODO 执行并保存到数据库中
+        try {
+            CloseableHttpResponse response = ApiUtils.getApiResponse(apiDefinition);
+            String responseBody = EntityUtils.toString(response.getEntity());
+            System.out.println(responseBody);
+            coreDatasourceService.handleApiResponse(apiDefinition,responseBody);
+            System.out.println(apiDefinition);
+            // 执行并将字段更新到数据库中
+            List<TableField> fields = apiDefinition.getFields();
+            int columnIndex = 0;
+            ArrayList<CoreDatasetTableField> coreDatasetTableFieldList = new ArrayList<>();
+            for (TableField field : fields) {
+                columnIndex++;
+                CoreDatasetTableField coreDatasetTableField = new CoreDatasetTableField();
+                BeanUtil.copyProperties(field,coreDatasetTableField);
+                coreDatasetTableField.setDatasetTableId(datasetTableId);
+                coreDatasetTableField.setColumnIndex(columnIndex);
+                coreDatasetTableField.setLastSyncTime(now.getTime());
+                coreDatasetTableField.setGroupType("d");
+                coreDatasetTableFieldList.add(coreDatasetTableField);
+            }
+            boolean savedBatch = coreDatasetTableFieldService.saveOrUpdateBatch(coreDatasetTableFieldList);
+            ThrowUtils.throwIf(!savedBatch,ErrorCode.OPERATION_ERROR,"新增字段失败！");
+        } catch (Exception e) {
+            // 更新任务信息
+            CoreDatasourceTask coreDatasourceTask = coreDatasourceTaskService.getById(datasetTableId);
+            coreDatasourceTask.setLastExecTime(now.getTime());
+            coreDatasourceTask.setLastExecStatus("failed");
+            coreDatasourceTaskService.updateById(coreDatasourceTask);
+        }
+        // 更新任务信息
+        CoreDatasourceTask coreDatasourceTask = coreDatasourceTaskService.getById(datasetTableId);
+        coreDatasourceTask.setLastExecTime(now.getTime());
+        coreDatasourceTask.setLastExecStatus("succeed");
+        coreDatasourceTaskService.updateById(coreDatasourceTask);
 
     }
 
