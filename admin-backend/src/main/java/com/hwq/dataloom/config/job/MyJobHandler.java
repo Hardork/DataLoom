@@ -2,17 +2,25 @@ package com.hwq.dataloom.config.job;
 
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.HttpHeaders;
+import com.hwq.dataloom.framework.errorcode.ErrorCode;
+import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.model.dto.newdatasource.ApiDefinition;
+import com.hwq.dataloom.model.entity.CoreDatasetTable;
 import com.hwq.dataloom.model.entity.CoreDatasourceTask;
+import com.hwq.dataloom.service.CoreDatasetTableFieldService;
+import com.hwq.dataloom.service.CoreDatasetTableService;
+import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.service.CoreDatasourceTaskService;
 import com.hwq.dataloom.utils.ApiUtils;
 import com.xxl.job.core.biz.AdminBiz;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.groovy.util.BeanUtils;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
@@ -41,6 +49,15 @@ public class MyJobHandler {
     @Resource
     private CoreDatasourceTaskService coreDatasourceTaskService;
 
+    @Resource
+    private CoreDatasetTableService coreDatasetTableService;
+
+    @Resource
+    private CoreDatasourceService coreDatasourceService;
+
+    @Resource
+    private CoreDatasetTableFieldService coreDatasetTableFieldService;
+
     @Value("${xxl.job.admin.addresses:''}")
     private String adminAddresses;
 
@@ -49,9 +66,6 @@ public class MyJobHandler {
 
     @Value("${xxl.job.admin.login-pwd:123456}")
     private String loginPwd;
-
-    private static final String ADMIN_ADD_JOB_URL = "http://127.0.0.1:8088/xxl-job-admin/jobinfo/add";
-    private static final String ADMIN_TRIGGER_JOB_URL = "http://127.0.0.1:8088/xxl-job-admin/jobinfo/trigger";
 
     /**
      * 定时任务 根据API接口信息更新API数据
@@ -62,9 +76,15 @@ public class MyJobHandler {
     public void DataLoomJobHandler() throws IOException, ParseException {
         String jobParam = XxlJobHelper.getJobParam();
         ApiDefinition apiDefinition = JSONUtil.toBean(jobParam, ApiDefinition.class);
+        String tableName = apiDefinition.getDeTableName();
+        CoreDatasetTable datasetTable = coreDatasetTableService.getOne(new QueryWrapper<CoreDatasetTable>().eq("table_name", tableName));
+        ThrowUtils.throwIf(ObjectUtils.isEmpty(datasetTable), ErrorCode.PARAMS_ERROR, "数据表不存在");
+        Long datasetTableId = datasetTable.getId();
         CloseableHttpResponse response = ApiUtils.getApiResponse(apiDefinition);
         String responseBody = EntityUtils.toString(response.getEntity());
         System.out.println(responseBody);
+        coreDatasourceService.handleApiResponse(apiDefinition,responseBody);
+        System.out.println(apiDefinition);
         // TODO 执行并保存到数据库中
 
     }

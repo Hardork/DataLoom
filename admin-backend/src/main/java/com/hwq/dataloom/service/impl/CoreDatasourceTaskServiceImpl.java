@@ -100,6 +100,7 @@ public class CoreDatasourceTaskServiceImpl extends ServiceImpl<CoreDatasourceTas
         xxlJobInfo.setMisfireStrategy("DO_NOTHING");
         xxlJobInfo.setExecutorRouteStrategy("FIRST");
         xxlJobInfo.setExecutorHandler("dataLoomJobHandler");
+        apiDefinition.setFields(null);
         xxlJobInfo.setExecutorParam(JSONUtil.toJsonStr(apiDefinition));
         xxlJobInfo.setExecutorBlockStrategy("SERIAL_EXECUTION");
         xxlJobInfo.setExecutorTimeout(0);
