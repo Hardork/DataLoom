@@ -55,6 +55,19 @@ public class CoreDataSourceController {
     }
 
     /**
+     * 根据数据源id获取数据源信息
+     * @param datasourceId
+     * @param request
+     * @return
+     */
+    @GetMapping("/get")
+    public BaseResponse<DatasourceDTO> getDataSource(Long datasourceId, HttpServletRequest request) {
+        ThrowUtils.throwIf(datasourceId == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        return ResultUtils.success(coreDatasourceService.getDataSource(datasourceId, loginUser));
+    }
+
+    /**
      * 校验数据源
      * @param datasourceDTO
      * @return
