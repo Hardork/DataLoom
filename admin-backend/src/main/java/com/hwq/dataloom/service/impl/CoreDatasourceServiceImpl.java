@@ -8,6 +8,7 @@ import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.dto.datasource.GetTableFieldsDTO;
 import com.hwq.dataloom.model.dto.newdatasource.ApiDefinition;
 import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
+import com.hwq.dataloom.model.dto.newdatasource.TableField;
 import com.hwq.dataloom.model.dto.newdatasource.TaskDTO;
 import com.hwq.dataloom.model.entity.CoreDatasetTable;
 import com.hwq.dataloom.model.entity.CoreDatasetTableField;
@@ -102,6 +103,15 @@ public class CoreDatasourceServiceImpl extends ServiceImpl<CoreDatasourceMapper,
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR,"调用接口失败！");
         }
         apiDefinition.setJsonFields(fields);
+        ArrayList<TableField> tablefield = new ArrayList<>();
+        for (Map<String, Object> field : fields) {
+            TableField tableField = new TableField();
+            tableField.setName(field.get("name").toString());
+            tableField.setOriginName(field.get("name").toString());
+            tableField.setType(field.get("type").toString());
+            tableField.setJsonPath(field.get("jsonPath").toString());
+        }
+        apiDefinition.setFields(tablefield);
     }
 
     @Override
