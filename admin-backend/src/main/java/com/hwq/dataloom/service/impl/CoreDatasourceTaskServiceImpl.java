@@ -17,6 +17,7 @@ import com.hwq.dataloom.service.CoreDatasourceTaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.core5.http.ParseException;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -100,7 +101,6 @@ public class CoreDatasourceTaskServiceImpl extends ServiceImpl<CoreDatasourceTas
         xxlJobInfo.setMisfireStrategy("DO_NOTHING");
         xxlJobInfo.setExecutorRouteStrategy("FIRST");
         xxlJobInfo.setExecutorHandler("dataLoomJobHandler");
-        apiDefinition.setFields(null);
         xxlJobInfo.setExecutorParam(JSONUtil.toJsonStr(apiDefinition));
         xxlJobInfo.setExecutorBlockStrategy("SERIAL_EXECUTION");
         xxlJobInfo.setExecutorTimeout(0);
@@ -119,7 +119,7 @@ public class CoreDatasourceTaskServiceImpl extends ServiceImpl<CoreDatasourceTas
             // 如果此处报错可能是以下三个原因
             // 1. xxljob执行器存在问题（检查上面代码中setJobGroup是否正确 检查配置文件中appName是否正确 检查控制台有没有新增执行器）
             // 2. xxljob源码中没有添加自定义restful接口
-            // 3. xxljob数据库中xxl_job_info的executor_param字段没有改为text类型
+            // 3. xxljob数据库中xxl_job_info和xxl_job_log的executor_param字段没有改为text类型
             if (response.containsKey("code") && 200 == (Integer) response.get("code")) {
                 String jobId = response.getString("content");
                 log.info("新增成功,jobId:" + jobId);

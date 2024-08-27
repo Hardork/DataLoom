@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.HttpHeaders;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
+import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.model.dto.newdatasource.ApiDefinition;
 import com.hwq.dataloom.model.dto.newdatasource.TableField;
@@ -85,8 +86,15 @@ public class MyJobHandler {
         Long datasetTableId = datasetTable.getId();
         try {
             CloseableHttpResponse response = ApiUtils.getApiResponse(apiDefinition);
+            int code = response.getCode();
+            if (code != 200) {
+                throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "调用接口失败！错误码为：" + code);
+            }
             String responseBody = EntityUtils.toString(response.getEntity());
             System.out.println(responseBody);
+            if (StringUtils.isEmpty(responseBody)) {
+                throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "接口调用失败！接口请求结果为空！");
+            }
             coreDatasourceService.handleApiResponse(apiDefinition,responseBody);
             System.out.println(apiDefinition);
             // 执行并将字段更新到数据库中
@@ -107,13 +115,16 @@ public class MyJobHandler {
             ThrowUtils.throwIf(!savedBatch,ErrorCode.OPERATION_ERROR,"新增字段失败！");
         } catch (Exception e) {
             // 更新任务信息
-            CoreDatasourceTask coreDatasourceTask = coreDatasourceTaskService.getById(datasetTableId);
-            coreDatasourceTask.setLastExecTime(now.getTime());
+            QueryWrapper<CoreDatasourceTask> taskQueryWrapper = new QueryWrapper<>();
+            taskQueryWrapper.eq("datasetTableId", datasetTableId);
+            CoreDatasourceTask coreDatasourceTask = coreDatasourceTaskService.getOne(taskQueryWrapper);            coreDatasourceTask.setLastExecTime(now.getTime());
             coreDatasourceTask.setLastExecStatus("failed");
             coreDatasourceTaskService.updateById(coreDatasourceTask);
         }
         // 更新任务信息
-        CoreDatasourceTask coreDatasourceTask = coreDatasourceTaskService.getById(datasetTableId);
+        QueryWrapper<CoreDatasourceTask> taskQueryWrapper = new QueryWrapper<>();
+        taskQueryWrapper.eq("datasetTableId", datasetTableId);
+        CoreDatasourceTask coreDatasourceTask = coreDatasourceTaskService.getOne(taskQueryWrapper);
         coreDatasourceTask.setLastExecTime(now.getTime());
         coreDatasourceTask.setLastExecStatus("succeed");
         coreDatasourceTaskService.updateById(coreDatasourceTask);

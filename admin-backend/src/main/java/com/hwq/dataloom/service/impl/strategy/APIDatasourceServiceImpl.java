@@ -3,6 +3,7 @@ package com.hwq.dataloom.service.impl.strategy;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.spring.util.BeanUtils;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
@@ -22,6 +23,8 @@ import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.service.CoreDatasourceTaskService;
 import com.hwq.dataloom.service.basic.DatasourceExecuteStrategy;
 import com.hwq.dataloom.utils.ApiUtils;
+import com.hwq.dataloom.utils.datasource.DatasourceEngine;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.core5.http.ParseException;
@@ -94,7 +97,7 @@ public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<Datas
             ThrowUtils.throwIf(datasetTableId < 0, ErrorCode.OPERATION_ERROR, "新增数据表失败！");
 
             Integer xxlJobId = null;
-
+            datasourceDTO.setId(id);
             // 添加XXL JOB定时任务
             TaskDTO taskDTO = datasourceDTO.getSyncSetting();
             if (!taskDTO.getUpdateType().equals("RIGHTNOW")) {
@@ -102,14 +105,13 @@ public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<Datas
             }
 
             Long datasourceTaskId = null;
-
-            datasourceDTO.setId(id);
             if (xxlJobId != null) {
                 datasourceTaskId = coreDatasourceTaskService.addTask(datasourceDTO, datasetTableId,xxlJobId);
                 ThrowUtils.throwIf(datasourceTaskId < 0, ErrorCode.OPERATION_ERROR, "新增定时任务失败！");
             }
 
             // TODO 将请求获得的数据添加到数据仓库
+            DatasourceEngine datasourceEngine = new DatasourceEngine();
 
             Long lastExecTime = coreDatasourceTaskService.getById(datasourceTaskId).getLastExecTime();
 
@@ -159,12 +161,32 @@ public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<Datas
 
     @Override
     public List<CoreDatasetTable> getTables(CoreDatasource coreDatasource) {
-        // zzx TODO: 获取数据源表信息
-        return null;
+        // 获取数据源表信息
+        ThrowUtils.throwIf(ObjectUtils.isEmpty(coreDatasource),ErrorCode.PARAMS_ERROR);
+        List<CoreDatasetTable> coreDatasetTables = new ArrayList<>();
+        if (coreDatasource.getId() != null) {
+            QueryWrapper<CoreDatasetTable> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("datasourceId",coreDatasource.getId());
+            coreDatasetTables = coreDatasetTableService.list(queryWrapper);
+        }
+        ThrowUtils.throwIf(ObjectUtils.isEmpty(coreDatasetTables),ErrorCode.NOT_FOUND_ERROR);
+        return coreDatasetTables;
     }
 
     @Override
     public List<CoreDatasetTableField> getTableFields(CoreDatasource coreDatasource, String tableName) {
-        return null;
+        ThrowUtils.throwIf(ObjectUtils.isEmpty(coreDatasource),ErrorCode.PARAMS_ERROR);
+        ThrowUtils.throwIf(StringUtils.isEmpty(tableName),ErrorCode.PARAMS_ERROR);
+        QueryWrapper<CoreDatasetTable> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("datasourceId",coreDatasource.getId());
+        queryWrapper.eq("tableName",tableName);
+        CoreDatasetTable coreDatasetTable = coreDatasetTableService.getOne(queryWrapper);
+        ThrowUtils.throwIf(ObjectUtils.isEmpty(coreDatasetTable),ErrorCode.NOT_FOUND_ERROR);
+        Long coreDatasetTableId = coreDatasetTable.getId();
+        QueryWrapper<CoreDatasetTableField> coreDatasetTableFieldQueryWrapper = new QueryWrapper<>();
+        coreDatasetTableFieldQueryWrapper.eq("datasetTableId",coreDatasetTableId);
+        List<CoreDatasetTableField> coreDatasetTableFields = coreDatasetTableFieldService.list(coreDatasetTableFieldQueryWrapper);
+        ThrowUtils.throwIf(ObjectUtils.isEmpty(coreDatasetTableFields),ErrorCode.NOT_FOUND_ERROR);
+        return coreDatasetTableFields;
     }
 }

@@ -27,6 +27,14 @@ public interface CoreDatasourceService extends IService<CoreDatasource> {
     Long addDatasource(DatasourceDTO datasourceDTO, User user);
 
     /**
+     * 根据数据源id获取数据源信息
+     * @param datasourceId
+     * @param loginUser
+     * @return
+     */
+    DatasourceDTO getDataSource(Long datasourceId,User loginUser);
+
+    /**
      * 校验数据源配置
      * @param datasourceDTO
      * @return
