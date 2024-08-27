@@ -55,8 +55,6 @@ public class ProductInfoController {
     private InnerUserServiceInterface userService;
 
 
-    // region 增删改查
-
     /**
      * 添加接口信息
      * 创建
@@ -297,8 +295,6 @@ public class ProductInfoController {
         ProductPoint productInfoQuery = new ProductPoint();
         BeanUtils.copyProperties(productInfoQueryRequest, productInfoQuery);
         long size = productInfoQueryRequest.getPageSize();
-        String sortField = productInfoQueryRequest.getSortField();
-        String sortOrder = productInfoQueryRequest.getSortOrder();
 
         String name = productInfoQueryRequest.getName();
         long current = productInfoQueryRequest.getCurrent();

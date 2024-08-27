@@ -1,4 +1,4 @@
-package com.hwq.dataloom.mq;
+package com.hwq.dataloom.mq.consumer;
 
 import com.hwq.dataloom.constants.MqConstant;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;

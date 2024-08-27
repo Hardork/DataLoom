@@ -1,4 +1,4 @@
-package com.hwq.dataloom.bizmq;
+package com.hwq.dataloom.mq.consumer;
 
 import cn.hutool.json.JSONUtil;
 import com.github.rholder.retry.*;
@@ -16,6 +16,7 @@ import com.hwq.dataloom.model.entity.UserMessage;
 import com.hwq.dataloom.model.enums.ChartStatusEnum;
 import com.hwq.dataloom.model.enums.UserMessageTypeEnum;
 import com.hwq.dataloom.framework.model.enums.WebSocketMsgTypeEnum;
+import com.hwq.dataloom.mq.constant.BiMqConstant;
 import com.hwq.dataloom.service.ChartService;
 import com.hwq.dataloom.service.FailedChartService;
 import com.hwq.dataloom.service.UserMessageService;

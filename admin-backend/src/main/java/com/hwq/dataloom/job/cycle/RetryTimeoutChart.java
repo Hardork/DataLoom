@@ -1,7 +1,7 @@
 package com.hwq.dataloom.job.cycle;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.hwq.dataloom.bizmq.BiMessageProducer;
+import com.hwq.dataloom.mq.producer.BiMessageProducer;
 import com.hwq.dataloom.model.entity.FailedChart;
 
 import java.util.List;

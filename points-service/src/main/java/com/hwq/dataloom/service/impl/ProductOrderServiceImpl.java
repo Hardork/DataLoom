@@ -23,7 +23,7 @@ import com.hwq.dataloom.model.enums.ProductInfoStatusEnum;
 import com.hwq.dataloom.model.enums.UserRoleEnum;
 import com.hwq.dataloom.model.vo.ProductInfo;
 import com.hwq.dataloom.mapper.ProductOrderMapper;
-import com.hwq.dataloom.mq.OrderMessageProducer;
+import com.hwq.dataloom.mq.producer.OrderMessageProducer;
 import com.hwq.dataloom.service.ProductOrderService;
 import com.hwq.dataloom.service.ProductPointService;
 import com.hwq.dataloom.service.ProductVipService;

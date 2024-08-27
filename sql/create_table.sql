@@ -614,3 +614,22 @@ create table datasource_dir_tree
 ) comment '数据源目录树';
 -- 插入根节点
 insert into datasource_dir_tree(id, name, type, pid, wight, userId) values (0, '数据源', 'dir', 0, 1, 1697633200786403330);
+
+
+-- 优惠券模版
+drop table if exists coupon_template;
+create table coupon_template(
+    `id`			bigint(20)		PRIMARY KEY AUTO_INCREMENT COMMENT 'ID',
+    `name`		    varchar(256)	DEFAULT NULL COMMENT '优惠券名称',
+    `description`	text			DEFAULT NULL COMMENT '描述',
+    `type`			tinyint(1)		DEFAULT NULL COMMENT '类型',
+    `validStartTime` datetime		DEFAULT NULL COMMENT '有效期开始时间',
+    `validEndTime`   datetime		DEFAULT NULL COMMENT '有效期截止时间',
+    `stock`			int(11)			DEFAULT NULL COMMENT '优惠券发行量',
+    `claimRules`	json			DEFAULT NULL COMMENT	'领取规则',
+    `usageRules`	json			DEFAULT NULL COMMENT	'使用规则',
+    `status`	    tinyint(1)		DEFAULT 0 COMMENT	'0-使用中 1-正常下线',
+    createTime      datetime           null default CURRENT_TIMESTAMP comment '创建时间',
+    updateTime      datetime           null default CURRENT_TIMESTAMP comment '更新时间',
+    isDelete        tinyint            default 0  null comment '逻辑删除'
+)

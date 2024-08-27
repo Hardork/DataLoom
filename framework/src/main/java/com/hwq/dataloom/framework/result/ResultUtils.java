@@ -12,6 +12,16 @@ public class ResultUtils {
 
     /**
      * 成功
+     * @return
+     * @param <T> 无返回值
+     */
+    public static <T> BaseResponse<T> success() {
+        return new BaseResponse<>(0, null, "ok");
+    }
+
+
+    /**
+     * 成功
      *
      * @param data
      * @param <T>

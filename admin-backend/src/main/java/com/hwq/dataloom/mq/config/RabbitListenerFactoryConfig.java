@@ -1,4 +1,4 @@
-package com.hwq.dataloom.bizmq.config;
+package com.hwq.dataloom.mq.config;
 
 import lombok.Data;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;

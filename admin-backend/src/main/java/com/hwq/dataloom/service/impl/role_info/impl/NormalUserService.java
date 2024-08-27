@@ -1,7 +1,7 @@
 package com.hwq.dataloom.service.impl.role_info.impl;
 
-import com.hwq.dataloom.bizmq.BiMessageProducer;
-import com.hwq.dataloom.bizmq.BiMqConstant;
+import com.hwq.dataloom.mq.producer.BiMessageProducer;
+import com.hwq.dataloom.mq.constant.BiMqConstant;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.model.enums.UserRoleEnum;
