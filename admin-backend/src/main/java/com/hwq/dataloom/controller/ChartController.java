@@ -10,7 +10,7 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hwq.dataloom.annotation.*;
-import com.hwq.dataloom.bizmq.BiMessageProducer;
+import com.hwq.dataloom.mq.producer.BiMessageProducer;
 
 import com.hwq.dataloom.constant.ChartConstant;
 import com.hwq.dataloom.framework.constants.UserConstant;

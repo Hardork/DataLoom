@@ -1,4 +1,4 @@
-package com.hwq.dataloom.bizmq;
+package com.hwq.dataloom.mq.constant;
 
 public interface BiMqConstant {
 

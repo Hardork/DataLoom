@@ -1,4 +1,4 @@
-package com.hwq.dataloom.mq;
+package com.hwq.dataloom.mq.producer;
 
 import com.hwq.dataloom.constants.MqConstant;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;

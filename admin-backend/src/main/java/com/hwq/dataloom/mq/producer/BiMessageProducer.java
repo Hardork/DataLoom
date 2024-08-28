@@ -1,5 +1,6 @@
-package com.hwq.dataloom.bizmq;
+package com.hwq.dataloom.mq.producer;
 
+import com.hwq.dataloom.mq.constant.BiMqConstant;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 

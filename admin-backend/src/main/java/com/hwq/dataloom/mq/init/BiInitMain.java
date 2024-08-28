@@ -1,5 +1,6 @@
-package com.hwq.dataloom.bizmq;
+package com.hwq.dataloom.mq.init;
 
+import com.hwq.dataloom.mq.constant.BiMqConstant;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;

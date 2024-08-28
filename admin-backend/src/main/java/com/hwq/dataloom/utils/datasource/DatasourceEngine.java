@@ -101,7 +101,7 @@ public class DatasourceEngine {
      * 执行create建表语句
      * @param datasourceId 数据源id
      * @param tableName 表名
-     * @param tableFields 字段信息
+     * @param tableFields 字段列表
      */
     @SneakyThrows
     public void exeCreateTable(Long datasourceId, String tableName, List<CoreDatasetTableField> tableFields) {
@@ -117,12 +117,17 @@ public class DatasourceEngine {
         }
     }
 
+    /**
+     * 执行drop table语句
+     * @param datasourceId
+     * @param tableName
+     */
     @SneakyThrows
     public void exeDropTable(Long datasourceId, String tableName) {
         int dsIndex = (int) (datasourceId % (dataSourceMap.size()));
         // 获取对应连接池
         DataSource dataSource = dataSourceMap.get(dsIndex);
-        String dropTableSql = dropTable(tableName);
+        String dropTableSql = dropTableSql(tableName);
         try (Connection connection = dataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(dropTableSql)) {
             // Execute the query or update
@@ -131,17 +136,15 @@ public class DatasourceEngine {
     }
 
 
-
-
     private static final String creatTableSql =
             "CREATE TABLE IF NOT EXISTS `TABLE_NAME`" +
                     "Column_Fields;";
 
-    public String dropTable(String name) {
+    private String dropTableSql(String name) {
         return "DROP TABLE IF EXISTS `" + name + "`";
     }
 
-    public String dropView(String name) {
+    private String dropView(String name) {
         return "DROP VIEW IF EXISTS `" + name + "`";
     }
 
@@ -149,7 +152,7 @@ public class DatasourceEngine {
     /**
      * 创建insert语句
      * @param name 表名
-     * @param dataList 所有行数据
+     * @param dataList 所有行记录
      * @param page 当前插入页
      * @param pageNumber 一页插入数量
      * @return insert语句S
@@ -177,12 +180,12 @@ public class DatasourceEngine {
 
 
     /**
-     *
+     *  创建建表语句
      * @param tableName
      * @param tableFields
      * @return
      */
-    public String createTableSql(String tableName, List<CoreDatasetTableField> tableFields) {
+    private String createTableSql(String tableName, List<CoreDatasetTableField> tableFields) {
         String dorisTableColumnSql = createTableFieldSql(tableFields);
         return creatTableSql.replace("TABLE_NAME", tableName).replace("Column_Fields", dorisTableColumnSql);
     }

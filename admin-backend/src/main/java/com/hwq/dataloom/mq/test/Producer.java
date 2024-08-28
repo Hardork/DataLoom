@@ -1,4 +1,4 @@
-package com.hwq.dataloom.bizmq.test;
+package com.hwq.dataloom.mq.test;
 
 
 import com.rabbitmq.client.Channel;

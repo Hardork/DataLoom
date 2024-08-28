@@ -37,10 +37,16 @@ public class RewardRecordServiceImpl extends ServiceImpl<RewardRecordMapper, Rew
     @Resource
     private RoleStrategyFactory roleStrategyFactory;
 
+    /**
+     * 每日免费领取积分
+     * @param loginUser
+     * @return
+     */
     @Override
     @Transactional
     public boolean addReward(User loginUser) {
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
+        // 使用互斥锁，防止用户超领
         synchronized (loginUser.getUserAccount().intern()) {
             // 查询当前用户今日是否已经获取
             Long userId = loginUser.getId();

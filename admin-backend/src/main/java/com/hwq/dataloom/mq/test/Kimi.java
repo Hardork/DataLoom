@@ -1,4 +1,4 @@
-package com.hwq.dataloom.bizmq.test;
+package com.hwq.dataloom.mq.test;
 
 import com.hwq.dataloom.model.entity.Chart;
 import org.apache.commons.lang3.StringUtils;

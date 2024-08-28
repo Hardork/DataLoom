@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hwq.dataloom.mapper.CouponTemplateMapper">
+
+    <resultMap id="BaseResultMap" type="com.hwq.dataloom.model.entity.CouponTemplate">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="description" column="description" jdbcType="VARCHAR"/>
+            <result property="type" column="type" jdbcType="TINYINT"/>
+            <result property="status" column="status" jdbcType="TINYINT"/>
+            <result property="validEndTime" column="validEndTime" jdbcType="TIMESTAMP"/>
+            <result property="validStartTime" column="validStartTime" jdbcType="TIMESTAMP"/>
+            <result property="stock" column="stock" jdbcType="INTEGER"/>
+            <result property="claimRules" column="claimRules" jdbcType="OTHER"/>
+            <result property="usageRules" column="usageRules" jdbcType="OTHER"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+            <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,name,description,
+        type,valid_start_time,valid_end_time,
+        stock,claimRules,usageRules,status,
+        createTime,updateTime,isDelete
+    </sql>
+</mapper>
