@@ -25,6 +25,7 @@ import com.hwq.dataloom.service.basic.DatasourceExecuteStrategy;
 import com.hwq.dataloom.utils.datasource.ExcelUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tomcat.jni.Error;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
  * @date 2024/8/25 00:42
  * @description
  */
+@Service
 public class ExcelDatasourceServiceImpl implements DatasourceExecuteStrategy<DatasourceDTO> {
 
     @Resource
@@ -81,6 +83,7 @@ public class ExcelDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
         CoreDatasource coreDatasource = new CoreDatasource();
         coreDatasource.setName(datasourceDTO.getName());
         coreDatasource.setDescription(datasourceDTO.getDescription());
+        coreDatasource.setConfiguration(datasourceDTO.getConfiguration());
         coreDatasource.setType(datasourceDTO.getType());
         coreDatasource.setUserId(loginUser.getId());
         ThrowUtils.throwIf(!coreDatasourceService.save(coreDatasource), ErrorCode.SYSTEM_ERROR);
@@ -93,9 +96,6 @@ public class ExcelDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
             InputStream inputStream = multipartFile.getInputStream();
             // 4.1 保存数据源数据并返回解析信息
             List<ExcelSheetData> excelSheetData = excelUtils.parseAndSaveFile(coreDatasourceId, multipartFile.getOriginalFilename(), inputStream);
-            String configuration = JSONUtil.toJsonStr(excelSheetData);
-            coreDatasource.setConfiguration(configuration);
-            coreDatasourceService.updateById(coreDatasource);
             for (ExcelSheetData excelSheet : excelSheetData) {
                 // 4.2 创建表信息
                 CoreDatasetTable coreDatasetTable = new CoreDatasetTable();

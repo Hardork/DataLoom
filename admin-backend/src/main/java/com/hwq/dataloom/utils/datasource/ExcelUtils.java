@@ -3,6 +3,10 @@ package com.hwq.dataloom.utils.datasource;
 import cn.hutool.core.collection.CollUtil;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelReader;
+import com.alibaba.excel.context.AnalysisContext;
+import com.alibaba.excel.event.AnalysisEventListener;
+import com.alibaba.excel.metadata.data.ReadCellData;
+import com.alibaba.excel.read.builder.ExcelReaderBuilder;
 import com.alibaba.excel.read.metadata.ReadSheet;
 import com.alibaba.excel.support.ExcelTypeEnum;
 import com.hwq.dataloom.config.CommonThreadPool;
@@ -19,6 +23,7 @@ import com.hwq.dataloom.model.enums.TableFieldTypeEnum;
 import com.hwq.dataloom.model.json.ExcelSheetData;
 import com.hwq.dataloom.model.vo.data.PreviewExcelDataVO;
 import com.hwq.dataloom.mongo.entity.ChartData;
+import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -467,8 +472,7 @@ public class ExcelUtils {
      * @param dataList 行数据列表
      * @param name 表名
      */
-    private void insertExcelData(Long datasourceId, List<String[]> dataList, String name) {
-        String tableName = String.format(DatasourceConstant.TABLE_NAME_TEMPLATE, DataSourceTypeEnum.EXCEL.getValue(), datasourceId, name);
+    private void insertExcelData(Long datasourceId, List<String[]> dataList, String tableName) {
         int pageNumber = 1000; //一次插入 1000条
         int totalPage;
         if (dataList.size() % pageNumber > 0) {
@@ -478,6 +482,58 @@ public class ExcelUtils {
         }
         for (int page = 1; page <= totalPage; page++) {
             datasourceEngine.execInsert(datasourceId, tableName, dataList, page, pageNumber);
+        }
+    }
+
+
+    @Data
+    public class NoModelDataListener extends AnalysisEventListener<Map<Integer, String>> {
+        private List<String[]> data = new ArrayList<>();
+        private List<String> header = new ArrayList<>();
+        private List<Integer> headerKey = new ArrayList<>();
+
+        @Override
+        public void invokeHead(Map<Integer, ReadCellData<?>> headMap, AnalysisContext context) {
+            super.invokeHead(headMap, context);
+            for (Integer key : headMap.keySet()) {
+                ReadCellData<?> cellData = headMap.get(key);
+                String value = cellData.getStringValue();
+                if (StringUtils.isEmpty(value)) {
+                    continue;
+                }
+                headerKey.add(key);
+                header.add(value);
+            }
+        }
+
+        @Override
+        public void invoke(Map<Integer, String> dataMap, AnalysisContext context) {
+            List<String> line = new ArrayList<>();
+            for (Integer key : dataMap.keySet()) {
+                String value = dataMap.get(key);
+                if (StringUtils.isEmpty(value)) {
+                    value = null;
+                }
+                if (headerKey.contains(key)) {
+                    line.add(value);
+                }
+            }
+            int size = line.size();
+            if (size < header.size()) {
+                for (int i = 0; i < header.size() - size; i++) {
+                    line.add(null);
+                }
+            }
+            data.add(line.toArray(new String[line.size()]));
+        }
+
+        @Override
+        public void doAfterAllAnalysed(AnalysisContext analysisContext) {
+        }
+
+        public void clear() {
+            data.clear();
+            header.clear();
         }
     }
 
@@ -499,7 +555,7 @@ public class ExcelUtils {
                     .map(field -> {
                         CoreDatasetTableField datasetTableField = new CoreDatasetTableField();
                         datasetTableField.setName(field.getName());
-                        datasetTableField.setName(field.getOriginName());
+                        datasetTableField.setOriginName(field.getOriginName());
                         datasetTableField.setType(field.getFieldType());
                         return datasetTableField;
                     })
@@ -516,7 +572,6 @@ public class ExcelUtils {
             });
             // 设置配置，无需数据部分
             excelSheet.setJsonArray(null);
-            excelSheet.setData(null);
         }
 
         return excelSheetData;
@@ -566,29 +621,23 @@ public class ExcelUtils {
      */
     private void handleExcel(String fileName, InputStream inputStream, boolean isPreview, List<ExcelSheetData> excelSheetDataList) {
         // 用于存储所有 Sheet 的数据
-        List<List<Map<Integer, String>>> allSheetData = new ArrayList<>();
+//        List<List<Map<Integer, String>>> allSheetData = new ArrayList<>();
+        // 使用 EasyExcel 读取文件
+        NoModelDataListener noModelDataListener = new NoModelDataListener();
+        ExcelReaderBuilder read = EasyExcel.read(inputStream, noModelDataListener);
+        ExcelReader excelReader = read.build();
         try {
-            // 使用 EasyExcel 读取文件
-            ExcelReader excelReader = EasyExcel.read(inputStream).build();
             // 获取所有 sheet
             List<ReadSheet> sheets = excelReader.excelExecutor().sheetList();
             // 遍历每个 sheet
             for (ReadSheet sheet : sheets) {
+                noModelDataListener.clear();
+                excelReader.read(sheet);
                 ExcelSheetData excelSheetData = new ExcelSheetData();
                 excelSheetData.setFileName(fileName);
                 excelSheetData.setSheetName(sheet.getSheetName());
-                excelSheetDataList.add(excelSheetData);
-                List<Map<Integer, String>> list = EasyExcel.read(inputStream)
-                        .excelType(ExcelTypeEnum.XLSX)
-                        .sheet(sheet.getSheetNo())
-                        .headRowNumber(0)
-                        .doReadSync();
-                if (CollUtil.isNotEmpty(list)) {
-                    allSheetData.add(list);
-                }
-                LinkedHashMap<Integer, String> headerMap = (LinkedHashMap) list.get(0);
                 // 取出表头
-                List<String> headerList = new ArrayList<>(headerMap.values());
+                List<String> headerList = new ArrayList<>(noModelDataListener.getHeader());
 
                 // 用于存储所有 Sheet 的字段信息和预览数据
                 List<TableFieldInfo> fields = new ArrayList<>();
@@ -607,30 +656,30 @@ public class ExcelUtils {
                 // 设置字段信息
                 excelSheetData.setFieldInfos(fields);
                 // 数据部分
-                List<String[]> data = new ArrayList<>();
+                List<String[]> data = new ArrayList<>(noModelDataListener.getData());
                 // 进行预览
                 try {
-                    // 只校验数据
-                    for (int i = 1; i < list.size(); i++) {
-                        String[] rowData = new String[headerList.size()];
-                        // 当前行数据
-                        LinkedHashMap<Integer, String> dataMap = (LinkedHashMap) list.get(i);
-                        // dataList存储当前行所有列的数据
-                        List<String> dataList = new ArrayList<>(dataMap.values());
-                        // 校验数据类型
-                        // 遍历每一个单元格
-                        for (int j = 0; j < dataList.size() && j < headerList.size(); j++) {
-                            cellType(dataList.get(j), fields.get(j));
-                            rowData[j] = dataList.get(j);
+                    // 遍历每一行
+                    for (int i = 0; i < data.size(); i++) {
+                        // 遍历每一列
+                        for (int j = 0; j < data.get(i).length; j++) {
+                            // 分析字段
+                            if (j < fields.size()) {
+                                cellType(data.get(i)[j], fields.get(j));
+                            }
                         }
-                        data.add(rowData);
                     }
+                    // 取出数据部分
                     if (isPreview) {
-                        // 取出前100行作为预览数据
-                        data = data.subList(0, 100);
+                        // 只展示100行
+                        if (data.size() > 100) {
+                            data = data.subList(0, 100);
+                        }
                     }
                     // 设置数据
                     excelSheetData.setData(data);
+                    // 设置数据
+                    excelSheetDataList.add(excelSheetData);
                 } catch (Exception e) {
                     log.error(e.getMessage());
                     throw new BusinessException(ErrorCode.PARAMS_ERROR, "请根据文件规范，检查上传文件是否正常");
@@ -638,11 +687,10 @@ public class ExcelUtils {
             }
         } catch (Exception e) {
             log.error("表格处理错误", e);
+        } finally {
+            excelReader.finish();
         }
 
-        if (CollUtil.isEmpty(allSheetData)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "表格数据为空");
-        }
     }
 
     /**
