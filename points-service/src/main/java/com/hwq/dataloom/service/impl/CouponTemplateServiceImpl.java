@@ -2,6 +2,8 @@ package com.hwq.dataloom.service.impl;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.hwq.dataloom.framework.errorcode.ErrorCode;
+import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.model.dto.coupon.CouponTemplateNumberReqDTO;
 import com.hwq.dataloom.model.dto.coupon.CouponTemplatePageQueryReqDTO;
 import com.hwq.dataloom.model.dto.coupon.CouponTemplateSaveReqDTO;
@@ -12,6 +14,7 @@ import com.hwq.dataloom.service.CouponTemplateService;
 import com.hwq.dataloom.mapper.CouponTemplateMapper;
 import com.hwq.dataloom.service.basic.chain.CouponAbstractChainHandler;
 import com.hwq.dataloom.service.basic.chain.CouponChainContext;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -32,11 +35,19 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
     @Resource
     private CouponChainContext couponChainContext;
 
+
     @Override
     public void createCouponTemplate(CouponTemplateSaveReqDTO requestParam) {
         // TODO：使用责任链串联校验
         couponChainContext.handle(CREATE_COUPON_TEMPLATE_MASK, requestParam);
-        HashMap<Object, Object> objectObjectHashMap = new HashMap<>();
+
+        // 新增优惠券模版信息到数据库
+        CouponTemplate couponTemplate = new CouponTemplate();
+        BeanUtils.copyProperties(requestParam, couponTemplate);
+        ThrowUtils.throwIf(!this.save(couponTemplate), ErrorCode.SYSTEM_ERROR);
+
+        // 缓存预热：通过将数据库的记录序列化成JSON字符串放入Redis缓存
+
     }
 
     @Override
