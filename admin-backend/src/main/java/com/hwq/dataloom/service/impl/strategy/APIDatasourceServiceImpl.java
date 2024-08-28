@@ -58,6 +58,9 @@ public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<Datas
     @Resource
     private CoreDatasetTableFieldService coreDatasetTableFieldService;
 
+    @Resource
+    private DatasourceEngine datasourceEngine;
+
     @Override
     public String mark() {
         return DataSourceTypeEnum.API.getValue();
@@ -133,10 +136,9 @@ public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<Datas
             boolean savedBatch = coreDatasetTableFieldService.saveBatch(coreDatasetTableFieldList);
             ThrowUtils.throwIf(!savedBatch,ErrorCode.OPERATION_ERROR,"新增字段失败！");
 
-            // TODO 将请求获得的数据添加到数据仓库
-            DatasourceEngine datasourceEngine = new DatasourceEngine();
+            // 将请求获得的数据添加到数据仓库
             datasourceEngine.exeCreateTable(id, String.format(DatasourceConstant.TABLE_NAME_TEMPLATE, DataSourceTypeEnum.API.getValue(), id, apiDefinition.getName()), coreDatasetTableFieldList);
-            List<String[]> dataList = ApiUtils.toDataList(apiDefinition.getJsonFields().toString());
+            List<String[]> dataList = ApiUtils.toDataList(JSONUtil.toJsonStr(apiDefinition));
             int pageNumber = 1000; //一次插入 1000条
             int totalPage;
             if (dataList.size() % pageNumber > 0) {

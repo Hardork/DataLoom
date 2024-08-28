@@ -339,6 +339,7 @@ public class ApiUtils {
     }
 
     public static List<String[]> toDataList(String jsonString) {
+        // TODO 用嵌套递归对代码进行优化
         // 使用Hutool的JSON工具类解析字符串为JSONObject
         JSONObject jsonObject = JSONUtil.parseObj(jsonString);
         JSONArray jsonFields = jsonObject.getJSONArray("jsonFields");
@@ -346,51 +347,48 @@ public class ApiUtils {
         // 存储提取的数据
         List<String[]> extractedData = new ArrayList<>();
 
-        // 提取顶层的value
-        List<String[]> topValues = new ArrayList<>();
+        // 用于存储字段的值
+        List<List<String>> valuesLists = new ArrayList<>();
+
+        // 提取字段的值
         for (Object obj : jsonFields) {
             JSONObject field = (JSONObject) obj;
             if (field.containsKey("value")) {
                 JSONArray values = field.getJSONArray("value");
-                topValues.add(values.toArray(new String[0]));
+                List<String> valueList = values.toList(String.class);
+                valuesLists.add(valueList);
             }
         }
 
-        // 提取子元素的value
+        // 提取子元素的值
         for (Object obj : jsonFields) {
             JSONObject field = (JSONObject) obj;
             if (field.containsKey("children")) {
                 JSONArray children = field.getJSONArray("children");
-                List<String[]> childrenValues = new ArrayList<>();
                 for (Object childObj : children) {
                     JSONObject child = (JSONObject) childObj;
                     JSONArray values = child.getJSONArray("value");
-                    childrenValues.add(values.toArray(new String[0]));
-                }
-
-                // 组合子元素的value
-                for (int k = 0; k < childrenValues.get(0).length; k++) {
-                    List<String> combinedValues = new ArrayList<>();
-                    for (String[] childValue : childrenValues) {
-                        combinedValues.add(childValue[k]);
-                    }
-                    extractedData.add(combinedValues.toArray(new String[0]));
+                    List<String> valueList = values.toList(String.class);
+                    valuesLists.add(valueList);
                 }
             }
         }
 
-        // 将顶层和子元素的value合并
-        List<String[]> finalResult = new ArrayList<>();
-        for (String[] topValue : topValues) {
-            for (String[] combinedValue : extractedData) {
-                String[] fullRecord = new String[topValue.length + combinedValue.length];
-                System.arraycopy(topValue, 0, fullRecord, 0, topValue.length);
-                System.arraycopy(combinedValue, 0, fullRecord, topValue.length, combinedValue.length);
-                finalResult.add(fullRecord);
+        // 处理字段的组合
+        int numRows = valuesLists.stream().mapToInt(List::size).max().orElse(0);
+        for (int i = 0; i < numRows; i++) {
+            List<String> row = new ArrayList<>();
+            for (List<String> values : valuesLists) {
+                if (i < values.size()) {
+                    row.add(values.get(i));
+                } else {
+                    row.add(""); // 或者添加一个占位符
+                }
             }
+            extractedData.add(row.toArray(new String[0]));
         }
 
-        return finalResult;
+        return extractedData;
     }
 
 

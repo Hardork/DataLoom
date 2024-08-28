@@ -127,6 +127,7 @@ public class DatasourceDirTreeServiceImpl extends ServiceImpl<DatasourceDirTreeM
         DatasourceDirTree datasourceDirTree = this.getById(id);
         ThrowUtils.throwIf(datasourceDirTree == null, ErrorCode.NOT_FOUND_ERROR, "文件不存在");
         ThrowUtils.throwIf(!datasourceDirTree.getUserId().equals(loginUser.getId()), ErrorCode.NO_AUTH_ERROR);
+        // TODO 删除相关联的数据表 数据字段 定时任务
         // 2.如果是文件，要删除数据源中对应的信息
         if (DirTypeEnum.FILE.getText().equals(datasourceDirTree.getType())) {
             // 删除文件
