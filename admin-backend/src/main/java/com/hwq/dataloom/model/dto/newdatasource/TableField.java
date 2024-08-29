@@ -26,6 +26,8 @@ public class TableField {
 
     private String groupType;
 
+    private Integer isUnique;
+
     /**
      * 是否被选中
      */

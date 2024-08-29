@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.spring.util.BeanUtils;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.hwq.dataloom.constant.DatasourceConstant;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
@@ -30,6 +31,7 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.io.IOException;
@@ -56,6 +58,9 @@ public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<Datas
     @Resource
     private CoreDatasetTableFieldService coreDatasetTableFieldService;
 
+    @Resource
+    private DatasourceEngine datasourceEngine;
+
     @Override
     public String mark() {
         return DataSourceTypeEnum.API.getValue();
@@ -67,6 +72,7 @@ public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<Datas
     }
 
     @Override
+    @Transactional
     public Long addCoreData(DatasourceDTO datasourceDTO, User loginUser) {
         // 新增数据源
         CoreDatasource coreDatasource = new CoreDatasource();
@@ -88,7 +94,7 @@ public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<Datas
         for (ApiDefinition apiDefinition : apiDefinitions) {
             CoreDatasetTable coreDatasetTable = new CoreDatasetTable();
             coreDatasetTable.setName(apiDefinition.getName());
-            coreDatasetTable.setTableName(apiDefinition.getDeTableName());
+            coreDatasetTable.setTableName(String.format(DatasourceConstant.TABLE_NAME_TEMPLATE, DataSourceTypeEnum.API.getValue(), id, apiDefinition.getName()));
             coreDatasetTable.setDatasourceId(id);
             coreDatasetTable.setType(apiDefinition.getType());
             coreDatasetTable.setInfo(apiDefinition.getDesc());
@@ -110,13 +116,11 @@ public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<Datas
                 ThrowUtils.throwIf(datasourceTaskId < 0, ErrorCode.OPERATION_ERROR, "新增定时任务失败！");
             }
 
-            // TODO 将请求获得的数据添加到数据仓库
-            DatasourceEngine datasourceEngine = new DatasourceEngine();
             Long lastExecTime = coreDatasourceTaskService.getById(datasourceTaskId).getLastExecTime();
 
             List<TableField> fields = apiDefinition.getFields();
             int columnIndex = 0;
-            ArrayList<CoreDatasetTableField> coreDatasetTableFieldList = new ArrayList<>();
+            List<CoreDatasetTableField> coreDatasetTableFieldList = new ArrayList<>();
             for (TableField field : fields) {
                 columnIndex++;
                 CoreDatasetTableField coreDatasetTableField = new CoreDatasetTableField();
@@ -131,6 +135,20 @@ public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<Datas
             }
             boolean savedBatch = coreDatasetTableFieldService.saveBatch(coreDatasetTableFieldList);
             ThrowUtils.throwIf(!savedBatch,ErrorCode.OPERATION_ERROR,"新增字段失败！");
+
+            // 将请求获得的数据添加到数据仓库
+            datasourceEngine.exeCreateTable(id, String.format(DatasourceConstant.TABLE_NAME_TEMPLATE, DataSourceTypeEnum.API.getValue(), id, apiDefinition.getName()), coreDatasetTableFieldList);
+            List<String[]> dataList = ApiUtils.toDataList(JSONUtil.toJsonStr(apiDefinition));
+            int pageNumber = 1000; //一次插入 1000条
+            int totalPage;
+            if (dataList.size() % pageNumber > 0) {
+                totalPage = dataList.size() / pageNumber + 1;
+            } else {
+                totalPage = dataList.size() / pageNumber;
+            }
+            for (int page = 1; page <= totalPage; page++) {
+                datasourceEngine.execInsert(id, String.format(DatasourceConstant.TABLE_NAME_TEMPLATE, DataSourceTypeEnum.API.getValue(), id, apiDefinition.getName()), dataList, page, pageNumber);
+            }
         }
         return id;
     }

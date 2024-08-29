@@ -79,6 +79,11 @@ public class CoreDatasetTableField implements Serializable {
      */
     private Long lastSyncTime;
 
+    /**
+     * 是否为唯一标识
+     */
+    private Integer isUnique;
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 }

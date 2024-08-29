@@ -1,6 +1,7 @@
 package com.hwq.dataloom.utils.datasource;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
+import com.hwq.dataloom.model.dto.newdatasource.TableField;
 import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.enums.TableFieldTypeEnum;
 import lombok.SneakyThrows;
@@ -98,6 +99,31 @@ public class DatasourceEngine {
     }
 
     /**
+     * 执行增量更新insert语句
+     * @param datasourceId
+     * @param name
+     * @param dataList
+     * @param page
+     * @param pageNumber
+     * @param columns
+     * @param tableField
+     * @return
+     */
+    @SneakyThrows
+    public int execInsertAndUpdate(Long datasourceId, String name, List<String[]> dataList, int page, int pageNumber,String[] columns ,TableField tableField) {
+        int dsIndex = (int) (datasourceId % (dataSourceMap.size()));
+        // 获取对应连接池
+        DataSource dataSource = dataSourceMap.get(dsIndex);
+        String primaryKey = tableField.getOriginName();
+        String insertSql = insertDuplicateSql(name, dataList, page, pageNumber, columns , primaryKey);
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(insertSql)) {
+            // Execute the query or update
+            return preparedStatement.executeUpdate();
+        }
+    }
+
+    /**
      * 执行create建表语句
      * @param datasourceId 数据源id
      * @param tableName 表名
@@ -178,6 +204,53 @@ public class DatasourceEngine {
         return (insertSql + values.substring(0, values.length() - 1)).replaceAll("'null'", "null");
     }
 
+    /**
+     * 创建增量insert语句
+     * @param name
+     * @param dataList
+     * @param page
+     * @param pageNumber
+     * @param columns
+     * @param primaryKey
+     * @return
+     */
+    public String insertDuplicateSql(String name, List<String[]> dataList, int page, int pageNumber, String[] columns, String primaryKey) {
+        // 构建INSERT语句开头部分，包含列名
+        String insertSql = "INSERT INTO `" + name + "` (" + String.join(",", columns) + ") VALUES ";
+        StringBuilder values = new StringBuilder();
+
+        int realSize = Math.min(page * pageNumber, dataList.size());
+        // 按页插入数据，避免传输语句大小超过MySQL最大接收上限
+        for (String[] strings : dataList.subList((page - 1) * pageNumber, realSize)) {
+            String[] escapedValues = new String[strings.length];
+            for (int i = 0; i < strings.length; i++) {
+                if (StringUtils.isEmpty(strings[i])) {
+                    escapedValues[i] = "null";
+                } else {
+                    escapedValues[i] = strings[i].replace("\\", "\\\\").replace("'", "\\'");
+                }
+            }
+            values.append("('").append(String.join("','", escapedValues)).append("'),");
+        }
+
+        // 去掉最后一个逗号
+        String finalValues = values.substring(0, values.length() - 1);
+
+        // 构建ON DUPLICATE KEY UPDATE部分
+        StringBuilder onDuplicateKeyUpdate = new StringBuilder(" ON DUPLICATE KEY UPDATE ");
+        for (String column : columns) {
+            if (!column.equals(primaryKey)) { // 排除主键
+                onDuplicateKeyUpdate.append(column).append("=VALUES(").append(column).append("), ");
+            }
+        }
+        // 去掉最后一个逗号和空格
+        onDuplicateKeyUpdate.setLength(onDuplicateKeyUpdate.length() - 2);
+
+        // 返回完整的SQL语句
+        return insertSql + finalValues + onDuplicateKeyUpdate.toString();
+    }
+
+
 
     /**
      *  创建建表语句
@@ -200,28 +273,47 @@ public class DatasourceEngine {
      * return `age` bigint,`name` longtext
      */
     private String createTableFieldSql(List<CoreDatasetTableField> tableFields) {
-        StringBuilder Column_Fields = new StringBuilder("`");
+        StringBuilder columnFields = new StringBuilder();
+        StringBuilder primaryKeyFields = new StringBuilder();
         for (CoreDatasetTableField tableField : tableFields) {
-            Column_Fields.append(tableField.getOriginName()).append("` ");
+            // 获取字段原始名称并开始拼接字段定义
+            columnFields.append("`").append(tableField.getOriginName()).append("` ");
+            // 根据字段类型枚举，拼接相应的SQL类型
             TableFieldTypeEnum tableFieldTypeEnum = TableFieldTypeEnum.getEnumByValue(tableField.getType());
-            if (tableFieldTypeEnum == TableFieldTypeEnum.TEXT) {
-                Column_Fields.append("longtext").append(",`");
-                continue;
+            switch (tableFieldTypeEnum) {
+                case TEXT:
+                    columnFields.append("longtext");
+                    break;
+                case DATETIME:
+                    columnFields.append("datetime");
+                    break;
+                case BIGINT:
+                    columnFields.append("bigint(20)");
+                    break;
+                default:
+                    columnFields.append("longtext"); // 默认类型
+                    break;
             }
-            if (tableFieldTypeEnum == TableFieldTypeEnum.DATETIME) {
-                Column_Fields.append("datetime").append(",`");
-                continue;
+            // 检查是否为主键
+            if (tableField.getIsUnique() == 1) {
+                if (primaryKeyFields.length() > 0) {
+                    primaryKeyFields.append(", ");
+                }
+                primaryKeyFields.append("`").append(tableField.getOriginName()).append("`");
             }
-            if (tableFieldTypeEnum == TableFieldTypeEnum.BIGINT) {
-                Column_Fields.append("bigint(20)").append(",`");
-                continue;
-            }
-            Column_Fields.append("longtext").append(",`");
+            columnFields.append(", "); // 添加逗号和空格
         }
-
-        Column_Fields = new StringBuilder(Column_Fields.substring(0, Column_Fields.length() - 2));
-        Column_Fields = new StringBuilder("(" + Column_Fields + ")\n");
-        return Column_Fields.toString();
+        // 去掉最后多余的逗号和空格
+        if (columnFields.length() > 2) {
+            columnFields.setLength(columnFields.length() - 2);
+        }
+        // 如果存在主键字段，添加PRIMARY KEY约束
+        if (primaryKeyFields.length() > 0) {
+            columnFields.append(", PRIMARY KEY (").append(primaryKeyFields).append(")");
+        }
+        // 返回完整的字段定义SQL
+        return "(" + columnFields.toString() + ")";
     }
+
 
 }

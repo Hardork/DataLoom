@@ -80,6 +80,7 @@ public class CoreDatasourceTaskServiceImpl extends ServiceImpl<CoreDatasourceTas
         return id;
     }
 
+    @Override
     public int addXxlJob(DatasourceDTO datasourceDTO, ApiDefinition apiDefinition) {
         TaskDTO taskDTO = datasourceDTO.getSyncSetting();
         // 创建并执行定时任务
@@ -133,5 +134,21 @@ public class CoreDatasourceTaskServiceImpl extends ServiceImpl<CoreDatasourceTas
         return xxlJobInfo.getId();
     }
 
+
+    @Override
+    public int deleteXxlJob(Integer jobId) {
+        xxljob_login();
+        JSONObject response = null;
+        try {
+            response = XxlJobUtil.deleteJob(adminAddresses, jobId);
+        } catch (IOException | ParseException e) {
+            throw new RuntimeException(e);
+        }
+        if (response.containsKey("code") && 200 == (Integer) response.get("code")) {
+            return jobId;
+        } else {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR,"删除任务失败！");
+        }
+    }
 
 }

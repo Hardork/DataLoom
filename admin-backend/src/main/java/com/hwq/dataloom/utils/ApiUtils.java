@@ -1,6 +1,7 @@
 package com.hwq.dataloom.utils;
 
 import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -335,6 +336,59 @@ public class ApiUtils {
         }
 
 
+    }
+
+    public static List<String[]> toDataList(String jsonString) {
+        // TODO 用嵌套递归对代码进行优化
+        // 使用Hutool的JSON工具类解析字符串为JSONObject
+        JSONObject jsonObject = JSONUtil.parseObj(jsonString);
+        JSONArray jsonFields = jsonObject.getJSONArray("jsonFields");
+
+        // 存储提取的数据
+        List<String[]> extractedData = new ArrayList<>();
+
+        // 用于存储字段的值
+        List<List<String>> valuesLists = new ArrayList<>();
+
+        // 提取字段的值
+        for (Object obj : jsonFields) {
+            JSONObject field = (JSONObject) obj;
+            if (field.containsKey("value")) {
+                JSONArray values = field.getJSONArray("value");
+                List<String> valueList = values.toList(String.class);
+                valuesLists.add(valueList);
+            }
+        }
+
+        // 提取子元素的值
+        for (Object obj : jsonFields) {
+            JSONObject field = (JSONObject) obj;
+            if (field.containsKey("children")) {
+                JSONArray children = field.getJSONArray("children");
+                for (Object childObj : children) {
+                    JSONObject child = (JSONObject) childObj;
+                    JSONArray values = child.getJSONArray("value");
+                    List<String> valueList = values.toList(String.class);
+                    valuesLists.add(valueList);
+                }
+            }
+        }
+
+        // 处理字段的组合
+        int numRows = valuesLists.stream().mapToInt(List::size).max().orElse(0);
+        for (int i = 0; i < numRows; i++) {
+            List<String> row = new ArrayList<>();
+            for (List<String> values : valuesLists) {
+                if (i < values.size()) {
+                    row.add(values.get(i));
+                } else {
+                    row.add(""); // 或者添加一个占位符
+                }
+            }
+            extractedData.add(row.toArray(new String[0]));
+        }
+
+        return extractedData;
     }
 
 
