@@ -7,6 +7,7 @@ import com.hwq.dataloom.framework.result.ResultUtils;
 import com.hwq.dataloom.model.dto.coupon.CouponTemplateNumberReqDTO;
 import com.hwq.dataloom.model.dto.coupon.CouponTemplatePageQueryReqDTO;
 import com.hwq.dataloom.model.dto.coupon.CouponTemplateSaveReqDTO;
+import com.hwq.dataloom.model.entity.CouponTemplate;
 import com.hwq.dataloom.model.vo.coupon.CouponTemplatePageQueryVO;
 import com.hwq.dataloom.model.vo.coupon.CouponTemplateQueryVO;
 import com.hwq.dataloom.service.CouponTemplateService;
@@ -37,7 +38,7 @@ public class CouponController {
 
     @Operation(summary = "分页查询优惠券模板")
     @GetMapping("/page")
-    public BaseResponse<Page<CouponTemplatePageQueryVO>> pageQueryCouponTemplate(CouponTemplatePageQueryReqDTO requestParam) {
+    public BaseResponse<Page<CouponTemplate>> pageQueryCouponTemplate(CouponTemplatePageQueryReqDTO requestParam) {
         return ResultUtils.success(couponTemplateService.pageQueryCouponTemplate(requestParam));
     }
 

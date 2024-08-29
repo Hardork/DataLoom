@@ -1,7 +1,9 @@
 package com.hwq.dataloom.mapper;
 
+import com.hwq.dataloom.model.dto.coupon.CouponTemplateNumberReqDTO;
 import com.hwq.dataloom.model.entity.CouponTemplate;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Param;
 
 /**
 * @author wqh
@@ -10,6 +12,8 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 * @Entity com.hwq.dataloom.model.entity.CouponTemplate
 */
 public interface CouponTemplateMapper extends BaseMapper<CouponTemplate> {
+
+    int increaseNumberCouponTemplate(@Param("requestParam") CouponTemplateNumberReqDTO requestParam);
 
 }
 

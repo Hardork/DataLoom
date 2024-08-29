@@ -57,7 +57,7 @@ public class CouponTemplate implements Serializable {
     /**
      * 领取规则
      */
-    private Object claimRules;
+    private String claimRules;
 
     /**
      * 使用规则

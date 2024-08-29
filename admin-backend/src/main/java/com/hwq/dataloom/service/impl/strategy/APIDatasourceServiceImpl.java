@@ -112,7 +112,6 @@ public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<Datas
 
             // TODO 将请求获得的数据添加到数据仓库
             DatasourceEngine datasourceEngine = new DatasourceEngine();
-
             Long lastExecTime = coreDatasourceTaskService.getById(datasourceTaskId).getLastExecTime();
 
             List<TableField> fields = apiDefinition.getFields();

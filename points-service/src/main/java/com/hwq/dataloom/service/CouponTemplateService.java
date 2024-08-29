@@ -27,7 +27,7 @@ public interface CouponTemplateService extends IService<CouponTemplate> {
      * @param requestParam 请求类
      * @return
      */
-    Page<CouponTemplatePageQueryVO> pageQueryCouponTemplate(CouponTemplatePageQueryReqDTO requestParam);
+    Page<CouponTemplate> pageQueryCouponTemplate(CouponTemplatePageQueryReqDTO requestParam);
 
     /**
      * 根据 id 查询单条优惠券模版

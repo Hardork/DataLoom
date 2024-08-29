@@ -49,10 +49,10 @@ public class CouponTemplateSaveReqDTO {
     /**
      * 领取规则
      */
-    private Object claimRules;
+    private String claimRules;
 
     /**
      * 使用规则
      */
-    private Object usageRules;
+    private String usageRules;
 }

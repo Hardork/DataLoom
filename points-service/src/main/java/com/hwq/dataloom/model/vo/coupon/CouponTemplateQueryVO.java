@@ -1,7 +1,9 @@
 package com.hwq.dataloom.model.vo.coupon;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
@@ -11,6 +13,8 @@ import java.util.Date;
  * @description
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class CouponTemplateQueryVO {
     private Long id;
@@ -53,12 +57,12 @@ public class CouponTemplateQueryVO {
     /**
      * 领取规则
      */
-    private Object claimRules;
+    private String claimRules;
 
     /**
      * 使用规则
      */
-    private Object usageRules;
+    private String usageRules;
 
     /**
      * 创建时间

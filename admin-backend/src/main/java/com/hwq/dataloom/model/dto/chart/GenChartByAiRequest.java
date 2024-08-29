@@ -1,5 +1,6 @@
 package com.hwq.dataloom.model.dto.chart;
 
+import com.hwq.dataloom.framework.request.CouponUsageRequest;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -11,7 +12,7 @@ import java.io.Serializable;
  * 
  */
 @Data
-public class GenChartByAiRequest implements Serializable {
+public class GenChartByAiRequest extends CouponUsageRequest implements Serializable {
 
     /**
      * 名称
