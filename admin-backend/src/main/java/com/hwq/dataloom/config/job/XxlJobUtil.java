@@ -17,6 +17,7 @@ import java.io.IOException;
 public class XxlJobUtil {
     private static String cookie = "";
 
+
     /**
      * 查询现有的任务
      * @param url

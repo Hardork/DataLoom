@@ -1,6 +1,7 @@
 package com.hwq.dataloom.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
@@ -8,13 +9,14 @@ import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.dto.datasource.MoveDatasourceDirNodeRequest;
 import com.hwq.dataloom.model.dto.datasource_tree.AddDatasourceDirRequest;
 import com.hwq.dataloom.model.dto.datasource_tree.DeleteDatasourceDirNodeRequest;
+import com.hwq.dataloom.model.entity.CoreDatasetTable;
+import com.hwq.dataloom.model.entity.CoreDatasetTableField;
+import com.hwq.dataloom.model.entity.CoreDatasourceTask;
 import com.hwq.dataloom.model.entity.DatasourceDirTree;
 import com.hwq.dataloom.model.enums.DirTypeEnum;
 import com.hwq.dataloom.model.vo.datasource.ListDatasourceTreeVO;
-import com.hwq.dataloom.service.CoreDatasourceService;
-import com.hwq.dataloom.service.DatasourceDirTreeService;
+import com.hwq.dataloom.service.*;
 import com.hwq.dataloom.mapper.DatasourceDirTreeMapper;
-import com.hwq.dataloom.service.UserService;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -41,6 +43,17 @@ public class DatasourceDirTreeServiceImpl extends ServiceImpl<DatasourceDirTreeM
 
     @Resource
     private CoreDatasourceService coreDatasourceService;
+
+    @Resource
+    private CoreDatasetTableService coreDatasetTableService;
+
+    @Resource
+    private CoreDatasetTableFieldService coreDatasetTableFieldService;
+
+    @Resource
+    private CoreDatasourceTaskService coreDatasourceTaskService;
+
+
     @Override
     public Boolean addDatasourceDirNode(AddDatasourceDirRequest addDatasourceDirRequest, User loginUser) {
         String name = addDatasourceDirRequest.getName();
@@ -127,11 +140,27 @@ public class DatasourceDirTreeServiceImpl extends ServiceImpl<DatasourceDirTreeM
         DatasourceDirTree datasourceDirTree = this.getById(id);
         ThrowUtils.throwIf(datasourceDirTree == null, ErrorCode.NOT_FOUND_ERROR, "文件不存在");
         ThrowUtils.throwIf(!datasourceDirTree.getUserId().equals(loginUser.getId()), ErrorCode.NO_AUTH_ERROR);
-        // TODO 删除相关联的数据表 数据字段 定时任务
+        // 删除相关联的数据表 数据字段 定时任务
         // 2.如果是文件，要删除数据源中对应的信息
         if (DirTypeEnum.FILE.getText().equals(datasourceDirTree.getType())) {
             // 删除文件
             ThrowUtils.throwIf(!coreDatasourceService.removeById(datasourceDirTree.getDatasourceId()), ErrorCode.SYSTEM_ERROR);
+            // 删除数据表
+            QueryWrapper<CoreDatasetTable> tableQueryWrapper = new QueryWrapper<>();
+            tableQueryWrapper.eq("datasourceId", datasourceDirTree.getDatasourceId());
+            ThrowUtils.throwIf(!coreDatasetTableService.remove(tableQueryWrapper), ErrorCode.SYSTEM_ERROR, "删除数据表失败");
+            // 删除数据字段
+            QueryWrapper<CoreDatasetTableField> tableFieldQueryWrapper = new QueryWrapper<>();
+            tableFieldQueryWrapper.eq("datasourceId", datasourceDirTree.getDatasourceId());
+            ThrowUtils.throwIf(!coreDatasetTableFieldService.remove(tableFieldQueryWrapper), ErrorCode.SYSTEM_ERROR, "删除数据字段失败");
+            // 删除定时任务
+            QueryWrapper<CoreDatasourceTask> taskQueryWrapper = new QueryWrapper<>();
+            taskQueryWrapper.eq("datasourceId", datasourceDirTree.getDatasourceId());
+            CoreDatasourceTask datasourceTask = coreDatasourceTaskService.getOne(taskQueryWrapper);
+            Integer jobId = datasourceTask.getJobId();
+            ThrowUtils.throwIf(!coreDatasourceTaskService.remove(taskQueryWrapper), ErrorCode.SYSTEM_ERROR, "删除定时任务失败");
+            // 删除XXL-JOB
+            ThrowUtils.throwIf(coreDatasourceTaskService.deleteXxlJob(jobId)!=jobId, ErrorCode.SYSTEM_ERROR, "删除XXL-JOB失败");
             return true;
         }
         // 3.如果是目录，要迭代删除文件夹中的目录和数据源中对应的信息

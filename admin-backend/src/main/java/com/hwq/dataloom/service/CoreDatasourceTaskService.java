@@ -27,4 +27,11 @@ public interface CoreDatasourceTaskService extends IService<CoreDatasourceTask> 
      * @return
      */
     int addXxlJob(DatasourceDTO datasourceDTO, ApiDefinition apiDefinition);
+
+    /**
+     * 删除Xxl Job定时任务
+     * @param xxlJobId
+     * @return
+     */
+    int deleteXxlJob(Integer xxlJobId);
 }
