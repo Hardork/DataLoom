@@ -632,4 +632,41 @@ create table coupon_template(
     createTime      datetime           null default CURRENT_TIMESTAMP comment '创建时间',
     updateTime      datetime           null default CURRENT_TIMESTAMP comment '更新时间',
     isDelete        tinyint            default 0  null comment '逻辑删除'
-)
+);
+
+DROP TABLE if exists coupon_task;
+CREATE TABLE `coupon_task`
+(
+    `id`                 bigint(20) PRIMARY KEY AUTO_INCREMENT COMMENT 'ID',
+    `batchId`           bigint(20) DEFAULT NULL COMMENT '批次ID',
+    `taskName`          varchar(128) DEFAULT NULL COMMENT '优惠券批次任务名称',
+    `sendNum`           int(11) DEFAULT NULL COMMENT '发放优惠券数量',
+    `userListFilePath`  varchar(255) DEFAULT NULL COMMENT '发放用户列表文件地址',
+    `notifyType`        varchar(32)  DEFAULT NULL COMMENT '通知方式，可组合使用 0：站内信 1：弹框推送 2：邮箱 3：短信',
+    `couponTemplateId` bigint(20) DEFAULT NULL COMMENT '优惠券模板ID',
+    `sendType`          tinyint(1) DEFAULT NULL COMMENT '发送类型 0：立即发送 1：定时发送',
+    `sendTime`          datetime     DEFAULT NULL COMMENT '发送时间',
+    `status`             tinyint(1) DEFAULT NULL COMMENT '状态 0：待执行 1：执行中 2：执行失败 3：执行成功 4：取消',
+    `completionTime`    datetime     DEFAULT NULL COMMENT '完成时间',
+    `createTime`        datetime     DEFAULT NULL COMMENT '创建时间',
+    `operatorId`        bigint(20) DEFAULT NULL COMMENT '操作人 -- 管理源id',
+    `updateTime`        datetime     DEFAULT NULL COMMENT '修改时间',
+    isDelete        tinyint            default 0  null comment '逻辑删除',
+    KEY                  `idx_batch_id` (`batchId`) USING BTREE,
+    KEY                  `idx_coupon_template_id` (`couponTemplateId`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1816362696870739971 DEFAULT CHARSET=utf8mb4 COMMENT='优惠券模板发送任务表';
+
+
+-- 发放优惠券失败记录
+CREATE TABLE `coupon_task_fail_record`
+(
+    `id`          bigint(20) PRIMARY KEY AUTO_INCREMENT COMMENT 'ID',
+    `batchId`    bigint(20) NOT NULL COMMENT '批次ID',
+    `userId`     bigint(20) NOT NULL COMMENT '用户ID',
+    `couponTemplateId` bigint(20) DEFAULT NULL COMMENT '优惠券模板ID',
+    `failedContent` text COMMENT '失败内容',
+    `createTime`        datetime     DEFAULT NULL COMMENT '创建时间',
+    `operatorId`        bigint(20) DEFAULT NULL COMMENT '操作人 -- 管理源id',
+    `updateTime`        datetime     DEFAULT NULL COMMENT '修改时间',
+    isDelete        tinyint            default 0  null comment '逻辑删除'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='优惠券发放任务失败详情表';

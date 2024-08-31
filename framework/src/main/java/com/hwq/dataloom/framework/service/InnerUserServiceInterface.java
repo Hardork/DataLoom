@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.hwq.dataloom.framework.model.entity.User;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * @author HWQ
@@ -19,4 +20,6 @@ public interface InnerUserServiceInterface {
     Boolean updateUserTotalRewardPoint(Long userId, Long totalRewardPoint);
 
     Boolean update(UpdateWrapper<User> userQueryWrapper);
+
+    List<User> findUsersByBatch(int offset, int batchSize);
 }

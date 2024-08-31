@@ -56,7 +56,7 @@
         <spring-cloud.version>2021.0.1</spring-cloud.version>
         <spring-cloud-alibaba.version>2021.0.1.0</spring-cloud-alibaba.version>
         <knife4j.version>4.3.0</knife4j.version>
-
+        <xxl-job.version>2.4.0</xxl-job.version>
     </properties>
 
     <dependencyManagement>
@@ -141,6 +141,12 @@
                 <groupId>org.springframework.session</groupId>
                 <artifactId>spring-session-data-redis</artifactId>
                 <version>2.7.0</version>
+            </dependency>
+            <!--      xxl-job      -->
+            <dependency>
+                <groupId>com.xuxueli</groupId>
+                <artifactId>xxl-job-core</artifactId>
+                <version>${xxl-job.version}</version>
             </dependency>
             <!--     rocketMQ       -->
             <dependency>
