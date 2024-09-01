@@ -6,7 +6,11 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.util.Date;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 /**
  * 优惠券发放任务失败详情表
@@ -14,6 +18,8 @@ import lombok.Data;
  */
 @TableName(value ="coupon_task_fail_record")
 @Data
+@Builder
+@AllArgsConstructor
 public class CouponTaskFailRecord implements Serializable {
     /**
      * ID

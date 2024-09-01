@@ -3,6 +3,7 @@ package com.hwq.dataloom.model.dto.product_info;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.hwq.dataloom.framework.request.PageRequest;
 import lombok.Data;
 
@@ -85,5 +86,6 @@ public class ProductPointQueryRequest extends PageRequest {
      * 是否删除
      */
     @TableField(value = "isDelete")
+    @TableLogic
     private Integer isDelete;
 }

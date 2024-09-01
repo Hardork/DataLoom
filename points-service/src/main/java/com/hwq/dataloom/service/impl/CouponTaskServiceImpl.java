@@ -82,8 +82,6 @@ public class CouponTaskServiceImpl extends ServiceImpl<CouponTaskMapper, CouponT
         boolean hasNotifyTypes = Arrays.stream(notifyTypes)
                 .anyMatch(e -> CouponNotifyTypeEnum.findValueByType(e) != null);
         ThrowUtils.throwIf(!hasNotifyTypes, ErrorCode.PARAMS_ERROR, "无对应消息通知类型");
-        // TODO: 校验文件是否存在
-
     }
 
     /**

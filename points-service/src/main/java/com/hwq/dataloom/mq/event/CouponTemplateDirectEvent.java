@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 /**
  * @author HWQ
  * @date 2024/8/30 15:32
- * @description
+ * @description 优惠券模版创建
  */
 @Data
 @Builder

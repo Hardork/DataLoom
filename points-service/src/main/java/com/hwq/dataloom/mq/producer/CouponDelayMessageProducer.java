@@ -1,7 +1,7 @@
 package com.hwq.dataloom.mq.producer;
 
 import cn.hutool.core.util.StrUtil;
-import com.hwq.dataloom.constants.CouponMessageProducerConstant;
+import com.hwq.dataloom.constants.CouponMessageConstant;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.mq.dto.BasicDTO;
@@ -38,7 +38,7 @@ public class CouponDelayMessageProducer {
         return BasicDTO.builder()
                 .eventName("优惠券定时推送")
                 .key(String.valueOf(couponTemplateId))
-                .topic(CouponMessageProducerConstant.DELAY_MESSAGE_TOPIC)
+                .topic(CouponMessageConstant.DELAY_MESSAGE_TOPIC)
                 .delayTime(delayTime)
                 .build();
     }

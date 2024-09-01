@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hwq.dataloom.mapper.UserCouponMapper">
+
+    <resultMap id="BaseResultMap" type="com.hwq.dataloom.model.entity.UserCoupon">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="userId" column="userId" jdbcType="BIGINT"/>
+            <result property="couponTemplateId" column="couponTemplateId" jdbcType="BIGINT"/>
+            <result property="receiveTime" column="receiveTime" jdbcType="TIMESTAMP"/>
+            <result property="receiveCount" column="receiveCount" jdbcType="INTEGER"/>
+            <result property="validStartTime" column="validStartTime" jdbcType="TIMESTAMP"/>
+            <result property="validEndTime" column="validEndTime" jdbcType="TIMESTAMP"/>
+            <result property="useTime" column="useTime" jdbcType="TIMESTAMP"/>
+            <result property="source" column="source" jdbcType="TINYINT"/>
+            <result property="status" column="status" jdbcType="TINYINT"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+            <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,userId,couponTemplateId,
+        receiveTime,receiveCount,validStartTime,
+        validEndTime,useTime,source,
+        status,createTime,updateTime,
+        isDelete
+    </sql>
+</mapper>
