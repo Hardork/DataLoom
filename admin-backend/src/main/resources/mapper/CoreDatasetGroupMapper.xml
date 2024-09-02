@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hwq.dataloom.mapper.CoreDatasetGroupMapper">
+
+    <resultMap id="BaseResultMap" type="com.hwq.dataloom.model.entity.CoreDatasetGroup">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="pid" column="pid" jdbcType="BIGINT"/>
+            <result property="level" column="level" jdbcType="INTEGER"/>
+            <result property="nodeType" column="nodeType" jdbcType="VARCHAR"/>
+            <result property="type" column="type" jdbcType="VARCHAR"/>
+            <result property="mode" column="mode" jdbcType="INTEGER"/>
+            <result property="info" column="info" jdbcType="VARCHAR"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+            <result property="unionSql" column="unionSql" jdbcType="VARCHAR"/>
+            <result property="allFields" column="allFields" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,name,pid,
+        level,nodeType,type,
+        mode,info,createTime,
+        updateTime,unionSql,allFields
+    </sql>
+</mapper>

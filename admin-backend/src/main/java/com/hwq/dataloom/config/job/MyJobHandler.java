@@ -131,7 +131,7 @@ public class MyJobHandler {
             }
             boolean savedBatch = coreDatasetTableFieldService.saveOrUpdateBatch(coreDatasetTableFieldList);
             ThrowUtils.throwIf(!savedBatch,ErrorCode.OPERATION_ERROR,"新增字段失败！");
-            // TODO 更新数据仓库
+            // 更新数据仓库
             String updateType = coreDatasourceTask.getUpdateType();
             if (updateType.equals("all_scope")) {
                 // 全量更新
@@ -209,6 +209,8 @@ public class MyJobHandler {
             }
         }
     }
+
+
 
 
 

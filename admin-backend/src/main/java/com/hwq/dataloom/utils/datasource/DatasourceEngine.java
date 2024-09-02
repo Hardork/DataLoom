@@ -12,9 +12,8 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.sql.ResultSetMetaData;
+import java.util.*;
 
 /**
  * @author HWQ
@@ -313,6 +312,29 @@ public class DatasourceEngine {
         }
         // 返回完整的字段定义SQL
         return "(" + columnFields.toString() + ")";
+    }
+
+    /**
+     * ResultSet转List
+     * @param resultSet
+     * @return
+     * @throws Exception
+     */
+    public List<Map<String, Object>> resultSetToMapList(ResultSet resultSet) throws Exception {
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        ResultSetMetaData metaData = resultSet.getMetaData();
+        int columnCount = metaData.getColumnCount();
+
+        while (resultSet.next()) {
+            Map<String, Object> rowMap = new HashMap<>();
+            for (int i = 1; i <= columnCount; i++) {
+                String columnName = metaData.getColumnName(i);
+                Object columnValue = resultSet.getObject(i);
+                rowMap.put(columnName, columnValue);
+            }
+            resultList.add(rowMap);
+        }
+        return resultList;
     }
 
 

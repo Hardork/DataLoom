@@ -200,6 +200,12 @@
             <groupId>com.xuxueli</groupId>
             <artifactId>xxl-job-core</artifactId>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.calcite/calcite-core -->
+        <dependency>
+            <groupId>org.apache.calcite</groupId>
+            <artifactId>calcite-core</artifactId>
+            <version>1.35.0</version>
+        </dependency>
         <!--   guava-retrying     -->
         <dependency>
             <groupId>com.github.rholder</groupId>
