@@ -16,12 +16,13 @@
             <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
             <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
             <result property="unionSql" column="unionSql" jdbcType="VARCHAR"/>
+            <result property="allFields" column="allFields" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id,name,pid,
         level,nodeType,type,
         mode,info,createTime,
-        updateTime,unionSql
+        updateTime,unionSql,allFields
     </sql>
 </mapper>

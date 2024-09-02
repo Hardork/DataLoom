@@ -7,7 +7,6 @@ import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.model.dto.newdatasource.CoreDatasetGroupDTO;
 import com.hwq.dataloom.model.dto.newdatasource.UnionDTO;
 import com.hwq.dataloom.model.dto.newdatasource.UnionParamDTO;
-import com.hwq.dataloom.model.entity.CoreDatasetGroup;
 import com.hwq.dataloom.model.entity.CoreDatasetTable;
 import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.service.CoreDatasetGroupService;

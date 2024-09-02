@@ -1,5 +1,6 @@
 package com.hwq.dataloom.model.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -17,7 +18,7 @@ public class CoreDatasetGroup implements Serializable {
     /**
      * ID
      */
-    @TableId
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     /**
@@ -69,6 +70,11 @@ public class CoreDatasetGroup implements Serializable {
      * 关联sql
      */
     private String unionSql;
+
+    /**
+     * 数据集所有字段
+     */
+    private String allFields;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
