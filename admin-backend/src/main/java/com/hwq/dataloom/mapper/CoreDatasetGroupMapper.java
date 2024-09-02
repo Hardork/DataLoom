@@ -1,6 +1,7 @@
 package com.hwq.dataloom.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.hwq.dataloom.model.entity.CoreDatasetGroup;
 
 /**
 * @author 25020
