@@ -8,6 +8,7 @@ import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 优惠券模板发送任务表
@@ -15,6 +16,9 @@ import lombok.Data;
  */
 @TableName(value ="coupon_task")
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CouponTask implements Serializable {
     /**
      * ID

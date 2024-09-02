@@ -5,6 +5,9 @@ import java.util.HashSet;
 import java.util.stream.Collectors;
 
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.db.sql.Wrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hwq.dataloom.config.UserContext;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
@@ -12,16 +15,17 @@ import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.framework.service.InnerUserServiceInterface;
 import com.hwq.dataloom.model.dto.coupon_task.CouponTaskCreateReqDTO;
+import com.hwq.dataloom.model.dto.coupon_task.CouponTaskPageQueryReqDTO;
 import com.hwq.dataloom.model.entity.CouponTask;
 import com.hwq.dataloom.model.enums.CouponNotifyTypeEnum;
 import com.hwq.dataloom.model.enums.CouponSendTypeEnum;
 import com.hwq.dataloom.model.enums.CouponTaskStatusEnum;
-import com.hwq.dataloom.mq.event.CouponTemplateDirectEvent;
-import com.hwq.dataloom.mq.producer.CouponDirectMessageProducer;
+import com.hwq.dataloom.mq.event.CouponTaskDirectEvent;
+import com.hwq.dataloom.mq.producer.CouponExcelAnalysisMessageProducer;
 import com.hwq.dataloom.service.CouponTaskService;
 import com.hwq.dataloom.mapper.CouponTaskMapper;
 import com.hwq.dataloom.service.CouponTemplateService;
-import org.apache.rocketmq.spring.core.RocketMQTemplate;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +41,7 @@ public class CouponTaskServiceImpl extends ServiceImpl<CouponTaskMapper, CouponT
     implements CouponTaskService{
 
     @Resource
-    private CouponDirectMessageProducer couponDirectMessageProducer;
+    private CouponExcelAnalysisMessageProducer couponExcelAnalysisMessageProducer;
 
     @Resource
     private CouponTemplateService couponTemplateService;
@@ -61,12 +65,30 @@ public class CouponTaskServiceImpl extends ServiceImpl<CouponTaskMapper, CouponT
         ThrowUtils.throwIf(!this.save(couponTask), ErrorCode.SYSTEM_ERROR);
 
         CouponSendTypeEnum sendTypeEnum = CouponSendTypeEnum.findValueByType(couponTaskCreateReqDTO.getSendType());
-        // 将立即发送的任务直接推送到消息队列进行消费
+        // 将立即发送的任务直接推送到excel解析队列进行消费
         if (sendTypeEnum == CouponSendTypeEnum.DIRECT) {
-            CouponTemplateDirectEvent event = CouponTemplateDirectEvent.builder()
-                    .couponTemplateId(couponTaskCreateReqDTO.getCouponTemplateId()).build();
-            couponDirectMessageProducer.sendMessage(event);
+            CouponTaskDirectEvent event = CouponTaskDirectEvent.builder()
+                    .couponTaskId(couponTaskCreateReqDTO.getCouponTemplateId())
+                    .build();
+            couponExcelAnalysisMessageProducer.sendMessage(event);
         }
+    }
+
+    @Override
+    public Page<CouponTask> pageQueryCouponTask(CouponTaskPageQueryReqDTO requestParam) {
+        String batchId = requestParam.getBatchId();
+        String taskName = requestParam.getTaskName();
+        Long couponTemplateId = requestParam.getCouponTemplateId();
+        Integer status = requestParam.getStatus();
+        long current = requestParam.getCurrent();
+        long pageSize = requestParam.getPageSize();
+        LambdaQueryWrapper<CouponTask> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(StringUtils.isNotEmpty(batchId), CouponTask::getBatchId, batchId);
+        wrapper.eq(StringUtils.isNotEmpty(taskName), CouponTask::getTaskName, taskName);
+        wrapper.eq(couponTemplateId != null, CouponTask::getCouponTemplateId, couponTemplateId);
+        wrapper.eq(status != null, CouponTask::getStatus, status);
+        wrapper.eq(status != null, CouponTask::getStatus, status);
+        return this.page(new Page<>(current, pageSize), wrapper);
     }
 
     private void checkCouponTaskCreateReqDTOValid(CouponTaskCreateReqDTO couponTaskCreateReqDTO) {

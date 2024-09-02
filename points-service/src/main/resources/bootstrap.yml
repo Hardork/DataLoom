@@ -15,6 +15,9 @@ spring:
         shared-configs:
           - data-id: base.yml
             refresh: true
+          - data-id: points-service.yml
+            refresh: true
+
       discovery:
         server-addr: ${nacos-server}:8848
   mvc:
@@ -46,24 +49,4 @@ dubbo:
     port: -1
   registry: #配置注册中心
     address: nacos://${nacos-server}:8848
-# 优惠券生产者配置
-rocketmq:
-  name-server: 127.0.0.1:9876
-  producer:
-    group: coupon_producer
-    send-message-timeout: 2000
-    retry-times-when-send-failed: 1
-    retry-times-when-send-async-failed: 1
-xxl:
-  job:
-    admin:
-      addresses: http://127.0.0.1:8088/xxl-job-admin
-      login-username: admin
-      login-pwd: 123456
-    accessToken: default_token
-    executor:
-      appname: dataLoom-executor
-      ip: 127.0.0.1
-      port: 9999
-      logpath: /data/applogs/xxl-job/jobhandler
-      logretentiondays: 30
+
