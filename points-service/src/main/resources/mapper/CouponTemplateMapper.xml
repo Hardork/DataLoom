@@ -32,4 +32,10 @@
         set stock = stock + #{requestParam.number}
         where id = #{requestParam.couponTemplateId}
     </update>
+    <update id="decrementCouponTemplateStock">
+        update coupon_template
+        set stock = stock - #{batchUserSetSize}
+        where id = #{couponTemplateId}
+        and stock >= #{batchUserSetSize}
+    </update>
 </mapper>

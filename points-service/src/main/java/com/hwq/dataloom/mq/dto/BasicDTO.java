@@ -45,6 +45,6 @@ public class BasicDTO {
     /**
      * 延迟消息
      */
-    private Integer delayLevel;
+    private Long delayTime;
 
 }

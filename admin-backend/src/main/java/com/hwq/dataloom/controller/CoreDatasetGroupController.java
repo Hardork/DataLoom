@@ -7,8 +7,6 @@ import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.result.BaseResponse;
 import com.hwq.dataloom.framework.result.ResultUtils;
 import com.hwq.dataloom.model.dto.newdatasource.CoreDatasetGroupDTO;
-import com.hwq.dataloom.model.entity.CoreDatasetGroup;
-import com.hwq.dataloom.service.CoreDatasetGroupService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;

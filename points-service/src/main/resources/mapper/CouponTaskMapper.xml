@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hwq.dataloom.mapper.CouponTaskMapper">
+
+    <resultMap id="BaseResultMap" type="com.hwq.dataloom.model.entity.CouponTask">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="batchId" column="batchId" jdbcType="BIGINT"/>
+            <result property="taskName" column="taskName" jdbcType="VARCHAR"/>
+            <result property="sendNum" column="sendNum" jdbcType="INTEGER"/>
+            <result property="userListFilePath" column="userListFilePath" jdbcType="VARCHAR"/>
+            <result property="notifyType" column="notifyType" jdbcType="VARCHAR"/>
+            <result property="couponTemplateId" column="couponTemplateId" jdbcType="BIGINT"/>
+            <result property="sendType" column="sendType" jdbcType="TINYINT"/>
+            <result property="sendTime" column="sendTime" jdbcType="TIMESTAMP"/>
+            <result property="status" column="status" jdbcType="TINYINT"/>
+            <result property="completionTime" column="completionTime" jdbcType="TIMESTAMP"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="operatorId" column="operatorId" jdbcType="BIGINT"/>
+            <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+            <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,batchId,taskName,
+        sendNum,userListFilePath,notifyType,
+        couponTemplateId,sendType,sendTime,
+        status,completionTime,createTime,
+        operatorId,updateTime,isDelete
+    </sql>
+</mapper>

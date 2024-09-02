@@ -4,15 +4,18 @@ import com.baomidou.mybatisplus.annotation.*;
 
 import java.io.Serializable;
 import java.util.Date;
+
+import lombok.Builder;
 import lombok.Data;
 
 /**
- * 
- * @TableName coupon_template
+ * 用户优惠券表
+ * @TableName user_coupon
  */
-@TableName(value ="coupon_template")
+@TableName(value ="user_coupon")
 @Data
-public class CouponTemplate implements Serializable {
+@Builder
+public class UserCoupon implements Serializable {
     /**
      * ID
      */
@@ -20,24 +23,24 @@ public class CouponTemplate implements Serializable {
     private Long id;
 
     /**
-     * 优惠券名称
+     * 用户ID
      */
-    private String name;
+    private Long userId;
 
     /**
-     * 描述
+     * 优惠券模板ID
      */
-    private String description;
+    private Long couponTemplateId;
 
     /**
-     * 类型
+     * 领取时间
      */
-    private Integer type;
+    private Date receiveTime;
 
     /**
-     * 状态 0-正常使用中 1-下线
+     * 领取次数
      */
-    private Integer status;
+    private Integer receiveCount;
 
     /**
      * 有效期开始时间
@@ -45,24 +48,24 @@ public class CouponTemplate implements Serializable {
     private Date validStartTime;
 
     /**
-     * 有效期截止时间
+     * 有效期结束时间
      */
     private Date validEndTime;
 
     /**
-     * 优惠券发行量
+     * 使用时间
      */
-    private Integer stock;
+    private Date useTime;
 
     /**
-     * 领取规则
+     * 券来源 0：领券中心 1：平台发放 2：店铺领取
      */
-    private String claimRules;
+    private Integer source;
 
     /**
-     * 使用规则
+     * 状态 0：未使用 1：锁定 2：已使用 3：已过期 4：已撤回
      */
-    private String usageRules;
+    private Integer status;
 
     /**
      * 创建时间

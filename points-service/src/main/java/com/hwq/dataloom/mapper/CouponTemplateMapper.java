@@ -3,6 +3,7 @@ package com.hwq.dataloom.mapper;
 import com.hwq.dataloom.model.dto.coupon.CouponTemplateNumberReqDTO;
 import com.hwq.dataloom.model.entity.CouponTemplate;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.hwq.dataloom.mq.event.CouponTaskDistributeEvent;
 import org.apache.ibatis.annotations.Param;
 
 /**
@@ -14,6 +15,8 @@ import org.apache.ibatis.annotations.Param;
 public interface CouponTemplateMapper extends BaseMapper<CouponTemplate> {
 
     int increaseNumberCouponTemplate(@Param("requestParam") CouponTemplateNumberReqDTO requestParam);
+
+    int decrementCouponTemplateStock(@Param("couponTemplateId") Long couponTemplateId, @Param("batchUserSetSize")Integer batchUserSetSize);
 
 }
 

@@ -23,9 +23,8 @@ spring:
   # session 配置
   session:
     # todo 取消注释开启分布式 session（须先配置 Redis）
-    # store-type: redis
-    # 30 天过期
-    timeout: 2592000
+     store-type: redis
+     timeout: 2592000
 server:
   address: 0.0.0.0
   port: 8082
@@ -47,3 +46,24 @@ dubbo:
     port: -1
   registry: #配置注册中心
     address: nacos://${nacos-server}:8848
+# 优惠券生产者配置
+rocketmq:
+  name-server: 127.0.0.1:9876
+  producer:
+    group: coupon_producer
+    send-message-timeout: 2000
+    retry-times-when-send-failed: 1
+    retry-times-when-send-async-failed: 1
+xxl:
+  job:
+    admin:
+      addresses: http://127.0.0.1:8088/xxl-job-admin
+      login-username: admin
+      login-pwd: 123456
+    accessToken: default_token
+    executor:
+      appname: dataLoom-executor
+      ip: 127.0.0.1
+      port: 9999
+      logpath: /data/applogs/xxl-job/jobhandler
+      logretentiondays: 30
