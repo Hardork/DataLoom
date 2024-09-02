@@ -1,5 +1,7 @@
 package com.hwq.dataloom.controller;
 
+import cn.hutool.json.JSONUtil;
+import com.alibaba.cloud.dubbo.util.JSONUtils;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.result.BaseResponse;
@@ -13,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cloud.commons.util.IdUtils;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,7 +39,7 @@ public class CoreDatasetGroupController {
     private Lock lock = new ReentrantLock();
 
     @PostMapping("/save")
-    public BaseResponse<CoreDatasetGroupDTO> save(CoreDatasetGroupDTO coreDatasetGroupDTO,boolean rename){
+    public BaseResponse<CoreDatasetGroupDTO> save(@RequestBody CoreDatasetGroupDTO coreDatasetGroupDTO, boolean rename){
         lock.lock();
         try {
             // 如果是重命名获取pid
@@ -44,13 +47,14 @@ public class CoreDatasetGroupController {
                 CoreDatasetGroup coreDatasetGroup = coreDatasetGroupService.getById(coreDatasetGroupDTO.getId());
                 coreDatasetGroupDTO.setPid(coreDatasetGroup.getPid());
             }
-
             if (StringUtils.equalsIgnoreCase(coreDatasetGroupDTO.getNodeType(), "dataset")) {
                 if (!rename && ObjectUtils.isEmpty(coreDatasetGroupDTO.getAllFields())) {
                     throw new BusinessException(ErrorCode.PARAMS_ERROR);
                 }
-                // TODO 获取unionsql
-
+                // 获取sql
+                String sql = coreDatasetGroupService.getDarasetGroupSql(coreDatasetGroupDTO);
+                coreDatasetGroupDTO.setSql(sql);
+                coreDatasetGroupDTO.setInfo(Objects.requireNonNull(JSONUtil.toJsonStr(coreDatasetGroupDTO.getUnion())));
             }
             coreDatasetGroupDTO.setPid(coreDatasetGroupDTO.getPid() == null ? 0L : coreDatasetGroupDTO.getPid());
             CoreDatasetGroup coreDatasetGroup = new CoreDatasetGroup();
