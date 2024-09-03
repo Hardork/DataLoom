@@ -16,7 +16,7 @@ import com.hwq.dataloom.model.entity.UserMessage;
 import com.hwq.dataloom.model.enums.ChartStatusEnum;
 import com.hwq.dataloom.model.enums.UserMessageTypeEnum;
 import com.hwq.dataloom.framework.model.enums.WebSocketMsgTypeEnum;
-import com.hwq.dataloom.mq.constant.BiMqConstant;
+import com.hwq.dataloom.mq.constant.AnalysisMqConstant;
 import com.hwq.dataloom.service.ChartService;
 import com.hwq.dataloom.service.FailedChartService;
 import com.hwq.dataloom.service.UserMessageService;
@@ -38,7 +38,7 @@ import java.util.concurrent.*;
 
 @Component
 @Slf4j
-public class BiMessageConsumer {
+public class AnalysisMessageConsumer {
 
     @Resource
     private ChartService chartService;
@@ -68,7 +68,7 @@ public class BiMessageConsumer {
      * @param deliveryTag
      */
     @SneakyThrows
-    @RabbitListener(queues = {BiMqConstant.BI_QUEUE_NAME}, ackMode = "MANUAL", containerFactory = "gptContainerFactory")
+    @RabbitListener(queues = {AnalysisMqConstant.BI_QUEUE_NAME}, ackMode = "MANUAL", containerFactory = "gptContainerFactory")
     public void receiveMessage(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
         log.info("ChatGPT receiveMessage message = {}", message);
         channel.basicQos(1);
@@ -126,7 +126,7 @@ public class BiMessageConsumer {
      * @param deliveryTag
      */
     @SneakyThrows
-    @RabbitListener(queues = {BiMqConstant.BI_VIP_QUEUE_NAME}, ackMode = "MANUAL", containerFactory = "kimiContainerFactory")
+    @RabbitListener(queues = {AnalysisMqConstant.BI_VIP_QUEUE_NAME}, ackMode = "MANUAL", containerFactory = "kimiContainerFactory")
     public void receiveMessageToKimi(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
         log.info("KimiAI receiveMessage message = {}", message);
         channel.basicQos(1);
@@ -205,7 +205,7 @@ public class BiMessageConsumer {
      * @param deliveryTag
      */
     @SneakyThrows
-    @RabbitListener(queues = {BiMqConstant.BI_DEAD_QUEUE_NAME}, ackMode = "MANUAL")
+    @RabbitListener(queues = {AnalysisMqConstant.BI_DEAD_QUEUE_NAME}, ackMode = "MANUAL")
     public void receiveDeadMessage(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
         if (StringUtils.isBlank(message)) {
             // 如果失败，消息拒绝

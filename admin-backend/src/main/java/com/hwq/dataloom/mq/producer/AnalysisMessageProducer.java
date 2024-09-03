@@ -1,13 +1,13 @@
 package com.hwq.dataloom.mq.producer;
 
-import com.hwq.dataloom.mq.constant.BiMqConstant;
+import com.hwq.dataloom.mq.constant.AnalysisMqConstant;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 
 @Component
-public class BiMessageProducer {
+public class AnalysisMessageProducer {
 
     @Resource
     private RabbitTemplate rabbitTemplate;
@@ -17,7 +17,7 @@ public class BiMessageProducer {
      * @param message
      */
     public void sendMessage(String message) {
-        rabbitTemplate.convertAndSend(BiMqConstant.BI_EXCHANGE_NAME, BiMqConstant.BI_ROUTING_KEY, message);
+        rabbitTemplate.convertAndSend(AnalysisMqConstant.BI_EXCHANGE_NAME, AnalysisMqConstant.BI_ROUTING_KEY, message);
     }
 
     /**

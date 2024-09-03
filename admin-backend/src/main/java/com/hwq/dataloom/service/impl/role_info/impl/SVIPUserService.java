@@ -1,7 +1,7 @@
 package com.hwq.dataloom.service.impl.role_info.impl;
 
-import com.hwq.dataloom.mq.producer.BiMessageProducer;
-import com.hwq.dataloom.mq.constant.BiMqConstant;
+import com.hwq.dataloom.mq.producer.AnalysisMessageProducer;
+import com.hwq.dataloom.mq.constant.AnalysisMqConstant;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.model.enums.UserRoleEnum;
@@ -20,7 +20,7 @@ import javax.annotation.Resource;
 public class SVIPUserService implements RoleService {
 
     @Resource
-    private BiMessageProducer biMessageProducer;
+    private AnalysisMessageProducer analysisMessageProducer;
 
     @Override
     public boolean isCurrentRole(String userType) {
@@ -41,17 +41,17 @@ public class SVIPUserService implements RoleService {
 
     @Override
     public String goToQueueName() {
-        return BiMqConstant.BI_VIP_QUEUE_NAME;
+        return AnalysisMqConstant.BI_VIP_QUEUE_NAME;
     }
 
     @Override
     public String RoutingKey() {
-        return BiMqConstant.BI_VIP_ROUTING_KEY;
+        return AnalysisMqConstant.BI_VIP_ROUTING_KEY;
     }
 
     @Override
     public void sendMessageToMQ(String message) {
-        biMessageProducer.sendMessage(message, BiMqConstant.BI_VIP_EXCHANGE_NAME, BiMqConstant.BI_VIP_ROUTING_KEY);
+        analysisMessageProducer.sendMessage(message, AnalysisMqConstant.BI_VIP_EXCHANGE_NAME, AnalysisMqConstant.BI_VIP_ROUTING_KEY);
     }
 
     @Override

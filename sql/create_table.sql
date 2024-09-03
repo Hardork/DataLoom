@@ -692,3 +692,14 @@ CREATE TABLE `user_coupon`
     UNIQUE KEY `idx_user_id_coupon_template_receive_count` (`userId`,`couponTemplateId`,`receiveCount`) USING BTREE,
     KEY                  `idx_user_id` (`userId`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1816074493920030734 DEFAULT CHARSET=utf8mb4 COMMENT='用户优惠券表';
+
+
+-- 用户提示id
+CREATE TABLE `coupon_template_remind`
+(
+    `userId`            bigint(20) NOT NULL COMMENT '用户ID',
+    `couponTemplateId` bigint(20) NOT NULL COMMENT '券ID',
+    `information`        bigint(20) DEFAULT NULL COMMENT '存储信息',
+    `startTime`         datetime DEFAULT NULL COMMENT '优惠券开抢时间',
+    PRIMARY KEY (`userId`, `couponTemplateId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户预约提醒信息存储表';

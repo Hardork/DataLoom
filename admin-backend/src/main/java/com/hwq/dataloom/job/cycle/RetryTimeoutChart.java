@@ -1,7 +1,7 @@
 package com.hwq.dataloom.job.cycle;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.hwq.dataloom.mq.producer.BiMessageProducer;
+import com.hwq.dataloom.mq.producer.AnalysisMessageProducer;
 import com.hwq.dataloom.model.entity.FailedChart;
 
 import java.util.List;
@@ -25,7 +25,7 @@ public class RetryTimeoutChart {
     private FailedChartService failedChartService;
 
     @Resource
-    private BiMessageProducer biMessageProducer;
+    private AnalysisMessageProducer analysisMessageProducer;
 
 
     /**
@@ -50,7 +50,7 @@ public class RetryTimeoutChart {
             failedChart.setRetryNum(failedChart.getRetryNum() + 1);
             failedChartService.updateById(failedChart);
             // 提交任务
-            biMessageProducer.sendMessage(String.valueOf(failedChart.getChartId()));
+            analysisMessageProducer.sendMessage(String.valueOf(failedChart.getChartId()));
         }
         int total = list.size();
         log.info("retry start, total {}", total);

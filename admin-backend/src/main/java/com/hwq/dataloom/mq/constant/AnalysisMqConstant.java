@@ -1,6 +1,6 @@
 package com.hwq.dataloom.mq.constant;
 
-public interface BiMqConstant {
+public interface AnalysisMqConstant {
 
     /**
      * 普通交换机名称

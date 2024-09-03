@@ -10,7 +10,7 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hwq.dataloom.annotation.*;
-import com.hwq.dataloom.mq.producer.BiMessageProducer;
+import com.hwq.dataloom.mq.producer.AnalysisMessageProducer;
 
 import com.hwq.dataloom.constant.ChartConstant;
 import com.hwq.dataloom.framework.constants.UserConstant;
@@ -56,7 +56,7 @@ public class ChartController {
     private UserService userService;
 
     @Resource
-    private BiMessageProducer biMessageProducer;
+    private AnalysisMessageProducer analysisMessageProducer;
 
     @Resource
     private RedisTemplate<String, String> redisTemplate;
@@ -98,7 +98,7 @@ public class ChartController {
 
         ThrowUtils.throwIf(!saveResult, ErrorCode.SYSTEM_ERROR, "图表保存失败");
         long newChartId = chart.getId();
-        biMessageProducer.sendMessage(String.valueOf(newChartId));
+        analysisMessageProducer.sendMessage(String.valueOf(newChartId));
         // 分析成功
         BiResponse biResponse = new BiResponse();
         biResponse.setChartId(newChartId);
@@ -171,7 +171,7 @@ public class ChartController {
         chart.setUserId(loginUser.getId());
         boolean saveResult = chartService.save(chart);
         long newChartId = chart.getId();
-        biMessageProducer.sendMessage(String.valueOf(newChartId));
+        analysisMessageProducer.sendMessage(String.valueOf(newChartId));
         ThrowUtils.throwIf(!saveResult, ErrorCode.SYSTEM_ERROR, "图表保存失败");
         // 分析成功
         BiResponse biResponse = new BiResponse();
@@ -222,7 +222,7 @@ public class ChartController {
         ThrowUtils.throwIf(chartInfo == null, ErrorCode.NOT_FOUND_ERROR);
         ThrowUtils.throwIf(!chartInfo.getStatus().equals(ChartStatusEnum.FAILED.getValue()), ErrorCode.PARAMS_ERROR, "仅失败图表可重试");
         // 发送信息给消息队列
-        biMessageProducer.sendMessage(String.valueOf(chartId));
+        analysisMessageProducer.sendMessage(String.valueOf(chartId));
         // 分析成功
         BiResponse biResponse = new BiResponse();
         biResponse.setChartId(chartId);

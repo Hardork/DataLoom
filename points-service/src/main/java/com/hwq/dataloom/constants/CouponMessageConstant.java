@@ -22,6 +22,11 @@ public interface CouponMessageConstant {
     String SCHEDULE_COUPON_DISTRIBUTION_TOPIC = "schedule_coupon_distribution_topic";
 
     String SCHEDULE_COUPON_DISTRIBUTION_CONSUMER_GROUP = "schedule_coupon_distribution_consumer_group";
+
+    String REMIND_COUPON_TOPIC = "remind_coupon_topic";
+    String REMIND_COUPON_CONSUMER_GROUP = "remind_coupon_consumer_group";
+
+
     String COUPON_DISTRIBUTION_TOPIC = "coupon_distribution_topic";
     String COUPON_DISTRIBUTION_CONSUMER_GROUP = "coupon_distribution_consumer_group";
 
