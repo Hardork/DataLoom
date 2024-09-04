@@ -31,7 +31,7 @@ import javax.servlet.http.HttpServletRequest;
  * 
  */
 @RestController
-@RequestMapping("/aiRole")
+@RequestMapping("/admin/aiRole")
 @Slf4j
 public class AiRoleController {
 

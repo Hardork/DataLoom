@@ -40,7 +40,7 @@ import javax.servlet.http.HttpServletRequest;
  **/
 @RestController
 @Slf4j
-@RequestMapping("/Ai")
+@RequestMapping("/admin/Ai")
 public class AiController {
     @Resource
     private UserService userService;

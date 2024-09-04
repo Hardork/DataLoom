@@ -37,7 +37,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * 数据集接口
  */
 @RestController
-@RequestMapping("/coreDatasetGroup")
+@RequestMapping("/admin/coreDatasetGroup")
 @Slf4j
 public class CoreDatasetGroupController {
 

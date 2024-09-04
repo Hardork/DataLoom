@@ -13,6 +13,11 @@ public class StockDecrementReturnCombinedUtil {
     private static final int SECOND_FIELD_BITS = 13;
 
     /**
+     * 2^14 > 9999, 所以用 14 位来表示第二个字段
+     */
+    private static final int USER_CLAIM_COUPON_SECOND_FIELD_BITS = 14;
+
+    /**
      * 将两个字段组合成一个int
      */
     public static int combineFields(boolean decrementFlag, int userRecord) {
@@ -32,4 +37,22 @@ public class StockDecrementReturnCombinedUtil {
     public static int extractSecondField(int combined) {
         return combined & ((1 << SECOND_FIELD_BITS) - 1);
     }
+
+    /**
+     * 用户领取优惠券lua脚本
+     * 从组合的 int 中提取第一个字段（0、1或2）
+     */
+    public static long extractUserClaimCouponFirstField(long combined) {
+        return (combined >> USER_CLAIM_COUPON_SECOND_FIELD_BITS) & 0b11; // 0b11 即二进制的 11，用于限制结果为 2 位
+    }
+
+    /**
+     * 用户领取优惠券lua脚本
+     * 从组合的 int 中提取第二个字段（0 到 9999 之间的数字）
+     */
+    public static long extractUserClaimCouponSecondField(long combined) {
+        return combined & ((1 << USER_CLAIM_COUPON_SECOND_FIELD_BITS) - 1);
+    }
+
+
 }

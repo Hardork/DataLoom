@@ -22,7 +22,7 @@ import javax.servlet.http.HttpServletRequest;
  **/
 @RestController
 @Slf4j
-@RequestMapping("/serviceRecord")
+@RequestMapping("/admin/serviceRecord")
 public class ServiceRecordController {
 
     @Resource

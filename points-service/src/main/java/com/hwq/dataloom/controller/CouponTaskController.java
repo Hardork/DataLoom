@@ -19,7 +19,7 @@ import javax.annotation.Resource;
  * @description 优惠券发放任务
  */
 @RestController
-@RequestMapping("/couponTask")
+@RequestMapping("/points-service/couponTask")
 public class CouponTaskController {
 
 

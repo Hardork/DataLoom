@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
  * @Description: 商品信息接口
  **/
 @RestController
-@RequestMapping("/productInfo")
+@RequestMapping("/points-service/productInfo")
 @Slf4j
 public class ProductInfoController {
     @Resource

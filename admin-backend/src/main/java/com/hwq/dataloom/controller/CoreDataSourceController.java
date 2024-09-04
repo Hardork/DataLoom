@@ -29,7 +29,7 @@ import java.util.List;
  * 新数据源接口
  */
 @RestController
-@RequestMapping("/coreDatasource")
+@RequestMapping("/admin/coreDatasource")
 @Slf4j
 public class CoreDataSourceController {
 
@@ -69,7 +69,7 @@ public class CoreDataSourceController {
 
     /**
      * 校验数据源
-     * @param datasourceDTO
+     * @param datasourceDTO 数据源请求
      * @return
      */
     @PostMapping("/check")

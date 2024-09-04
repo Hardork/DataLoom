@@ -20,13 +20,6 @@
             <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
     </resultMap>
 
-    <sql id="Base_Column_List">
-        id,name,description,
-        type,valid_start_time,valid_end_time,
-        stock,claimRules,usageRules,status,
-        createTime,updateTime,isDelete
-    </sql>
-
     <update id="increaseNumberCouponTemplate">
         update coupon_template
         set stock = stock + #{requestParam.number}

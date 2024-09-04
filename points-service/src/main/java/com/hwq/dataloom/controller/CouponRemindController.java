@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/CouponRemind")
+@RequestMapping("/points-service/CouponRemind")
 @Tag(name = "优惠券预约提醒管理")
 public class CouponRemindController {
     // TODO：优惠券预约

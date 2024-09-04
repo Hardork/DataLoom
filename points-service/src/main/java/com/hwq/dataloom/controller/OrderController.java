@@ -28,7 +28,7 @@ import javax.servlet.http.HttpServletRequest;
  * @Description: 订单
  **/
 @RestController
-@RequestMapping("/order")
+@RequestMapping("/points-service/order")
 @Slf4j
 public class OrderController {
     @DubboReference

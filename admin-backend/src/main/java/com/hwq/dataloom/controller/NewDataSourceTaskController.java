@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 数据源同步任务接口
  */
 @RestController
-@RequestMapping("/datasourceTask")
+@RequestMapping("/admin/datasourceTask")
 @Slf4j
 public class NewDataSourceTaskController {
 

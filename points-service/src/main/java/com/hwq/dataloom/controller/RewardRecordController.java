@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletRequest;
  * @Description: 积分奖励
  **/
 @RestController
-@RequestMapping("/reward")
+@RequestMapping("/points-service/reward")
 @Slf4j
 public class RewardRecordController {
     @DubboReference

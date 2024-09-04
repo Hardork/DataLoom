@@ -8,7 +8,7 @@ import javax.annotation.Resource;
 
 
 @RestController
-@RequestMapping("/datasetTable")
+@RequestMapping("/admin/datasetTable")
 @Slf4j
 public class NewDatasetTableController {
 

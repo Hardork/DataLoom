@@ -1,5 +1,6 @@
 package com.hwq.dataloom.service;
 
+import com.hwq.dataloom.model.dto.user_coupon.UserClaimCouponDTO;
 import com.hwq.dataloom.model.entity.UserCoupon;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -9,5 +10,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 * @createDate 2024-09-02 02:48:42
 */
 public interface UserCouponService extends IService<UserCoupon> {
+
+    void userClaimCoupon(UserClaimCouponDTO requestParam);
 
 }

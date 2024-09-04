@@ -59,7 +59,7 @@ public class CouponTemplateRemindServiceImpl extends ServiceImpl<CouponTemplateR
                     .startTime(DateUtil.offsetMinute(couponTemplate.getValidStartTime(), requestParam.getRemindTime()))
                     .build();
             this.save(couponTemplateRemind);
-        } else { //
+        } else { // 如果不存在就更新
             Long information = remind.getInformation();
             Long bitMap = CouponTemplateRemindUtil.calculateBitMap(requestParam.getRemindTime(), requestParam.getType());
             ThrowUtils.throwIf((information & bitMap) != 0L, ErrorCode.PARAMS_ERROR, "已经创建过该提醒了");

@@ -41,7 +41,7 @@ import java.util.Map;
  * @description
  */
 @RestController
-@RequestMapping("/data")
+@RequestMapping("/admin/data")
 @Slf4j
 public class DataController {
 

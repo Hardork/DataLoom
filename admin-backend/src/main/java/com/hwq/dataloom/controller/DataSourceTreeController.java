@@ -18,7 +18,7 @@ import javax.validation.Valid;
  * @description 数据源文件夹管理
  */
 @RestController
-@RequestMapping("/datasource/tree")
+@RequestMapping("/admin/datasource/tree")
 public class DataSourceTreeController {
 
     @Resource

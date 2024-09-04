@@ -23,7 +23,7 @@ import javax.servlet.http.HttpServletRequest;
  * @Description:
  **/
 @RestController
-@RequestMapping("/failed_chart")
+@RequestMapping("/admin/failed_chart")
 @Slf4j
 public class FailedChartController {
     @Resource

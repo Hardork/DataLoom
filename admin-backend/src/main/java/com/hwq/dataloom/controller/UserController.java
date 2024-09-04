@@ -44,7 +44,7 @@ import static com.hwq.dataloom.utils.EmailUtil.buildEmailContent;
  * 
  */
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/admin/user")
 @Slf4j
 public class UserController {
 

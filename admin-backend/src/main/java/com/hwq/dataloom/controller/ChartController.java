@@ -45,7 +45,7 @@ import org.springframework.web.multipart.MultipartFile;
  * 
  */
 @RestController
-@RequestMapping("/chart")
+@RequestMapping("/admin/chart")
 @Slf4j
 public class ChartController {
 

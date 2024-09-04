@@ -28,7 +28,7 @@ import java.util.List;
  * @Description:
  **/
 @RestController
-@RequestMapping("/message")
+@RequestMapping("/admin/message")
 @Slf4j
 public class UserMessageController {
 

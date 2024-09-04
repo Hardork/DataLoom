@@ -26,7 +26,7 @@ import java.util.List;
  * @description 数据源接口
  */
 @RestController
-@RequestMapping("/datasource")
+@RequestMapping("/admin/datasource")
 public class DataSourceController {
     @Resource
     private UserService userService;

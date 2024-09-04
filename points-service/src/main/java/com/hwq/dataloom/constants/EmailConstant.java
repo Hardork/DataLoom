@@ -1,4 +1,4 @@
-package com.hwq.dataloom.constant;
+package com.hwq.dataloom.constants;
 
 /**
  * @Author: Hwq

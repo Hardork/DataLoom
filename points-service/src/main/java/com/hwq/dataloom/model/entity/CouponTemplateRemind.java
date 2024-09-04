@@ -21,13 +21,11 @@ public class CouponTemplateRemind implements Serializable {
     /**
      * 用户ID
      */
-    @TableId
     private Long userId;
 
     /**
      * 券ID
      */
-    @TableId
     private Long couponTemplateId;
 
     /**

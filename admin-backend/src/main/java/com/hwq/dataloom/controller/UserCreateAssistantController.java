@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServletRequest;
  * @Description:
  **/
 @RestController
-@RequestMapping("/userAssistant")
+@RequestMapping("/admin/userAssistant")
 @Slf4j
 public class UserCreateAssistantController {
     @Resource

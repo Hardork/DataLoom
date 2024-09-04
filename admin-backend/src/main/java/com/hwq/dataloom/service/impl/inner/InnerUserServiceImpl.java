@@ -9,6 +9,7 @@ import org.apache.dubbo.config.annotation.DubboService;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * @author HWQ
@@ -42,5 +43,11 @@ public class InnerUserServiceImpl implements InnerUserServiceInterface {
     @Override
     public Boolean update(UpdateWrapper<User> userQueryWrapper) {
         return userService.update(userQueryWrapper);
+    }
+
+    @Override
+    public List<User> findUsersByBatch(int offset, int batchSize) {
+        // TODO: 批量返回用户信息
+        return null;
     }
 }

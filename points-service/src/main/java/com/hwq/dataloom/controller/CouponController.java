@@ -22,7 +22,7 @@ import javax.annotation.Resource;
  * @description 优惠券增删改查
  */
 @RestController
-@RequestMapping("/coupon")
+@RequestMapping("/points-service/coupon")
 public class CouponController {
 
     @Resource
