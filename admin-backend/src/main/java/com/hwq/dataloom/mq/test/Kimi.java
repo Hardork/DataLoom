@@ -101,7 +101,7 @@ public class Kimi {
 //                new Message(RoleEnum.system.name(), prompt),
 //                new Message(RoleEnum.user.name(), buildUserInput(chart))
 //        );
-//        System.out.println(MoonshotAiUtils.chat("moonshot-v1-32k",messages));
+//        System.out.println(MoonshotAiClient.chat("moonshot-v1-32k",messages));
     }
 
     private static String buildUserInput(Chart chart) {

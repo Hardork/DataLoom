@@ -5,7 +5,7 @@ import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.model.enums.RoleEnum;
 import com.hwq.dataloom.utils.Message;
-import com.hwq.dataloom.utils.MoonshotAiUtils;
+import com.hwq.dataloom.utils.MoonshotAiClient;
 import com.yupi.yucongming.dev.client.YuCongMingClient;
 import com.yupi.yucongming.dev.common.BaseResponse;
 import com.yupi.yucongming.dev.model.DevChatRequest;
@@ -23,6 +23,9 @@ public class AiManager {
 
     @Resource
     private YuCongMingClient yuCongMingClient;
+
+    @Resource
+    private MoonshotAiClient moonshotAiClient;
 
 
     /**
@@ -70,7 +73,7 @@ public class AiManager {
                 new Message(RoleEnum.system.name(), prompt),
                 new Message(RoleEnum.user.name(), message)
         );
-        return MoonshotAiUtils.chat("moonshot-v1-128k",messages);
+        return moonshotAiClient.chat("moonshot-v1-128k",messages);
     }
 
     public String doAskSQLWithKimi(String message) {
@@ -83,7 +86,7 @@ public class AiManager {
                 new Message(RoleEnum.system.name(), SQLPrompt),
                 new Message(RoleEnum.user.name(), message)
         );
-        return MoonshotAiUtils.chat("moonshot-v1-32k",messages);
+        return moonshotAiClient.chat("moonshot-v1-32k",messages);
     }
 
 }

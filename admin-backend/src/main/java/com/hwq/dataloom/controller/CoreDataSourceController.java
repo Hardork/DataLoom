@@ -1,4 +1,5 @@
 package com.hwq.dataloom.controller;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
@@ -10,9 +11,11 @@ import com.hwq.dataloom.model.dto.newdatasource.ApiDefinition;
 import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
 import com.hwq.dataloom.model.entity.CoreDatasetTable;
 import com.hwq.dataloom.model.entity.CoreDatasetTableField;
+import com.hwq.dataloom.model.entity.CoreDatasource;
 import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.service.UserService;
 import com.hwq.dataloom.utils.ApiUtils;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
@@ -67,11 +70,7 @@ public class CoreDataSourceController {
         return ResultUtils.success(coreDatasourceService.getDataSource(datasourceId, loginUser));
     }
 
-    /**
-     * 校验数据源
-     * @param datasourceDTO 数据源请求
-     * @return
-     */
+    @Operation(summary = "校验数据源")
     @PostMapping("/check")
     public BaseResponse<Boolean> checkDatasource(@RequestBody DatasourceDTO datasourceDTO) {
         ThrowUtils.throwIf(datasourceDTO == null, ErrorCode.PARAMS_ERROR);
@@ -79,12 +78,17 @@ public class CoreDataSourceController {
         return ResultUtils.success(coreDatasourceService.validDatasourceConfiguration(datasourceDTO));
     }
 
-    /**
-     * 获取数据源所有表信息
-     * @param datasourceId
-     * @param request
-     * @return
-     */
+    @Operation(summary = "展示用户数据源列表")
+    @GetMapping("/list")
+    public BaseResponse<List<CoreDatasource>> listUserDataSource(HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        LambdaQueryWrapper<CoreDatasource> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(CoreDatasource::getUserId, loginUser.getId());
+        return ResultUtils.success(coreDatasourceService.list(wrapper));
+    }
+
+    
+    @Operation(summary = "获取数据源所有表信息")
     @GetMapping("/getTables")
     public BaseResponse<List<CoreDatasetTable>> getTablesByDatasourceId(Long datasourceId, HttpServletRequest request) {
         ThrowUtils.throwIf(datasourceId == null, ErrorCode.PARAMS_ERROR);

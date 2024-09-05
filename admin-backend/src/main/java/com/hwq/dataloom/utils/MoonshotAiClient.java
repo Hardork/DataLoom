@@ -8,9 +8,12 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.http.Method;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import lombok.Data;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import okhttp3.*;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -21,22 +24,25 @@ import java.util.Optional;
 /**
  * KimiAI
  */
-public class MoonshotAiUtils {
+@Component
+@ConfigurationProperties(prefix = "kimi")
+@Data
+public class MoonshotAiClient {
 
-    private static final String API_KEY = "sk-kF3606EaoCCIhQzV1OM6PG7JW5tO3B1vSxt2pPTODHB0gsMA";
-    private static final String MODELS_URL = "https://api.moonshot.cn/v1/models";
-    private static final String FILES_URL = "https://api.moonshot.cn/v1/files";
-    private static final String ESTIMATE_TOKEN_COUNT_URL = "https://api.moonshot.cn/v1/tokenizers/estimate-token-count";
-    private static final String CHAT_COMPLETION_URL = "https://api.moonshot.cn/v1/chat/completions";
+    private String apiKey;
+    private String modelsUrl;
+    private String filesUrl;
+    private String estimateTokenCountUrl;
+    private String chatCompletionUrl;
 
-    public static String getModelList() {
-        return getCommonRequest(MODELS_URL)
+    public String getModelList() {
+        return getCommonRequest(modelsUrl)
                 .execute()
                 .body();
     }
 
-    public static String uploadFile(@NonNull File file) {
-        return getCommonRequest(FILES_URL)
+    public String uploadFile(@NonNull File file) {
+        return getCommonRequest(filesUrl)
                 .method(Method.POST)
                 .header("purpose", "file-extract")
                 .form("file", file)
@@ -44,37 +50,37 @@ public class MoonshotAiUtils {
                 .body();
     }
 
-    public static String getFileList() {
-        return getCommonRequest(FILES_URL)
+    public String getFileList() {
+        return getCommonRequest(filesUrl)
                 .execute()
                 .body();
     }
 
-    public static String deleteFile(@NonNull String fileId) {
-        return getCommonRequest(FILES_URL + "/" + fileId)
+    public String deleteFile(@NonNull String fileId) {
+        return getCommonRequest(filesUrl + "/" + fileId)
                 .method(Method.DELETE)
                 .execute()
                 .body();
     }
 
-    public static String getFileDetail(@NonNull String fileId) {
-        return getCommonRequest(FILES_URL + "/" + fileId)
+    public String getFileDetail(@NonNull String fileId) {
+        return getCommonRequest(filesUrl + "/" + fileId)
                 .execute()
                 .body();
     }
 
-    public static String getFileContent(@NonNull String fileId) {
-        return getCommonRequest(FILES_URL + "/" + fileId + "/content")
+    public String getFileContent(@NonNull String fileId) {
+        return getCommonRequest(filesUrl + "/" + fileId + "/content")
                 .execute()
                 .body();
     }
 
-    public static String estimateTokenCount(@NonNull String model, @NonNull List<Message> messages) {
+    public String estimateTokenCount(@NonNull String model, @NonNull List<Message> messages) {
         String requestBody = new JSONObject()
                 .putOpt("model", model)
                 .putOpt("messages", messages)
                 .toString();
-        return getCommonRequest(ESTIMATE_TOKEN_COUNT_URL)
+        return getCommonRequest(estimateTokenCountUrl)
                 .method(Method.POST)
                 .header(Header.CONTENT_TYPE, ContentType.JSON.getValue())
                 .body(requestBody)
@@ -83,16 +89,16 @@ public class MoonshotAiUtils {
     }
 
     @SneakyThrows
-    public static String chat(@NonNull String model, @NonNull List<Message> messages) {
+    public String chat(@NonNull String model, @NonNull List<Message> messages) {
         String requestBody = new JSONObject()
                 .putOpt("model", model)
                 .putOpt("messages", messages)
                 .putOpt("stream", true)
                 .toString();
         Request okhttpRequest = new Request.Builder()
-                .url(CHAT_COMPLETION_URL)
+                .url(chatCompletionUrl)
                 .post(RequestBody.create(requestBody, MediaType.get(ContentType.JSON.getValue())))
-                .addHeader("Authorization", "Bearer " + API_KEY)
+                .addHeader("Authorization", "Bearer " + apiKey)
                 .build();
         Call call = new OkHttpClient().newCall(okhttpRequest);
         Response okhttpResponse = call.execute();
@@ -126,8 +132,8 @@ public class MoonshotAiUtils {
         return null;
     }
 
-    private static HttpRequest getCommonRequest(@NonNull String url) {
-        return HttpRequest.of(url).header(Header.AUTHORIZATION, "Bearer " + API_KEY);
+    private HttpRequest getCommonRequest(@NonNull String url) {
+        return HttpRequest.of(url).header(Header.AUTHORIZATION, "Bearer " + apiKey);
     }
 
 }
