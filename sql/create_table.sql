@@ -1,5 +1,4 @@
 create database if not exists bi;
-
 use bi;
 
 create table if not exists bi.ai_role
@@ -525,6 +524,8 @@ INSERT INTO `user_message` (`id`, `userId`, `description`, `type`, `title`, `cre
 INSERT INTO `user_message` (`id`, `userId`, `description`, `type`, `title`, `createTime`, `updateTime`, `isDelete`, `isRead`, `route`) VALUES (1710630645166280705, 1697633200786403330, '点击查看详情', 1, '分析图表已生成', '2023-10-07 20:18:22', '2023-10-07 20:18:22', 0, 1, '/chart_detail/1710630346942877697');
 INSERT INTO `user_message` (`id`, `userId`, `description`, `type`, `title`, `createTime`, `updateTime`, `isDelete`, `isRead`, `route`) VALUES (1711356088576122882, 1711350501649948674, '点击查看详情', 1, '分析图表已生成', '2023-10-09 20:21:01', '2023-10-09 20:21:01', 0, 1, '/chart_detail/1711355882224754690');
 
+-- 用户数据集
+drop table if exists bi.user_data;
 create table user_data
 (
     id              bigint auto_increment
@@ -543,7 +544,7 @@ create table user_data
     approvalConfirm tinyint(1)   default 0                 not null comment '审批确认'
 );
 
-
+drop table if exists bi.user_data_permission;
 create table user_data_permission (
     id bigint primary key auto_increment,
     dataId bigint not null comment '对应数据集id',
@@ -556,7 +557,7 @@ create table user_data_permission (
 
 
 
-# 用户数据库元数据
+-- 用户数据库元数据
 drop table if exists bi.datasource_meta_info;
 create table bi.datasource_meta_info (
     id bigint primary key auto_increment,
@@ -616,7 +617,7 @@ create table datasource_dir_tree
 insert into datasource_dir_tree(id, name, type, pid, wight, userId) values (0, '数据源', 'dir', 0, 1, 1697633200786403330);
 
 
--- 优惠券模版
+-- 优惠券模版表
 drop table if exists coupon_template;
 create table coupon_template(
     `id`			bigint(20)		PRIMARY KEY AUTO_INCREMENT COMMENT 'ID',
@@ -634,6 +635,7 @@ create table coupon_template(
     isDelete        tinyint            default 0  null comment '逻辑删除'
 );
 
+-- 优惠券发放任务表
 DROP TABLE if exists coupon_task;
 CREATE TABLE `coupon_task`
 (
@@ -672,7 +674,7 @@ CREATE TABLE `coupon_task_fail_record`
     isDelete        tinyint            default 0  null comment '逻辑删除'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='优惠券发放任务失败详情表';
 
-
+-- 用户领取优惠券记录
 DROP TABLE if exists user_coupon;
 CREATE TABLE `user_coupon`
 (
@@ -694,7 +696,7 @@ CREATE TABLE `user_coupon`
 ) ENGINE=InnoDB AUTO_INCREMENT=1816074493920030734 DEFAULT CHARSET=utf8mb4 COMMENT='用户优惠券表';
 
 
--- 用户提示id
+-- 优惠券提示
 CREATE TABLE `coupon_template_remind`
 (
     `userId`            bigint(20) NOT NULL COMMENT '用户ID',

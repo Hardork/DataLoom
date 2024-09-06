@@ -152,7 +152,7 @@ yarn build or npm run build
 - XXL-JOB
 - Nacos
 
-1. 执行sql目录下create_table.sql
+1. 执行sql目录下create_table.sql、create_datasource_database.sql
 2. 替换配置文件application.yml中打上xxx的属性值
 3. 将在nacos中创建命名空间dev
 ![img_1.png](img/命名空间.png)
