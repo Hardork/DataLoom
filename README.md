@@ -113,13 +113,10 @@
 ## 架构设计与项目核心流程 🗺️
 
 ### 架构设计
-![yuque_diagram.png](..%2F..%2F..%2F..%2F..%2FDownloads%2Fyuque_diagram.png)
-
+![项目架构图.png](img%2F%E9%A1%B9%E7%9B%AE%E6%9E%B6%E6%9E%84%E5%9B%BE.png)
 ### **智能化生成数据集**
-![yuque_diagram (1).png](..%2F..%2F..%2F..%2F..%2FDownloads%2Fyuque_diagram%20%281%29.png)
-
+![智能生成数据集.png](img%2F%E6%99%BA%E8%83%BD%E7%94%9F%E6%88%90%E6%95%B0%E6%8D%AE%E9%9B%86.png)
 ### AI分析服务
-
 ![img.png](img/img.png)
 
 
