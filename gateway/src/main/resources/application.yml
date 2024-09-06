@@ -1,0 +1,24 @@
+#spring:
+#  cloud:
+#    gateway:
+#      # 网关全局跨域配置
+#      globalcors:
+#        cors-configurations:
+#          '[/**]':
+#            allowedOriginPatterns: "*"
+#            allowedMethods: "*"
+#            allowedHeaders: "*"
+#            allowCredentials: true
+#        # 解决options请求被拦截的问题
+#        add-to-simple-url-handler-mapping: true
+#      defaultFilters:
+#        - AddResponseHeader=source, gateway
+#      routes:
+#        - id: admin_backend
+#          uri: http://localhost:8081/api/admin/**
+#          predicates:
+#            - Path=/api/admin/**
+#        - id: points_service
+#          uri: http://localhost:8082/api/points-service/**
+#          predicates:
+#            - Path=/api/points-service/**

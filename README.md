@@ -154,8 +154,10 @@ yarn build or npm run build
 
 1. 执行sql目录下create_table.sql
 2. 替换配置文件application.yml中打上xxx的属性值
-3. 将application里的配置文件复制到nacos中，将在nacos中添加配置文件
-![img_1.png](img_1.png)
+3. 将在nacos中创建命名空间dev
+![img_1.png](img/命名空间.png)
+4. 在nacos配置管理的配置列表中新增配置文件
+![img.png](img/配置文件.png)
 
 
 ## 协议

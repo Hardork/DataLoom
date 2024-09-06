@@ -12,8 +12,12 @@ spring:
         server-addr: ${nacos-server}:8848
         file-extension: yml
         namespace: d864e70c-94d2-45f1-b01d-af1d77da1f13
+        shared-configs:
+          - data-id: admin-backend.yml
+            refresh: true
       discovery:
         server-addr: ${nacos-server}:8848
+
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher

@@ -1,4 +1,3 @@
-## spring上下文配置
 #spring:
 #  mvc:
 #    pathmatch:
@@ -11,10 +10,9 @@
 #    timeout: 2592000
 #  # 数据库配置
 #  # todo 需替换配置
-#  # mongodb 配置，目前项目已经使用mysql替代mongoDB
-#  #  data:
-#  #    mongodb:
-#  #      uri: xxx
+#  data:
+#    mongodb:
+#      uri: mongodb://localhost/chart
 #  datasource:
 #    driver-class-name: com.mysql.cj.jdbc.Driver
 #    url: jdbc:mysql://xxx.xxx.xxx.xxx:3306/bi
@@ -39,7 +37,7 @@
 #          ssl:
 #            enable: true
 #  rabbitmq:
-#    host: xxx
+#    host: xxx.xxx.xxx.xxx
 #    username: xxx
 #    password: xxx
 #    # 初始化消费者数量
@@ -71,8 +69,8 @@
 ## yucongming
 #yuapi:
 #  client:
-#    access-key: e3yndaoabds7gaiz0cwuu213gq5yq7pq
-#    secret-key: 1enxmrjou9ly893qes7qyua4w92c3jlr
+#    access-key: xxx
+#    secret-key: xxx
 ## 讯飞星火
 #spark:
 #  hostUrl: https://spark-api.xf-yun.com/v2.1/chat
@@ -85,7 +83,6 @@
 #  ip: localhost
 #  port: 8000
 #  prefix: add_other_data
-## XXLJOB配置，用于定时任务，非强依赖
 #xxl:
 #  job:
 #    admin:
@@ -95,25 +92,15 @@
 #    accessToken: default_token
 #    executor:
 #      appname: dataLoom-executor
-#      ip: xxx.xxx.xxx.xxx
+#      ip: 127.0.0.1
 #      port: 9999
 #      logpath: /data/applogs/xxl-job/jobhandler
 #      logretentiondays: 30
-## 数据源数据库配置
-#datasource-list:
-#  sources:
-#    - driverClassName: com.mysql.jdbc.Driver
-#      url: jdbc:mysql://xxx.xxx.xxx.xxx:3306/data_warehouse_0
-#      username: xxx
-#      password: xxx
-#    - driverClassName: com.mysql.jdbc.Driver
-#      url: jdbc:mysql://xxx.xxx.xxx.xxx:3306/data_warehouse_1
-#      username: xxx
-#      password: xxx
-## kimi AI配置,
-#kimi:
-#  apiKey: xxx
-#  modelsUrl: xxx
-#  filesUrl: https://api.moonshot.cn/v1/files
-#  estimateTokenCountUrl: https://api.moonshot.cn/v1/tokenizers/estimate-token-count
-#  chatCompletionUrl: https://api.moonshot.cn/v1/chat/completions
+## 优惠券生产者配置
+#rocketmq:
+#  name-server: xxx.xxx.xxx.xxx:9876
+#  producer:
+#    group: coupon_producer
+#    send-message-timeout: 2000
+#    retry-times-when-send-failed: 1
+#    retry-times-when-send-async-failed: 1

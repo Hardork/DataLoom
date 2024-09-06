@@ -13,8 +13,6 @@ spring:
         file-extension: yml
         namespace: d864e70c-94d2-45f1-b01d-af1d77da1f13
         shared-configs:
-          - data-id: base.yml
-            refresh: true
           - data-id: points-service.yml
             refresh: true
 
