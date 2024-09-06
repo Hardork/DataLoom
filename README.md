@@ -158,7 +158,8 @@ yarn build or npm run build
 ![img_1.png](img/命名空间.png)
 4. 在nacos配置管理的配置列表中新增配置文件
 ![img.png](img/配置文件.png)
-
+5. 添加启动环境变量，nacos-server = xxx.xxx.xxx.xxx(nacos地址)
+![启动环境配置.png](img%2F%E5%90%AF%E5%8A%A8%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE.png)
 
 ## 协议
 [MIT](https://choosealicense.com/licenses/mit)
