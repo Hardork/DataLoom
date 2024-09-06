@@ -21,6 +21,7 @@ import com.hwq.dataloom.service.ChartService;
 import com.hwq.dataloom.service.FailedChartService;
 import com.hwq.dataloom.service.UserMessageService;
 import com.hwq.dataloom.utils.datasource.ExcelUtils;
+import com.hwq.dataloom.utils.datasource.MongoEngineUtils;
 import com.hwq.dataloom.websocket.UserWebSocket;
 import com.rabbitmq.client.Channel;
 import lombok.SneakyThrows;
@@ -60,6 +61,9 @@ public class AnalysisMessageConsumer {
 
     @Resource
     private ExcelUtils excelUtils;
+
+    @Resource
+    private MongoEngineUtils mongoEngineUtils;
 
     /**
      * 监听BI队列消息，并调用ChatGPT接口进行消费
@@ -371,7 +375,7 @@ public class AnalysisMessageConsumer {
         String goal = chart.getGoal();
         String chartType = chart.getChartType();
         Long userDataId = chart.getUserDataId();
-        String csvData = excelUtils.mongoToCSV(userDataId);
+        String csvData = mongoEngineUtils.mongoToCSV(userDataId);
         // 构造用户输入
         StringBuilder userInput = new StringBuilder();
         userInput.append("分析需求：").append("\n");

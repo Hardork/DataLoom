@@ -33,6 +33,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import com.hwq.dataloom.utils.datasource.ExcelUtils;
+import com.hwq.dataloom.utils.datasource.MongoEngineUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -65,119 +66,9 @@ public class ChartController {
     private ExcelUtils excelUtils;
 
     @Resource
-    private UserDataService userDataService;
+    private MongoEngineUtils mongoEngineUtils;
 
 
-    @PostMapping("/gen/async/mq")
-    @ReduceRewardPoint(reducePoint = 2)
-    @BiService
-    @CheckPoint(needPoint = 2)
-    @RateLimiter(ratePerSecond = 2, key = "genChartByAi_")
-    public BaseResponse<BiResponse> genChartByAiAsyncMq(@RequestPart("file") MultipartFile multipartFile,
-                                                        GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) {
-        String name = genChartByAiRequest.getName();
-        String goal = genChartByAiRequest.getGoal();
-        String chartType = genChartByAiRequest.getChartType();
-        // 校验
-        ThrowUtils.throwIf(StringUtils.isBlank(goal), ErrorCode.PARAMS_ERROR, "目标为空");
-        ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length() > 100, ErrorCode.PARAMS_ERROR, "名称过长");
-        // 校验文件
-        validFile(multipartFile);
-        User loginUser = userService.getLoginUser(request);
-        // 压缩后的数据
-        String csvData = excelUtils.excelToCsv(multipartFile);
-        // 插入到数据库
-        Chart chart = new Chart();
-        chart.setName(name);
-        chart.setGoal(goal);
-        chart.setChartData(csvData);
-        chart.setChartType(chartType);
-        chart.setStatus("wait");
-        chart.setUserId(loginUser.getId());
-        boolean saveResult = chartService.save(chart);
-
-        ThrowUtils.throwIf(!saveResult, ErrorCode.SYSTEM_ERROR, "图表保存失败");
-        long newChartId = chart.getId();
-        analysisMessageProducer.sendMessage(String.valueOf(newChartId));
-        // 分析成功
-        BiResponse biResponse = new BiResponse();
-        biResponse.setChartId(newChartId);
-        return ResultUtils.success(biResponse);
-    }
-
-    /**
-     * 校验文件
-     * @param multipartFile
-     */
-    private void validFile(MultipartFile multipartFile) {
-        long size = multipartFile.getSize();
-        // 校验文件大小
-        final long ONE_MB = 1024 * 1024L;
-        ThrowUtils.throwIf(size > ONE_MB, ErrorCode.PARAMS_ERROR, "文件超过 1M");
-        // 校验文件后缀 aaa.png
-        String originalFilename = multipartFile.getOriginalFilename();
-        String suffix = FileUtil.getSuffix(originalFilename);
-        final List<String> validFileSuffixList = Arrays.asList("xlsx", "xls", "csv");
-        ThrowUtils.throwIf(!validFileSuffixList.contains(suffix), ErrorCode.PARAMS_ERROR, "文件后缀非法");
-    }
-
-
-    /**
-     * 将用户数据存储到MongoDB中
-     * @param multipartFile
-     * @param genChartByAiRequest
-     * @param request
-     * @return
-     */
-    @PostMapping("/gen/async/mq/v3")
-    @ReduceRewardPoint(reducePoint = 2)
-    @BiService
-    @CheckPoint(needPoint = 2)
-    @RateLimiter(ratePerSecond = 2, key = "genChartByAi_")
-    public BaseResponse<BiResponse> genChartByAiAsyncMqV3(@RequestPart("file") MultipartFile multipartFile, GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) {
-        String name = genChartByAiRequest.getName();
-        String goal = genChartByAiRequest.getGoal();
-        String chartType = genChartByAiRequest.getChartType();
-        // 校验
-        ThrowUtils.throwIf(StringUtils.isBlank(goal), ErrorCode.PARAMS_ERROR, "目标为空");
-        ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length() > 100, ErrorCode.PARAMS_ERROR, "名称过长");
-        // 校验文件
-        long size = multipartFile.getSize();
-        String originalFilename = multipartFile.getOriginalFilename();
-        // 校验文件大小
-        final long ONE_MB = 1024 * 1024L;
-        ThrowUtils.throwIf(size > ONE_MB, ErrorCode.PARAMS_ERROR, "文件超过 1M");
-        // 校验文件后缀 aaa.png
-        String suffix = FileUtil.getSuffix(originalFilename);
-        final List<String> validFileSuffixList = Arrays.asList("xlsx", "xls", "csv");
-        ThrowUtils.throwIf(!validFileSuffixList.contains(suffix), ErrorCode.PARAMS_ERROR, "文件后缀非法");
-        User loginUser = userService.getLoginUser(request);
-        // 判断用户积分是否充足
-        Integer totalRewardPoints = loginUser.getTotalRewardPoints();
-        ThrowUtils.throwIf(totalRewardPoints <= 0, ErrorCode.OPERATION_ERROR, "积分不足");
-        // 将生成的chartId作为数据表的表名chart_{id}
-        Long id = userDataService.save(loginUser, originalFilename, originalFilename, multipartFile);
-        // 将用户上传的数据存入到MongoDB中
-        excelUtils.saveDataToMongo(multipartFile,id);
-        // 防止投喂给AI的数据太大
-        // 插入到数据库
-        Chart chart = new Chart();
-        chart.setName(name);
-        chart.setGoal(goal);
-        chart.setUserId(id);
-        chart.setUserDataId(id);
-        chart.setChartType(chartType);
-        chart.setStatus("wait");
-        chart.setUserId(loginUser.getId());
-        boolean saveResult = chartService.save(chart);
-        long newChartId = chart.getId();
-        analysisMessageProducer.sendMessage(String.valueOf(newChartId));
-        ThrowUtils.throwIf(!saveResult, ErrorCode.SYSTEM_ERROR, "图表保存失败");
-        // 分析成功
-        BiResponse biResponse = new BiResponse();
-        biResponse.setChartId(newChartId);
-        return ResultUtils.success(biResponse);
-    }
 
     /**
      * 基于数据集分析
@@ -228,7 +119,6 @@ public class ChartController {
         biResponse.setChartId(chartId);
         return ResultUtils.success(biResponse);
     }
-
 
 
 
@@ -330,7 +220,7 @@ public class ChartController {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
         // 获取mongo中的data数据
-        String chartData = excelUtils.mongoToCSV(chart.getUserDataId());
+        String chartData = mongoEngineUtils.mongoToCSV(chart.getUserDataId());
         chart.setChartData(chartData);
 
         return ResultUtils.success(chart);

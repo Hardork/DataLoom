@@ -24,6 +24,7 @@ import com.hwq.dataloom.service.UserDataService;
 import com.hwq.dataloom.mapper.UserDataMapper;
 import com.hwq.dataloom.service.UserService;
 import com.hwq.dataloom.utils.datasource.ExcelUtils;
+import com.hwq.dataloom.utils.datasource.MongoEngineUtils;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
@@ -74,6 +75,9 @@ public class UserDataServiceImpl extends ServiceImpl<UserDataMapper, UserData>
     @Resource
     private ExcelUtils excelUtils;
 
+    @Resource
+    private MongoEngineUtils mongoEngineUtils;
+
     @Override
     public Boolean deleteUserData(Long id, User loginUser) {
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
@@ -119,7 +123,7 @@ public class UserDataServiceImpl extends ServiceImpl<UserDataMapper, UserData>
         excelUtils.saveDataToMySQL(multipartFile, userData.getId());
         ThrowUtils.throwIf(!savePermission, ErrorCode.SYSTEM_ERROR);
         // 将数据存储到MongoDB中
-        List<TableFieldInfo> tableFieldInfos = excelUtils.saveDataToMongo(multipartFile, userData.getId());
+        List<TableFieldInfo> tableFieldInfos = mongoEngineUtils.saveDataToMongo(multipartFile, userData.getId());
         // 更新元数据的fieldType
         String tableFieldInfosString = JSON.toJSONString(tableFieldInfos);
         userData.setFieldTypeInfo(tableFieldInfosString);

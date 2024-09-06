@@ -19,9 +19,11 @@
 </a>
 </div>
 
-> 作者：[老山羊](https://github.com/Hardork)
-
-
+> 作者：[Hardork](https://github.com/Hardork)
+> 贡献者：[RookieeZhang](https://github.com/RookieeZhang)
+> 项目问题通过下面的联系方式进行沟通
+> 邮箱：hardork@163.com
+> WX号: _hardork
 
 ## 项目背景
 <strong>
@@ -111,10 +113,10 @@
 ## 架构设计与项目核心流程 🗺️
 
 ### 架构设计
-![img.png](img.png)
+![yuque_diagram.png](..%2F..%2F..%2F..%2F..%2FDownloads%2Fyuque_diagram.png)
 
 ### **智能化生成数据集**
-![img.png](img/img_13.png)
+![yuque_diagram (1).png](..%2F..%2F..%2F..%2F..%2FDownloads%2Fyuque_diagram%20%281%29.png)
 
 ### AI分析服务
 
@@ -146,9 +148,18 @@ yarn build or npm run build
 ```
 
 ### 后端
+请确保你包含以下中间件：
+- MySQL
+- RabbitMQ
+- Redis
+- XXL-JOB
+- Nacos
 
 1. 执行sql目录下create_table.sql
-2. 更改配置文件application.yml中打上xxx的属性值
+2. 替换配置文件application.yml中打上xxx的属性值
+3. 将application里的配置文件复制到nacos中，将在nacos中添加配置文件
+![img_1.png](img_1.png)
+
 
 ## 协议
 [MIT](https://choosealicense.com/licenses/mit)
