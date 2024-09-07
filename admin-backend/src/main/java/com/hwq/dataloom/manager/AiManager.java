@@ -76,12 +76,18 @@ public class AiManager {
         return moonshotAiClient.chat("moonshot-v1-128k",messages);
     }
 
-    public String doAskSQLWithKimi(String message) {
+    /**
+     * 执行智能问数
+     * @param message 构造的输入
+     * @param limitSize select 结果限制的行数
+     * @return
+     */
+    public String doAskSQLWithKimi(String message, int limitSize) {
         String SQLPrompt = "你是一个MySQL数据库专家，专门负责根据查询需求得出SQL查询语句，接下来我会按照以下固定格式给你提供内容： \n" +
                 "分析需求:{分析需求或者目标} \n" +
-                "数据表元数据:{数据库表名、数据库表的字段以及类型} \n" +
+                "所有的数据表元数据:[{数据库表名、表注释、数据库表的字段、注释以及类型}] \n" +
                 "请根据这两部分内容，按照以下指定格式生成内容(此外不要输出任何多余的开头、结尾、注释),并且只生成Select语句!!!\n" +
-                "例如" + "select * from user where name = zs";
+                "要求select的结果不超过" + limitSize + "行";
         List<Message> messages = CollUtil.newArrayList(
                 new Message(RoleEnum.system.name(), SQLPrompt),
                 new Message(RoleEnum.user.name(), message)

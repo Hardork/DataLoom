@@ -8,14 +8,14 @@
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="userId" column="userId" jdbcType="BIGINT"/>
             <result property="modelId" column="modelId" jdbcType="BIGINT"/>
-            <result property="dataId" column="dataId" jdbcType="BIGINT"/>
+            <result property="datasourceId" column="datasourceId" jdbcType="BIGINT"/>
             <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
             <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
             <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,userId,modelId,dataId,
+        id,userId,modelId,datasourceId,
         createTime,updateTime,isDelete
     </sql>
 </mapper>

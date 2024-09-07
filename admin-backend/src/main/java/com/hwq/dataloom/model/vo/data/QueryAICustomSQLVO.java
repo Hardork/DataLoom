@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * @author HWQ
  * @date 2024/6/17 23:24
- * @description
+ * @description 智能问数返回类
  */
 @Data
 public class QueryAICustomSQLVO {

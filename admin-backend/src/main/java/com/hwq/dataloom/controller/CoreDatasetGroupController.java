@@ -17,6 +17,8 @@ import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.service.UserService;
 import com.hwq.dataloom.utils.datasource.DatasourceEngine;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.calcite.sql.parser.SqlParser;
 import org.apache.commons.lang3.ObjectUtils;
@@ -40,6 +42,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @RestController
 @RequestMapping("/admin/coreDatasetGroup")
 @Slf4j
+@Tag(name = "数据集接口")
 public class CoreDatasetGroupController {
 
     @Resource
@@ -56,6 +59,7 @@ public class CoreDatasetGroupController {
 
     private Lock lock = new ReentrantLock();
 
+    @Operation(summary = "保存数据集")
     @PostMapping("/save")
     public BaseResponse<CoreDatasetGroupDTO> save(@RequestBody CoreDatasetGroupDTO coreDatasetGroupDTO, boolean rename, HttpServletRequest httpServletRequest){
         lock.lock();
@@ -91,6 +95,7 @@ public class CoreDatasetGroupController {
         return ResultUtils.success(coreDatasetGroupDTO);
     }
 
+    @Operation(summary = "获取数据集字段信息")
     @GetMapping("/get")
     public BaseResponse<CoreDatasetGroupDTO> get(Long id, HttpServletRequest httpServletRequest) {
         CoreDatasetGroup coreDatasetGroup = coreDatasetGroupService.getById(id);
@@ -113,8 +118,9 @@ public class CoreDatasetGroupController {
         return ResultUtils.success(coreDatasetGroupDTO);
     }
 
+    @Operation(summary = "预览自定义SQL")
     @PostMapping("/previewSql")
-    public BaseResponse<Map<String, List>> previewSql(Long datasourceId, String sql,HttpServletRequest httpServletRequest) {
+    public BaseResponse<Map<String, List>> previewSql(Long datasourceId, String sql, HttpServletRequest httpServletRequest) {
         // 鉴权
         CoreDatasource coreDatasource = coreDatasourceService.getById(datasourceId);
         Long userId = coreDatasource.getUserId();
@@ -127,6 +133,12 @@ public class CoreDatasetGroupController {
         return ResultUtils.success(data);
     }
 
+    /**
+     * 自定义SQL鉴权
+     * @param unionDTO
+     * @param loginUser
+     * @return
+     */
     private boolean isAuth(UnionDTO unionDTO, User loginUser) {
         Long datasourceId = unionDTO.getCurrentDs().getDatasourceId();
         CoreDatasource coreDatasource = coreDatasourceService.getById(datasourceId);

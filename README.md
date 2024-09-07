@@ -1,5 +1,5 @@
 <h1 align="center">DataLoom</h1>
-<p align="center"><strong>DataLoom是一个为用户提供智能化、可视化的数据分析平台 🛠</strong></p>
+<p align="center"><strong>DataLoom是一个为用户提供智能化、可视化的数据治理与分析平台 🛠</strong></p>
 <div align="center">
 <a target="_blank" href="https://github.com/Hardork/hwqbi-backend">
     <img alt="" src="https://github.com/Hardork/hwqbi-backend/badge/star.svg?theme=gvp"/>
@@ -14,8 +14,6 @@
     <img alt="SpringBoot" src="https://raster.shields.io/badge/SpringBoot-2.7+-green.svg"/>
 <a href="https://github.com/Hardork/hwqbi-backend" target="_blank">
     <img src='https://img.shields.io/github/forks/Hardork/hwqbi-backend' alt='GitHub forks' class="no-zoom">
-</a>
-<a href="https://github.com/Hardork/hwqbi-backend" target="_blank"><img src='https://img.shields.io/github/stars/Hardork/hwqbi-backend' alt='GitHub stars' class="no-zoom">
 </a>
 </div>
 

@@ -50,22 +50,15 @@ public class AiController {
     private AiRoleService aiRoleService;
 
     @Resource
+    private AIService aiService;
+
+    @Resource
     private ChatHistoryService chatHistoryService;
     @Resource
     private ChatService chatService;
 
     @Resource
-    private AiManager aiManager;
-
-    @Resource
-    private UserDataService userDataService;
-
-    @Resource
     private UserCreateAssistantService userCreateAssistantService;
-
-    @Resource
-    private AskSQLWebSocket askSQLWebSocket;
-
     /**
      * 单次会话
      * @param aiTalkRequest
@@ -205,57 +198,7 @@ public class AiController {
         // 限流
         User loginUser = userService.getLoginUser(request);
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
-        // 获取模型ID
-        Chat chat = chatService.getById(chatId);
-        ThrowUtils.throwIf(chat == null, ErrorCode.PARAMS_ERROR, "不存在该助手");
-        // 获取数据集对应信息
-        UserData userData = userDataService.getById(chat.getDataId());
-        ThrowUtils.throwIf(userData == null, ErrorCode.PARAMS_ERROR, "数据不存在");
-        // 获取对应模型Id
-        Long modelId = chat.getModelId();
-        AiRole model = aiRoleService.getById(modelId);
-        if (model == null) {
-            UserCreateAssistant userCreateAssistant = userCreateAssistantService.getById(modelId);
-            model = new AiRole();
-            BeanUtils.copyProperties(userCreateAssistant, model);
-        }
-        String fieldTypeInfo = userData.getFieldTypeInfo();
-        String tableName = "chart_" + userData.getId();
-        // 将数据存储在历史记录中
-        ChatHistory user_q = new ChatHistory();
-        user_q.setChatRole(ChatHistoryRoleEnum.USER.getValue());
-        user_q.setChatId(chatId);
-        user_q.setModelId(modelId);
-        user_q.setContent(question);
-        chatHistoryService.save(user_q);
-        // 利用webSocket发送消息通知开始
-        AskSQLWebSocketMsgVO askSQLWebSocketMsgVO = new AskSQLWebSocketMsgVO();
-        askSQLWebSocketMsgVO.setType("start");
-        askSQLWebSocket.sendOneMessage(loginUser.getId(), askSQLWebSocketMsgVO);
-        // 数据库信息隔离 真实的数据表名：user_id + chat_id
-        String q = "分析需求:{"+ question +"}\n";
-        String metaInfo = "数据表元数据:{表名: "+ tableName + "、 数据库字段: "+ fieldTypeInfo + "}";
-        String sql = aiManager.doAskSQLWithKimi(q + metaInfo);
-        QueryAICustomSQLVO queryAICustomSQLVO = MySQLUtil.queryCustomSqlWithDefaultCon(sql);
-        queryAICustomSQLVO.setSql(sql);
-        // 将结果存放在数据库中
-        ChatHistory system_a = new ChatHistory();
-        system_a.setChatRole(ChatHistoryRoleEnum.MODEL.getValue());
-        system_a.setChatId(chatId);
-        system_a.setModelId(modelId);
-        // 存储JSON字符串
-        system_a.setContent(JSONUtil.toJsonStr(queryAICustomSQLVO));
-        chatHistoryService.save(system_a);
-        // 利用webSocket发送消息通知开始
-        AskSQLWebSocketMsgVO res = new AskSQLWebSocketMsgVO();
-        res.setRes(queryAICustomSQLVO.getRes());
-        res.setColumns(queryAICustomSQLVO.getColumns());
-        res.setType("running");
-        res.setSql(sql);
-        askSQLWebSocket.sendOneMessage(loginUser.getId(), res);
-        AskSQLWebSocketMsgVO end = new AskSQLWebSocketMsgVO();
-        end.setType("end");
-        askSQLWebSocket.sendOneMessage(loginUser.getId(), end);
+        aiService.userChatForSQL(chatForSQLRequest, loginUser);
         return ResultUtils.success(true);
     }
 

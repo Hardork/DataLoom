@@ -26,9 +26,8 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
 
     @Resource
     private AiRoleService aiRoleService;
-
     @Resource
-    private UserDataService userDataService;
+    private CoreDatasourceService coreDatasourceService;
 
     @Resource
     private UserCreateAssistantService userCreateAssistantService;
@@ -79,16 +78,16 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
     }
 
     @Override
-    public Boolean addUserAskSqlHistory(Long dataId, User loginUser) {
+    public Boolean addUserAskSqlHistory(Long datasourceId, User loginUser) {
         ThrowUtils.throwIf(loginUser.getId() == null, ErrorCode.NOT_LOGIN_ERROR);
-        ThrowUtils.throwIf(dataId == null, ErrorCode.PARAMS_ERROR);
-        UserData userData = userDataService.getById(dataId);
+        ThrowUtils.throwIf(datasourceId == null, ErrorCode.PARAMS_ERROR);
+        CoreDatasource userData = coreDatasourceService.getById(datasourceId);
         ThrowUtils.throwIf(userData == null, ErrorCode.PARAMS_ERROR);
         // 添加记录
         Chat chat = new Chat();
         chat.setUserId(loginUser.getId());
         chat.setModelId(1782948306561814529L);
-        chat.setDataId(dataId);
+        chat.setDatasourceId(datasourceId);
         boolean save = this.save(chat);
         ThrowUtils.throwIf(!save, ErrorCode.SYSTEM_ERROR);
         return true;
