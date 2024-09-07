@@ -57,7 +57,7 @@ public class CoreDatasourceTaskServiceImpl extends ServiceImpl<CoreDatasourceTas
     @Override
     public Long addTask(DatasourceDTO datasourceDTO, Long datasetTableId, Integer xxlJobId) {
         CoreDatasourceTask coreDatasourceTask = new CoreDatasourceTask();
-        coreDatasourceTask.setDataSourceId(datasourceDTO.getId());
+        coreDatasourceTask.setDatasourceId(datasourceDTO.getId());
         TaskDTO taskDTO = datasourceDTO.getSyncSetting();
         ThrowUtils.throwIf(taskDTO == null, ErrorCode.PARAMS_ERROR);
         coreDatasourceTask.setName(datasourceDTO.getId() + "同步任务");

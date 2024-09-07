@@ -26,7 +26,7 @@ public class CoreDatasourceTask implements Serializable {
     /**
      * 数据源ID
      */
-    private Long dataSourceId;
+    private Long datasourceId;
 
     /**
      * 数据表ID

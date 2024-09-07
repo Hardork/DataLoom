@@ -6,7 +6,7 @@
 
     <resultMap id="BaseResultMap" type="com.hwq.dataloom.model.entity.CoreDatasourceTask">
             <id property="id" column="id" jdbcType="BIGINT"/>
-            <result property="dataSourceId" column="dataSourceId" jdbcType="BIGINT"/>
+            <result property="datasourceId" column="dataSourceId" jdbcType="BIGINT"/>
             <result property="datasetTableId" column="datasetTableId" jdbcType="BIGINT"/>
             <result property="name" column="name" jdbcType="VARCHAR"/>
             <result property="updateType" column="updateType" jdbcType="VARCHAR"/>
@@ -26,7 +26,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,dataSourceId,datasetTableId,
+        id,datasourceId,datasetTableId,
         name,updateType,startTime,
         syncRate,cron,simpleCronValue,
         simpleCronType,endLimit,endTime,
