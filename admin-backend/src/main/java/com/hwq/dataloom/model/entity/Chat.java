@@ -32,24 +32,24 @@ public class Chat implements Serializable {
     private Long modelId;
 
     /**
-     * 对应数据集id
+     * 对应数据源id
      */
-    private Long dataId;
+    private Long datasourceId;
 
     /**
-     * 
+     * 创建时间
      */
     @TableField(value = "createTime")
     private Date createTime;
 
     /**
-     * 
+     * 更新时间
      */
     @TableField(value = "updateTime")
     private Date updateTime;
 
     /**
-     * 
+     * 逻辑删除
      */
     @TableField(value = "isDelete")
     @TableLogic
