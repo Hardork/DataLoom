@@ -104,6 +104,27 @@ public class ChartServiceImpl extends ServiceImpl<ChartMapper, Chart>
         return newChartId;
     }
 
+    @Override
+    public Long genChartByAiWithCoreDataSet(String name, String goal, String chartType, Long dataId, User loginUser) {
+        // 校验
+        ThrowUtils.throwIf(StringUtils.isBlank(goal), ErrorCode.PARAMS_ERROR, "目标为空");
+        ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length() > 100, ErrorCode.PARAMS_ERROR, "名称过长");
+        ThrowUtils.throwIf(dataId == null, ErrorCode.PARAMS_ERROR, "数据集id不得为空");
+        ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
+        // 查询对应的dataId
+        UserData userData = userDataService.getById(dataId);
+        ThrowUtils.throwIf(userData == null, ErrorCode.PARAMS_ERROR, "请求数据集不存在");
+        // 判断数据集是否合法
+        ThrowUtils.throwIf(!loginUser.getId().equals(userData.getUserId()), ErrorCode.NO_AUTH_ERROR);
+        // 初始化chart，设置状态为wait（等待中）
+        long newChartId = initChart(name, goal, chartType, loginUser, userData);
+        // 根据用户身份将消息转发到不同的队列中
+        RoleService roleStrategy = roleStrategyFactory.getRoleStrategy(loginUser.getUserRole());
+        ThrowUtils.throwIf(roleStrategy == null, ErrorCode.PARAMS_ERROR);
+        roleStrategy.sendMessageToMQ(String.valueOf(newChartId));
+        return null;
+    }
+
     private long initChart(String name, String goal, String chartType, User loginUser, UserData userData) {
         Chart chart = new Chart();
         chart.setName(name);

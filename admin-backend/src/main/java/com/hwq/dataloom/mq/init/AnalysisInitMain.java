@@ -26,7 +26,7 @@ public class AnalysisInitMain {
             channel.exchangeDeclare(EXCHANGE_NAME, "direct", true, false, false, null);
 
             // 创建队列，分配一个队列名称
-            String queueName = AnalysisMqConstant.BI_QUEUE_NAME;
+            String queueName = AnalysisMqConstant.GEN_CHART_NAME;
             // 设定参数（发送死信传到哪个交换机）
             Map<String, Object> arguments = new HashMap<>();
             arguments.put("x-dead-letter-exchange", AnalysisMqConstant.BI_DEAD_EXCHANGE_NAME);
@@ -43,7 +43,7 @@ public class AnalysisInitMain {
             channel.exchangeDeclare(VIP_EXCHANGE_NAME, "direct", true, false, false, null);
 
             // 创建队列，分配一个队列名称
-            String vipQueueName = AnalysisMqConstant.BI_VIP_QUEUE_NAME;
+            String vipQueueName = AnalysisMqConstant.GEN_VIP_CHART_NAME;
 
             // 声明VIP队列
             channel.queueDeclare(vipQueueName, true, false, false, null);

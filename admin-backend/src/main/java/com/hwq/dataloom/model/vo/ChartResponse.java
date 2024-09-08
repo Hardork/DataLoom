@@ -3,10 +3,10 @@ package com.hwq.dataloom.model.vo;
 import lombok.Data;
 
 /**
- * Bi 的返回结果
+ * chart 的返回结果
  */
 @Data
-public class BiResponse {
+public class ChartResponse {
 
     private String genChart;
 

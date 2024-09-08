@@ -147,11 +147,6 @@
             <groupId>org.redisson</groupId>
             <artifactId>redisson</artifactId>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.github.binarywang/wx-java-mp-spring-boot-starter -->
-        <dependency>
-            <groupId>com.github.binarywang</groupId>
-            <artifactId>wx-java-mp-spring-boot-starter</artifactId>
-        </dependency>
         <!-- https://doc.xiaominfo.com/knife4j/documentation/get_start.html-->
         <dependency>
             <groupId>com.github.xiaoymin</groupId>

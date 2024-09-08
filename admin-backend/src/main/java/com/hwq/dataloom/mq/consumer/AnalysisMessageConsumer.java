@@ -60,9 +60,6 @@ public class AnalysisMessageConsumer {
     private UserMessageService userMessageService;
 
     @Resource
-    private ExcelUtils excelUtils;
-
-    @Resource
     private MongoEngineUtils mongoEngineUtils;
 
     /**
@@ -72,7 +69,7 @@ public class AnalysisMessageConsumer {
      * @param deliveryTag
      */
     @SneakyThrows
-    @RabbitListener(queues = {AnalysisMqConstant.BI_QUEUE_NAME}, ackMode = "MANUAL", containerFactory = "gptContainerFactory")
+    @RabbitListener(queues = {AnalysisMqConstant.GEN_CHART_NAME}, ackMode = "MANUAL", containerFactory = "gptContainerFactory")
     public void receiveMessage(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
         log.info("ChatGPT receiveMessage message = {}", message);
         channel.basicQos(1);
@@ -130,7 +127,7 @@ public class AnalysisMessageConsumer {
      * @param deliveryTag
      */
     @SneakyThrows
-    @RabbitListener(queues = {AnalysisMqConstant.BI_VIP_QUEUE_NAME}, ackMode = "MANUAL", containerFactory = "kimiContainerFactory")
+    @RabbitListener(queues = {AnalysisMqConstant.GEN_VIP_CHART_NAME}, ackMode = "MANUAL", containerFactory = "kimiContainerFactory")
     public void receiveMessageToKimi(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
         log.info("KimiAI receiveMessage message = {}", message);
         channel.basicQos(1);
@@ -159,8 +156,6 @@ public class AnalysisMessageConsumer {
         // 分析的依据：
         // 用户的身份 普通用户：8K以下
 
-        // 用户的选择
-
         String[] result;
         try {
             result =  retryer.call(new Callable<String[]>() {
@@ -182,7 +177,6 @@ public class AnalysisMessageConsumer {
         String genResult = result[2].trim(); // 生成的分析结果
         // 更新图表状态为succeed
         updateChartSucceed(channel, deliveryTag, chart, genChart, genResult);
-
 
         // 通知入库
         savaToUserMessage(chart);
@@ -366,11 +360,60 @@ public class AnalysisMessageConsumer {
         ThrowUtils.throwIf(!update, ErrorCode.SYSTEM_ERROR);
     }
 
+
+    private String buildUserInputFromDbEngine(Chart chart) {
+        String goal = chart.getGoal();
+        String chartType = chart.getChartType();
+        Long userDataId = chart.getUserDataId();
+        String csvData = mongoEngineUtils.mongoToCSV(userDataId);
+        // 构造用户输入
+        StringBuilder userInput = new StringBuilder();
+        userInput.append("分析需求：").append("\n");
+
+        // 拼接分析目标
+        String userGoal = goal;
+        if (StringUtils.isNotBlank(chartType)) {
+            userGoal += "，请使用" + chartType;
+        }
+        userInput.append(userGoal).append("\n");
+        userInput.append("原始数据：").append("\n");
+        userInput.append(csvData).append("\n");
+        return userInput.toString();
+    }
+
+
+
     /**
      * 将用户存储在mongo中的数据转为构造的input
      * @param chart
      * @return
      */
+//    private String buildUserInputFromDbEngine(Chart chart) {
+//        String goal = chart.getGoal();
+//        String chartType = chart.getChartType();
+//        Long userDataId = chart.getUserDataId();
+//        String csvData = mongoEngineUtils.mongoToCSV(userDataId);
+//        // 构造用户输入
+//        StringBuilder userInput = new StringBuilder();
+//        userInput.append("分析需求：").append("\n");
+//
+//        // 拼接分析目标
+//        String userGoal = goal;
+//        if (StringUtils.isNotBlank(chartType)) {
+//            userGoal += "，请使用" + chartType;
+//        }
+//        userInput.append(userGoal).append("\n");
+//        userInput.append("原始数据：").append("\n");
+//        userInput.append(csvData).append("\n");
+//        return userInput.toString();
+//    }
+
+    /**
+     * 将用户存储在mongo中的数据转为构造的input
+     * @param chart
+     * @return
+     */
+    @Deprecated
     private String buildUserInputFromMongo(Chart chart) {
         String goal = chart.getGoal();
         String chartType = chart.getChartType();

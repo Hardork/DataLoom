@@ -26,5 +26,18 @@ public interface ChartService extends IService<Chart> {
      * @param loginUser
      * @return
      */
+    @Deprecated
     Long genChartByAiWithDataAsyncMq(String name, String goal, String chartType, Long dataId, User loginUser);
+
+    /**
+     * 根据数据集生成分析图标
+     * @param name 名称
+     * @param goal 目标
+     * @param chartType 图标类型
+     * @param dataId 数据集ID
+     * @param loginUser 登录用户
+     * @return 图标ID
+     */
+    Long genChartByAiWithCoreDataSet(String name, String goal, String chartType, Long dataId, User loginUser);
+
 }

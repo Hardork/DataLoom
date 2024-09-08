@@ -14,17 +14,15 @@ import com.hwq.dataloom.model.enums.ChatHistoryRoleEnum;
 import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
 import com.hwq.dataloom.service.*;
 import com.hwq.dataloom.utils.datasource.DatasourceEngine;
-import com.hwq.dataloom.utils.datasource.MySQLUtil;
 import com.hwq.dataloom.websocket.AskSQLWebSocket;
 import com.hwq.dataloom.websocket.vo.AskSQLWebSocketMsgVO;
 import lombok.SneakyThrows;
-import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +35,7 @@ import static com.hwq.dataloom.constant.UserChatForSQLConstant.*;
  * @date 2024/9/7 16:54
  * @description
  */
+@Component
 public class AIServiceImpl implements AIService {
 
 
