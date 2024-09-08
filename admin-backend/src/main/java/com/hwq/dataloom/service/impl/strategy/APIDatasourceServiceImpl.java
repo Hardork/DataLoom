@@ -157,18 +157,20 @@ public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<Datas
     public Boolean validDatasource(DatasourceDTO datasourceDTO) {
         // 校验API数据
         String configuration = datasourceDTO.getConfiguration();
-        ApiDefinition apiDefinition = JSONUtil.toBean(configuration, ApiDefinition.class);
+        List<ApiDefinition> apiDefinitions = JSONUtil.toList(configuration, ApiDefinition.class);
         String responseBody = null;
         try {
             // 向API发送请求
-            CloseableHttpResponse response = ApiUtils.getApiResponse(apiDefinition);
-            int code = response.getCode();
-            if (code != 200) {
-                throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "调用接口失败！错误码为：" + code);
-            }
-            responseBody = EntityUtils.toString(response.getEntity());
-            if (StringUtils.isEmpty(responseBody)) {
-                throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "接口调用失败！接口请求结果为空！");
+            for (ApiDefinition apiDefinition : apiDefinitions) {
+                CloseableHttpResponse response = ApiUtils.getApiResponse(apiDefinition);
+                int code = response.getCode();
+                if (code != 200) {
+                    throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "调用接口失败！错误码为：" + code);
+                }
+                responseBody = EntityUtils.toString(response.getEntity());
+                if (StringUtils.isEmpty(responseBody)) {
+                    throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "接口调用失败！接口请求结果为空！");
+                }
             }
         } catch (IOException | ParseException e) {
             throw new RuntimeException(e);
