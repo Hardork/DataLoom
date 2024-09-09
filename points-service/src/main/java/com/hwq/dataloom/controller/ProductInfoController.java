@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hwq.dataloom.annotation.AuthCheck;
+import com.hwq.dataloom.config.UserContext;
 import com.hwq.dataloom.framework.constants.UserConstant;
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.framework.result.BaseResponse;
@@ -12,7 +13,6 @@ import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.result.ResultUtils;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
-import com.hwq.dataloom.framework.service.InnerUserServiceInterface;
 import com.hwq.dataloom.model.dto.product_info.*;
 import com.hwq.dataloom.model.entity.ProductPoint;
 import com.hwq.dataloom.model.entity.ProductVip;
@@ -51,8 +51,6 @@ public class ProductInfoController {
     @Resource
     private ProductVipService productVipService;
 
-    @DubboReference
-    private InnerUserServiceInterface userService;
 
 
     /**
@@ -72,7 +70,7 @@ public class ProductInfoController {
         BeanUtils.copyProperties(productInfoAddRequest, productPoint);
         // 校验
         productPointService.validProductInfo(productPoint, true);
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = UserContext.getUser();
         productPoint.setUserId(loginUser.getId());
         productPoint.setTotal(MoneyUtils.saveToDatabaseMoney(productInfoAddRequest.getTotal()));
         productPoint.setOriginalTotal(MoneyUtils.saveToDatabaseMoney(productInfoAddRequest.getOriginalTotal()));
@@ -94,7 +92,7 @@ public class ProductInfoController {
         BeanUtils.copyProperties(productInfoAddRequest, productVip);
         // 校验
         productVipService.validProductInfo(productVip, true);
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = UserContext.getUser();
         productVip.setUserId(loginUser.getId());
         productVip.setTotal(MoneyUtils.saveToDatabaseMoney(productInfoAddRequest.getTotal()));
         productVip.setOriginalTotal(MoneyUtils.saveToDatabaseMoney(productInfoAddRequest.getOriginalTotal()));
@@ -119,7 +117,7 @@ public class ProductInfoController {
         if (ObjectUtils.anyNull(deleteRequest, deleteRequest.getId()) || deleteRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        User user = userService.getLoginUser(request);
+        User user = UserContext.getUser();
         long id = deleteRequest.getId();
         // 判断是否存在
         ProductPoint oldProductInfo = productPointService.getById(id);
@@ -324,7 +322,7 @@ public class ProductInfoController {
         }).collect(Collectors.toList());
 
         // 不是管理员只能查看已经上线的
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = UserContext.getUser();
         if (!UserConstant.ADMIN_ROLE.equals(loginUser.getUserRole())) {
             List<ProductPoint> productInfoList = productInfoPage.getRecords().stream()
                     .filter(productInfo -> productInfo.getStatus().equals(ProductInfoStatusEnum.ONLINE.getValue())).collect(Collectors.toList());
@@ -370,7 +368,7 @@ public class ProductInfoController {
         }).collect(Collectors.toList());
 
         // 不是管理员只能查看已经上线的
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = UserContext.getUser();
         if (!UserConstant.ADMIN_ROLE.equals(loginUser.getUserRole())) {
             List<ProductVip> productInfoList = productInfoPage.getRecords().stream()
                     .filter(productInfo -> productInfo.getStatus().equals(ProductInfoStatusEnum.ONLINE.getValue())).collect(Collectors.toList());

@@ -13,7 +13,6 @@ import java.util.List;
  * @description
  */
 public interface InnerUserServiceInterface {
-    User getLoginUser(HttpServletRequest request);
 
     User getById(Long id);
 
@@ -21,5 +20,4 @@ public interface InnerUserServiceInterface {
 
     Boolean update(UpdateWrapper<User> userQueryWrapper);
 
-    List<User> findUsersByBatch(int offset, int batchSize);
 }

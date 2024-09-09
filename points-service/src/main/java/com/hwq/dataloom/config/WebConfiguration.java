@@ -25,9 +25,9 @@ public class WebConfiguration implements WebMvcConfigurer {
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-//        registry.addInterceptor(userTransmitInterceptor())
-//                .addPathPatterns("/**")
-//                .excludePathPatterns("/doc.html/**")
-//        ;
+        registry.addInterceptor(userTransmitInterceptor())
+                .addPathPatterns("/**")
+                .excludePathPatterns("/doc.html/**")
+        ;
     }
 }

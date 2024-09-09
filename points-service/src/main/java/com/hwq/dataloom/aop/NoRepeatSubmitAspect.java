@@ -3,11 +3,11 @@ package com.hwq.dataloom.aop;
 import cn.hutool.crypto.digest.DigestUtil;
 import com.alibaba.fastjson.JSON;
 import com.hwq.dataloom.annotation.NoRepeatSubmit;
+import com.hwq.dataloom.config.UserContext;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.framework.model.entity.User;
-import com.hwq.dataloom.framework.service.InnerUserServiceInterface;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -33,8 +33,6 @@ import static com.hwq.dataloom.constants.CommonConstant.REPEAT_SUBMIT_LOCK_KEY_T
 @RequiredArgsConstructor
 public class NoRepeatSubmitAspect {
     private final RedissonClient redissonClient;
-
-    private InnerUserServiceInterface innerUserServiceInterface;
 
     /**
      * 增强方法标记 {@link NoRepeatSubmit} 注解逻辑
@@ -81,7 +79,7 @@ public class NoRepeatSubmitAspect {
         RequestAttributes requestAttributes = RequestContextHolder.currentRequestAttributes();
         HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
         // 当前登录用户
-        User loginUser = innerUserServiceInterface.getLoginUser(request);
+        User loginUser = UserContext.getUser();
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
         return loginUser;
     }

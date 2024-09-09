@@ -19,8 +19,4 @@ public class AddDashboardRequestDTO {
      */
     private String name;
 
-    /**
-     * 图表配置快照
-     */
-    private String chartSnapshot;
 }

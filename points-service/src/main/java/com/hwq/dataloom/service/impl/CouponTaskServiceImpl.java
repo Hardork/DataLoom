@@ -26,6 +26,7 @@ import com.hwq.dataloom.service.CouponTaskService;
 import com.hwq.dataloom.mapper.CouponTaskMapper;
 import com.hwq.dataloom.service.CouponTemplateService;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -47,7 +48,7 @@ public class CouponTaskServiceImpl extends ServiceImpl<CouponTaskMapper, CouponT
     private CouponTemplateService couponTemplateService;
 
 
-    @Resource
+    @DubboReference
     private InnerUserServiceInterface innerUserServiceInterface;
 
 
