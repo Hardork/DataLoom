@@ -165,15 +165,24 @@ public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<Datas
                 CloseableHttpResponse response = ApiUtils.getApiResponse(apiDefinition);
                 int code = response.getCode();
                 if (code != 200) {
+                    apiDefinition.setStatus("failed");
                     throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "调用接口失败！错误码为：" + code);
                 }
                 responseBody = EntityUtils.toString(response.getEntity());
                 if (StringUtils.isEmpty(responseBody)) {
+                    apiDefinition.setStatus("failed");
                     throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "接口调用失败！接口请求结果为空！");
                 }
+                apiDefinition.setStatus("success");
             }
         } catch (IOException | ParseException e) {
             throw new RuntimeException(e);
+        } finally {
+            String newConfiguration = JSONUtil.toJsonStr(apiDefinitions);
+            CoreDatasource coreDatasource = new CoreDatasource();
+            coreDatasource.setId(datasourceDTO.getId());
+            coreDatasource.setConfiguration(newConfiguration);
+            coreDatasourceService.updateById(coreDatasource);
         }
         return true;
     }

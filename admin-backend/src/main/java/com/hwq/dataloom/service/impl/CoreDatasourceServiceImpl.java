@@ -112,6 +112,7 @@ public class CoreDatasourceServiceImpl extends ServiceImpl<CoreDatasourceMapper,
             tableField.setJsonPath(field.get("jsonPath").toString());
         }
         apiDefinition.setFields(tablefield);
+        apiDefinition.setStatus("success");
     }
 
     @Override
