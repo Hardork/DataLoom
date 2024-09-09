@@ -40,7 +40,7 @@ public class VIPUserService implements RoleService {
 
     @Override
     public String goToQueueName() {
-        return AnalysisMqConstant.BI_VIP_QUEUE_NAME;
+        return AnalysisMqConstant.GEN_VIP_CHART_NAME;
     }
 
     @Override
@@ -50,7 +50,7 @@ public class VIPUserService implements RoleService {
 
     @Override
     public void sendMessageToMQ(String message) {
-        analysisMessageProducer.sendMessage(message, AnalysisMqConstant.BI_VIP_QUEUE_NAME, AnalysisMqConstant.BI_VIP_ROUTING_KEY);
+        analysisMessageProducer.sendMessage(message, AnalysisMqConstant.GEN_VIP_CHART_NAME, AnalysisMqConstant.BI_VIP_ROUTING_KEY);
     }
 
     @Override

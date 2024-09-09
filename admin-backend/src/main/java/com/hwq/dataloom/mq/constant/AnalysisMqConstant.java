@@ -10,7 +10,7 @@ public interface AnalysisMqConstant {
     /**
      * 普通队列名称
      */
-    String BI_QUEUE_NAME = "bi_queue";
+    String GEN_CHART_NAME = "bi_queue";
 
     /**
      * 普通路由名称
@@ -25,7 +25,7 @@ public interface AnalysisMqConstant {
     /**
      * vip队列名称
      */
-    String BI_VIP_QUEUE_NAME = "bi_vip_queue";
+    String GEN_VIP_CHART_NAME = "bi_vip_queue";
 
     /**
      * VIP路由名称

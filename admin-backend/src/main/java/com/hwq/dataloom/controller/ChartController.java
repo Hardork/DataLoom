@@ -24,7 +24,7 @@ import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.model.enums.ChartStatusEnum;
-import com.hwq.dataloom.model.vo.BiResponse;
+import com.hwq.dataloom.model.vo.ChartResponse;
 import com.hwq.dataloom.service.*;
 
 import java.util.Arrays;
@@ -63,10 +63,37 @@ public class ChartController {
     private RedisTemplate<String, String> redisTemplate;
 
     @Resource
-    private ExcelUtils excelUtils;
-
-    @Resource
     private MongoEngineUtils mongoEngineUtils;
+
+
+
+    /**
+     * 基于数据集分析
+     * @param request
+     * @return
+     */
+    @PostMapping("/gen/async/mq/coreDataSet")
+    @RateLimiter(ratePerSecond = 2, key = "genSingleChart_")
+    @ReduceRewardPoint(reducePoint = 2)
+    @BiService
+    @CheckPoint(needPoint = 2)
+    public BaseResponse<ChartResponse> genChartByAiWithCoreDataSet(@RequestBody GenChartByAiWithDataRequest genChartByAiWithDataRequest, HttpServletRequest request) {
+        String name = genChartByAiWithDataRequest.getName();
+        String goal = genChartByAiWithDataRequest.getGoal();
+        String chartType = genChartByAiWithDataRequest.getChartType();
+        Long dataId = genChartByAiWithDataRequest.getDataId();
+        // 校验
+        ThrowUtils.throwIf(StringUtils.isBlank(goal), ErrorCode.PARAMS_ERROR, "目标为空");
+        ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length() > 100, ErrorCode.PARAMS_ERROR, "名称过长");
+        ThrowUtils.throwIf(dataId == null, ErrorCode.PARAMS_ERROR, "数据集id不得为空");
+        User loginUser = userService.getLoginUser(request);
+        ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
+        Long chartId = chartService.genChartByAiWithCoreDataSet(name, goal, chartType, dataId, loginUser);
+        // 响应
+        ChartResponse biResponse = new ChartResponse();
+        biResponse.setChartId(chartId);
+        return ResultUtils.success(biResponse);
+    }
 
 
 
@@ -80,7 +107,8 @@ public class ChartController {
     @ReduceRewardPoint(reducePoint = 2)
     @BiService
     @CheckPoint(needPoint = 2)
-    public BaseResponse<BiResponse> genChartByAiWithDataAsyncMq(@RequestBody GenChartByAiWithDataRequest genChartByAiWithDataRequest, HttpServletRequest request) {
+    @Deprecated
+    public BaseResponse<ChartResponse> genChartByAiWithDataAsyncMq(@RequestBody GenChartByAiWithDataRequest genChartByAiWithDataRequest, HttpServletRequest request) {
         String name = genChartByAiWithDataRequest.getName();
         String goal = genChartByAiWithDataRequest.getGoal();
         String chartType = genChartByAiWithDataRequest.getChartType();
@@ -93,15 +121,16 @@ public class ChartController {
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
         Long chartId = chartService.genChartByAiWithDataAsyncMq(name, goal, chartType, dataId, loginUser);
         // 响应
-        BiResponse biResponse = new BiResponse();
+        ChartResponse biResponse = new ChartResponse();
         biResponse.setChartId(chartId);
         return ResultUtils.success(biResponse);
     }
 
     @PostMapping("/gen/retry")
-    @ReduceRewardPoint(reducePoint = 2)
+    @ReduceRewardPoint(reducePoint = 2) 
     @CheckPoint(needPoint = 2)
-    public BaseResponse<BiResponse> ReGenChartByAiAsync(@RequestBody ReGenChartRequest reGenChartRequest, HttpServletRequest request) {
+    @Deprecated
+    public BaseResponse<ChartResponse> ReGenChartByAiAsync(@RequestBody ReGenChartRequest reGenChartRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(reGenChartRequest == null , ErrorCode.PARAMS_ERROR);
         Long chartId = reGenChartRequest.getChartId();
         ThrowUtils.throwIf( chartId == null , ErrorCode.PARAMS_ERROR);
@@ -115,7 +144,7 @@ public class ChartController {
         // 发送信息给消息队列
         analysisMessageProducer.sendMessage(String.valueOf(chartId));
         // 分析成功
-        BiResponse biResponse = new BiResponse();
+        ChartResponse biResponse = new ChartResponse();
         biResponse.setChartId(chartId);
         return ResultUtils.success(biResponse);
     }
