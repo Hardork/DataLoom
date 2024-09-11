@@ -22,6 +22,8 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -50,8 +52,9 @@ public class CoreDataSourceController {
      * @return
      */
     @PostMapping("/add")
-    public BaseResponse<Long> addDatasource(@RequestBody DatasourceDTO datasourceDTO, HttpServletRequest request) {
+    public BaseResponse<Long> addDatasource(@RequestPart("file") MultipartFile multipartFile, @RequestPart("datasourceDTO") DatasourceDTO datasourceDTO, HttpServletRequest request) {
         ThrowUtils.throwIf(datasourceDTO == null, ErrorCode.PARAMS_ERROR);
+        datasourceDTO.setMultipartFile(multipartFile);
         User loginUser = userService.getLoginUser(request);
         // 根据不同类型configuration新增表 （用策略模式优化）
         return ResultUtils.success(coreDatasourceService.addDatasource(datasourceDTO, loginUser));

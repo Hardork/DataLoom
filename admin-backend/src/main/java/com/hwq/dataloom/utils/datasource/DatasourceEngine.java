@@ -1,18 +1,17 @@
 package com.hwq.dataloom.utils.datasource;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
+import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.model.dto.newdatasource.TableField;
 import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.enums.TableFieldTypeEnum;
+import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
+import java.sql.*;
 import java.util.*;
 
 /**
@@ -48,6 +47,50 @@ public class DatasourceEngine {
             // Execute the query or update
             return preparedStatement.executeQuery();
         }
+    }
+
+    /**
+     * 执行SQL语句并将列集合和记录犯规
+     * @param datasourceId 数据源id
+     * @param sql sql语句
+     * @param parameters 参数
+     * @return
+     */
+    @SneakyThrows
+    public QueryAICustomSQLVO execSelectSqlToQueryAICustomSQLVO(Long datasourceId, String sql, Object... parameters) {
+        int dsIndex = (int) (datasourceId % (dataSourceMap.size()));
+        // 获取对应连接池
+        DataSource dataSource = dataSourceMap.get(dsIndex);
+        QueryAICustomSQLVO queryAICustomSQLVO = new QueryAICustomSQLVO();
+        List<String> columns = new ArrayList<>();
+        List<Map<String, Object>> res = new ArrayList<>();
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            // Set parameters to prevent SQL injection
+            for (int i = 0; i < parameters.length; i++) {
+                preparedStatement.setObject(i + 1, parameters[i]);
+            }
+            ResultSet rs = preparedStatement.executeQuery();
+            // Execute the query or update
+            // 处理查询结果
+            ResultSetMetaData rsmd = rs.getMetaData();
+            int columnCount = rsmd.getColumnCount();
+            for (int i = 1; i <= columnCount; i++) {
+                columns.add(rsmd.getColumnName(i));
+            }
+            while (rs.next()) {
+                Map<String, Object> resMap = new HashMap<>();
+                for (int i = 1; i <= columnCount; i++) {
+                    resMap.put(rsmd.getColumnName(i), rs.getString(i));
+                }
+                res.add(resMap);
+            }
+        }
+        queryAICustomSQLVO.setSql(sql);
+        queryAICustomSQLVO.setColumns(columns);
+        queryAICustomSQLVO.setRes(res);
+        return queryAICustomSQLVO;
     }
 
     /**
@@ -294,7 +337,7 @@ public class DatasourceEngine {
                     break;
             }
             // 检查是否为主键
-            if (tableField.getIsUnique() == 1) {
+            if (tableField.getIsUnique() != null && tableField.getIsUnique() == 1) {
                 if (primaryKeyFields.length() > 0) {
                     primaryKeyFields.append(", ");
                 }

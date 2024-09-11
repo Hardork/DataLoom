@@ -415,6 +415,7 @@ public class ExcelUtils {
             } catch (Exception e) {
                 // 删除数据源信息，并返回异常
                 throw new BusinessException(ErrorCode.OPERATION_ERROR, "创建表失败");
+                // TODO: 回滚数据源的创建
             }
             // 线程池，异步插入数据
             commonThreadPool.addTask(() -> {
