@@ -120,7 +120,7 @@ public class ExcelDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
                             coreDatasetTableField.setColumnIndex(index.getAndIncrement());
                             return coreDatasetTableField;
                         }).collect(Collectors.toList());
-                ThrowUtils.throwIf(coreDatasetTableFieldService.saveBatch(coreDatasetTableFieldList), ErrorCode.SYSTEM_ERROR, "批量插入字段失败");
+                ThrowUtils.throwIf(!coreDatasetTableFieldService.saveBatch(coreDatasetTableFieldList), ErrorCode.SYSTEM_ERROR, "批量插入字段失败");
             }
         } catch (IOException e) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "文件异常");

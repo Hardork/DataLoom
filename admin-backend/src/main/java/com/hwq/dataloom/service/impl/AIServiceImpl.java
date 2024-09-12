@@ -80,12 +80,14 @@ public class AIServiceImpl implements AIService {
             LambdaQueryWrapper<CoreDatasetTableField> wrapper = new LambdaQueryWrapper<>();
             wrapper.eq(CoreDatasetTableField::getDatasetTableId, table.getId());
             List<CoreDatasetTableField> tableFields = coreDatasetTableFieldService.list(wrapper);
-            AskAIWithDataTablesAndFieldsRequest.builder()
+            AskAIWithDataTablesAndFieldsRequest askAIWithDataTablesAndFieldsRequest = AskAIWithDataTablesAndFieldsRequest.builder()
                     .tableId(table.getId())
                     .tableComment(table.getName())
                     .tableName(table.getTableName())
                     .coreDatasetTableFieldList(tableFields)
                     .build();
+            dataTablesAndFieldsRequests.add(askAIWithDataTablesAndFieldsRequest);
+
         });
         // 4. 构造请求AI的输入
         String input = buildAskAISQLInput(dataTablesAndFieldsRequests, question);
@@ -102,16 +104,21 @@ public class AIServiceImpl implements AIService {
         askSQLWebSocket.sendOneMessage(loginUser.getId(), askSQLWebSocketMsgVO);
         // 7. 获取返回的SQL
         String sql = aiManager.doAskSQLWithKimi(input, LIMIT_RECORDS);
-        // 8.执行SQL，并得到返回的结果
-        QueryAICustomSQLVO queryAICustomSQLVO = buildUserChatForSqlVO(datasourceId, sql);
+        // 8. 执行SQL，并得到返回的结果
+        QueryAICustomSQLVO queryAICustomSQLVO = null;
+        try {
+            queryAICustomSQLVO = buildUserChatForSqlVO(datasourceId, sql);
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "查询数据异常");
+        }
         // 9. 将查询的结果存放在数据库中
-        ChatHistory system_a = new ChatHistory();
-        system_a.setChatRole(ChatHistoryRoleEnum.MODEL.getValue());
-        system_a.setChatId(chatId);
-        system_a.setModelId(chat.getModelId());
-        // 10. 存储JSON字符串
-        system_a.setContent(JSONUtil.toJsonStr(queryAICustomSQLVO));
-        chatHistoryService.save(system_a);
+        ChatHistory chatHistory = new ChatHistory();
+        chatHistory.setChatRole(ChatHistoryRoleEnum.MODEL.getValue());
+        chatHistory.setChatId(chatId);
+        chatHistory.setModelId(chat.getModelId());
+        // 10. 存储结果类JSON字符串
+        chatHistory.setContent(JSONUtil.toJsonStr(queryAICustomSQLVO));
+        chatHistoryService.save(chatHistory);
         // 11. 利用webSocket发送消息通知
         AskSQLWebSocketMsgVO res = AskSQLWebSocketMsgVO.builder()
                 .res(queryAICustomSQLVO.getRes())
@@ -132,33 +139,8 @@ public class AIServiceImpl implements AIService {
      * @param sql 执行sql
      * @return 智能问数返回类
      */
-    @SneakyThrows
     private QueryAICustomSQLVO buildUserChatForSqlVO(Long datasourceId, String sql) {
-        ResultSet rs = datasourceEngine.execSelectSql(datasourceId, sql);
-        QueryAICustomSQLVO queryAICustomSQLVO = new QueryAICustomSQLVO();
-        List<String> columns = new ArrayList<>();
-        List<Map<String, Object>> res = new ArrayList<>();
-        try {
-            // 处理查询结果
-            ResultSetMetaData rsmd = rs.getMetaData();
-            int columnCount = rsmd.getColumnCount();
-            for (int i = 1; i <= columnCount; i++) {
-                columns.add(rsmd.getColumnName(i));
-            }
-            while (rs.next()) {
-                Map<String, Object> resMap = new HashMap<>();
-                for (int i = 1; i <= columnCount; i++) {
-                    resMap.put(rsmd.getColumnName(i), rs.getString(i));
-                }
-                res.add(resMap);
-            }
-        } catch (SQLException e) {
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
-        }
-        queryAICustomSQLVO.setSql(sql);
-        queryAICustomSQLVO.setColumns(columns);
-        queryAICustomSQLVO.setRes(res);
-        return queryAICustomSQLVO;
+        return datasourceEngine.execSelectSqlToQueryAICustomSQLVO(datasourceId, sql);
     }
 
     /**

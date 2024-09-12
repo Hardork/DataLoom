@@ -16,6 +16,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @MapperScan("com.hwq.dataloom.mapper")
 @EnableScheduling
+@EnableDubbo
 @EnableAspectJAutoProxy(proxyTargetClass = true, exposeProxy = true)
 public class PointsApplication {
     public static void main(String[] args) {

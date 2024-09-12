@@ -1,13 +1,12 @@
 package com.hwq.dataloom.aop;
 
 import com.hwq.dataloom.annotation.AuthCheck;
+import com.hwq.dataloom.config.UserContext;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.model.entity.User;
-import com.hwq.dataloom.framework.service.InnerUserServiceInterface;
 import com.hwq.dataloom.model.enums.UserRoleEnum;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.dubbo.config.annotation.DubboReference;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -15,8 +14,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -28,10 +25,6 @@ import javax.servlet.http.HttpServletRequest;
 @Aspect
 @Component
 public class AuthInterceptor {
-
-    @DubboReference
-    private InnerUserServiceInterface userService;
-
     /**
      * 执行拦截
      *
@@ -45,7 +38,7 @@ public class AuthInterceptor {
         RequestAttributes requestAttributes = RequestContextHolder.currentRequestAttributes();
         HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
         // 当前登录用户
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = UserContext.getUser();
         // 必须有该权限才通过
         if (StringUtils.isNotBlank(mustRole)) {
             UserRoleEnum mustUserRoleEnum = UserRoleEnum.getEnumByValue(mustRole);

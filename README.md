@@ -72,10 +72,12 @@
 
 - OpenAPI 前端代码生成
 ## 网站导航 🧭
-
+Github：
 - [**DataLoom 后端 🏘️**](https://github.com/Hardork/hwqbi-backend)
 - [**DataLoom 前端 🏘**️](https://github.com/Hardork/hwqbi-frontend)
 
+Gitee:
+- [**DataLoom 后端 🏘️**](https://gitee.com/huang-wenqing-123/DataLoom)
 
 ## 目录结构 📑
 

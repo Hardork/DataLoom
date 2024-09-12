@@ -2,12 +2,12 @@ package com.hwq.dataloom.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.hwq.dataloom.config.UserContext;
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.framework.result.BaseResponse;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.result.ResultUtils;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
-import com.hwq.dataloom.framework.service.InnerUserServiceInterface;
 import com.hwq.dataloom.model.dto.order.OrderAddRequest;
 import com.hwq.dataloom.model.dto.order.OrderCancelRequest;
 import com.hwq.dataloom.model.dto.order.OrderPayRequest;
@@ -16,7 +16,6 @@ import com.hwq.dataloom.model.entity.ProductOrder;
 import com.hwq.dataloom.model.enums.OrderStatusEnum;
 import com.hwq.dataloom.service.ProductOrderService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -31,8 +30,6 @@ import javax.servlet.http.HttpServletRequest;
 @RequestMapping("/points-service/order")
 @Slf4j
 public class OrderController {
-    @DubboReference
-    private InnerUserServiceInterface userService;
 
     @Resource
     private ProductOrderService productOrderService;
@@ -46,7 +43,7 @@ public class OrderController {
     @PostMapping("/add")
     public BaseResponse<Long> addOrder(@RequestBody OrderAddRequest orderAddRequest, HttpServletRequest request) {
         ThrowUtils.throwIf(orderAddRequest == null, ErrorCode.PARAMS_ERROR);
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = UserContext.getUser();
         Long id = productOrderService.addOrder(orderAddRequest, loginUser);
         return ResultUtils.success(id);
     }
@@ -58,7 +55,7 @@ public class OrderController {
         long current = orderQueryRequest.getCurrent();
         long size = orderQueryRequest.getPageSize();
         QueryWrapper<ProductOrder> queryWrapper = productOrderService.getQueryWrapper(orderQueryRequest);
-        queryWrapper.eq("userId", userService.getLoginUser(request).getId());
+        queryWrapper.eq("userId", UserContext.getUser().getId());
         Page<ProductOrder> orderPage = productOrderService.page(new Page<>(current, size),queryWrapper);
         return ResultUtils.success(orderPage);
     }
@@ -84,7 +81,7 @@ public class OrderController {
     public BaseResponse<Long> userCancelOrder(@RequestBody OrderCancelRequest orderCancelRequest,
                                                          HttpServletRequest request) {
         // 判断用户取消是否是自己的订单
-        User loginUser = userService.getLoginUser(request);
+        User loginUser = UserContext.getUser();
         Long id = orderCancelRequest.getId();
         ThrowUtils.throwIf(id == null || id < 0, ErrorCode.PARAMS_ERROR);
         ProductOrder order = productOrderService.getById(id);

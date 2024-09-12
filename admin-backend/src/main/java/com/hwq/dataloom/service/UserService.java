@@ -115,4 +115,6 @@ public interface UserService extends IService<User> {
      * @return
      */
     long userEmailRegister(UserEmailRegisterRequest userEmailRegisterRequest);
+
+
 }

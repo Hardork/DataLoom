@@ -9,18 +9,15 @@ import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
 @Data
-public class DatasourceDTO implements Serializable {
+public class DatasourceDTO {
 
-    @JsonSerialize(using= ToStringSerializer.class)
     private Long id;
 
-    @JsonSerialize(using= ToStringSerializer.class)
     private Long pid;
 
     /**
      * 数据源名称
      */
-    @NotNull(message = "数据源名称不得为空")
     private String name;
 
     /**
@@ -31,7 +28,6 @@ public class DatasourceDTO implements Serializable {
     /**
      * 类型
      */
-    @NotNull(message = "数据源类型不得为空")
     private String type;
 
     private String typeAlias;
@@ -43,7 +39,6 @@ public class DatasourceDTO implements Serializable {
     /**
      * 数据表详细信息
      */
-    @NotNull(message = "数据源配置信息不得为空")
     private String configuration;
 
     private String apiConfigurationStr;
@@ -98,6 +93,4 @@ public class DatasourceDTO implements Serializable {
      * 是否启动数据填报功能
      */
     private Boolean enableDataFill;
-
-    private static final long serialVersionUID = 1175287571828910222L;
 }
