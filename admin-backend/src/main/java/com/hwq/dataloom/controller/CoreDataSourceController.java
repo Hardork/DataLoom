@@ -120,6 +120,9 @@ public class CoreDataSourceController {
      */
     @PostMapping("/handleApiResponse")
     public BaseResponse<ApiDefinition> handleApiResponse(@RequestBody ApiDefinition apiDefinition) throws IOException, ParseException {
+        if (apiDefinition.getFields() == null) {
+            apiDefinition.setFields(new ArrayList<>());
+        }
         // 向API发送请求
         CloseableHttpResponse response = ApiUtils.getApiResponse(apiDefinition);
         String responseBody = null;
