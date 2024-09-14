@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hwq.dataloom.mapper.ChartOptionMapper">
+
+    <resultMap id="BaseResultMap" type="com.hwq.dataloom.model.entity.ChartOption">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="dashboardId" column="dashboardId" jdbcType="BIGINT"/>
+            <result property="chartName" column="chartName" jdbcType="VARCHAR"/>
+            <result property="chartOption" column="chartOption" jdbcType="VARCHAR"/>
+            <result property="customSql" column="customSql" jdbcType="VARCHAR"/>
+            <result property="status" column="status" jdbcType="TINYINT"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+            <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,dashboardId,chartName,
+        chartOption,customSql,status,
+        createTime,updateTime,isDelete
+    </sql>
+</mapper>

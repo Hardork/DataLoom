@@ -1,10 +1,14 @@
 package com.hwq.dataloom.controller;
-import com.hwq.dataloom.framework.errorcode.ErrorCode;
-import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.framework.result.BaseResponse;
 import com.hwq.dataloom.framework.result.ResultUtils;
+import com.hwq.dataloom.model.dto.dashboard.AddDashboardChartRequestDTO;
 import com.hwq.dataloom.model.dto.dashboard.AddDashboardRequestDTO;
+import com.hwq.dataloom.model.dto.dashboard.EditDashboardChartRequestDTO;
+import com.hwq.dataloom.model.dto.dashboard.SaveDashboardRequestDTO;
+import com.hwq.dataloom.model.entity.ChartOption;
+import com.hwq.dataloom.model.entity.Dashboard;
+import com.hwq.dataloom.service.DashboardService;
 import com.hwq.dataloom.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * @author HWQ
@@ -26,30 +31,76 @@ public class DashboardController {
     @Resource
     private UserService userService;
 
+    @Resource
+    private DashboardService dashboardService;
+
+
     @Operation(summary = "添加仪表盘")
     @PostMapping("/add")
     public BaseResponse<Boolean> addDashboard(@RequestBody @Valid AddDashboardRequestDTO addDashboardRequestDTO, HttpServletRequest request) {
-        // TODO:
         User loginUser = userService.getLoginUser(request);
-        ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
+        dashboardService.addDashboard(addDashboardRequestDTO, loginUser);
         return ResultUtils.success();
     }
 
-    @Operation(summary = "新建图表")
+    @Operation(summary = "展示用户所有仪表盘")
+    @GetMapping("/listAllDashboard")
+    public BaseResponse<List<Dashboard>> listAllDashboard(HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        return ResultUtils.success(dashboardService.listAllDashboard(loginUser));
+    }
+
+    @Operation(summary = "根据id查询仪表盘")
+    @GetMapping("/getDashboardById")
+    public BaseResponse<Dashboard> getDashboardById(Long dashboardId, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        return ResultUtils.success(dashboardService.getDashboardById(dashboardId, loginUser));
+    }
+
+    @PostMapping("/deleteDashboard")
+    public BaseResponse<Boolean> deleteDashboard(Long dashboardId, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        dashboardService.deleteDashboard(dashboardId, loginUser);
+        return ResultUtils.success();
+    }
+
+
+    @Operation(summary = "保存仪表盘配置")
+    @PostMapping("/save")
+    public BaseResponse<Boolean> saveDashboard(@RequestBody @Valid SaveDashboardRequestDTO saveDashboardRequestDTO, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        dashboardService.saveDashboard(saveDashboardRequestDTO, loginUser);
+        return ResultUtils.success();
+    }
+
+    @Operation(summary = "添加图表")
     @PostMapping("/addChart")
-    public BaseResponse<Boolean> addChart(@RequestBody @Valid AddDashboardRequestDTO addDashboardRequestDTO, HttpServletRequest request) {
+    public BaseResponse<Long> addDashboardChart(@RequestBody @Valid AddDashboardChartRequestDTO addDashboardChartRequestDTO, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        return ResultUtils.success(dashboardService.addChart(addDashboardChartRequestDTO, loginUser));
+    }
+
+    @Operation(summary = "编辑图表")
+    @PostMapping("/editChart")
+    public BaseResponse<Boolean> editChart(@RequestBody @Valid EditDashboardChartRequestDTO editDashboardChartRequestDTO, HttpServletRequest request) {
         // TODO:
         User loginUser = userService.getLoginUser(request);
-        ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
+        dashboardService.editChart(editDashboardChartRequestDTO, loginUser);
         return ResultUtils.success();
     }
 
     @Operation(summary = "获取仪表盘所有的图表")
-    @GetMapping("/list")
-    public BaseResponse<Boolean> listAllChart(@RequestBody @Valid AddDashboardRequestDTO addDashboardRequestDTO, HttpServletRequest request) {
-        // TODO:
+    @GetMapping("/listAllChart")
+    public BaseResponse<List<ChartOption>> listAllChart(Long dashboardId, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
-        ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
-        return ResultUtils.success();
+        List<ChartOption> chartOptions = dashboardService.listAllChart(dashboardId, loginUser);
+        return ResultUtils.success(chartOptions);
+    }
+
+    @Operation(summary = "删除图表")
+    @PostMapping("/deleteChart")
+    public BaseResponse<Boolean> deleteChart(Long dashboardId, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        return ResultUtils.success(dashboardService.deleteChart(dashboardId, loginUser));
     }
 }

@@ -72,7 +72,6 @@ public class AIServiceImpl implements AIService {
         Long datasourceId = chat.getDatasourceId();
         List<CoreDatasetTable> tables = coreDatasourceService.getTablesByDatasourceId(datasourceId, loginUser);
         ThrowUtils.throwIf(tables.isEmpty(), ErrorCode.PARAMS_ERROR, "数据源暂无数据");
-
         // 3. 查询对应数据源所有元数据（表信息、表字段）
         List<AskAIWithDataTablesAndFieldsRequest> dataTablesAndFieldsRequests = new ArrayList<>();
         tables.forEach(table -> {

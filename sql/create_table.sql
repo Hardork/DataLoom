@@ -562,13 +562,15 @@ create table dashboard(
 -- 图表配置类
 create table chart_option(
     id    bigint  auto_increment comment '主键' primary key,
-    dashboardId bigint not null comment '对应仪表盘id' key,
+    dashboardId bigint not null comment '对应仪表盘id',
+    chartName   varchar(255)    null comment '图表名称',
     chartOption longtext   null comment '图表配置',
-    sql         text        null comment '图表配置对应的sql',
+    customSql         text        null comment '图表配置对应的自定义sql',
     status      tinyint     default 0 comment '图表状态',
     createTime      datetime null default CURRENT_TIMESTAMP comment '创建时间',
     updateTime      datetime null default CURRENT_TIMESTAMP comment '更新时间',
-    isDelete        tinyint  default 0  null comment '逻辑删除'
-)
+    isDelete        tinyint  default 0  null comment '逻辑删除',
+    INDEX (dashboardId)
+) comment '图表配置表';
 
 
