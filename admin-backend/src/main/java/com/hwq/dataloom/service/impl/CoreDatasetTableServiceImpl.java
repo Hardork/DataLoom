@@ -1,8 +1,10 @@
 package com.hwq.dataloom.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
+import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.framework.result.BaseResponse;
 import com.hwq.dataloom.framework.result.ResultUtils;
 import com.hwq.dataloom.model.entity.CoreDatasetTable;
@@ -34,6 +36,15 @@ public class CoreDatasetTableServiceImpl extends ServiceImpl<CoreDatasetTableMap
         ThrowUtils.throwIf(!save,ErrorCode.OPERATION_ERROR,"新增数据表失败！");
         Long id = coreDatasetTable.getId();
         return id;
+    }
+
+    @Override
+    public boolean hasPermission(Long datasourceId, String tableName, User loginUser) {
+        LambdaQueryWrapper<CoreDatasetTable> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(CoreDatasetTable::getDatasourceId, datasourceId)
+                .eq(CoreDatasetTable::getTableName, tableName);
+        long count = this.count(lambdaQueryWrapper);
+        return count != 0;
     }
 
 }

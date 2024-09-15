@@ -34,6 +34,12 @@ public class ChartOption implements Serializable {
      */
     private String chartOption;
 
+
+    /**
+     * 数据配置
+     */
+    private String dataOption;
+
     /**
      * 图表配置对应的自定义sql
      */

@@ -1,13 +1,11 @@
 package com.hwq.dataloom.service;
 
 import com.hwq.dataloom.framework.model.entity.User;
-import com.hwq.dataloom.model.dto.dashboard.AddDashboardChartRequestDTO;
-import com.hwq.dataloom.model.dto.dashboard.AddDashboardRequestDTO;
-import com.hwq.dataloom.model.dto.dashboard.EditDashboardChartRequestDTO;
-import com.hwq.dataloom.model.dto.dashboard.SaveDashboardRequestDTO;
+import com.hwq.dataloom.model.dto.dashboard.*;
 import com.hwq.dataloom.model.entity.ChartOption;
 import com.hwq.dataloom.model.entity.Dashboard;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.hwq.dataloom.model.vo.dashboard.GetChartDataVO;
 
 import java.util.List;
 
@@ -84,5 +82,13 @@ public interface DashboardService extends IService<Dashboard> {
      * @return
      */
     Boolean deleteChart(Long dashboardId, User loginUser);
+
+    /**
+     * 根据配置获取图表数据
+     * @param getChartDataRequestDTO
+     * @param loginUser
+     * @return
+     */
+    GetChartDataVO getChartData(GetChartDataRequestDTO getChartDataRequestDTO, User loginUser);
 
 }

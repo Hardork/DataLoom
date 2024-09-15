@@ -565,6 +565,7 @@ create table chart_option(
     dashboardId bigint not null comment '对应仪表盘id',
     chartName   varchar(255)    null comment '图表名称',
     chartOption longtext   null comment '图表配置',
+    dataOption longtext   null comment '请求数据配置（包含数据源ID、数据表ID、选择字段等信息）',
     customSql         text        null comment '图表配置对应的自定义sql',
     status      tinyint     default 0 comment '图表状态',
     createTime      datetime null default CURRENT_TIMESTAMP comment '创建时间',

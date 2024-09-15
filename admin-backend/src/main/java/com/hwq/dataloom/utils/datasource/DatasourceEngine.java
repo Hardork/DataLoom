@@ -5,6 +5,9 @@ import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.model.dto.newdatasource.TableField;
 import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.enums.TableFieldTypeEnum;
+import com.hwq.dataloom.model.vo.dashboard.GetChartDataVO;
+import com.hwq.dataloom.model.vo.dashboard.SeriesData;
+import com.hwq.dataloom.model.vo.dashboard.XArrayData;
 import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
@@ -93,6 +96,60 @@ public class DatasourceEngine {
         return queryAICustomSQLVO;
     }
 
+
+    /**
+     * 执行SQL语句获取图表数据
+     * @param datasourceId 数据源id
+     * @param selectSql 执行SQL
+     * @return 图表数据
+     */
+    public GetChartDataVO execSelectSqlForGetChartDataVO(Long datasourceId, String selectSql) {
+        int dsIndex = (int) (datasourceId % (dataSourceMap.size()));
+        // 获取对应连接池
+        DataSource dataSource = dataSourceMap.get(dsIndex);
+        // 横轴数据
+        XArrayData xArrayData;
+        // 纵轴数据
+        List<SeriesData> seriesDataList = new ArrayList<>();
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(selectSql)) {
+            ResultSet rs = preparedStatement.executeQuery();
+            // Execute the query or update
+            // 处理查询结果
+            ResultSetMetaData metaData = rs.getMetaData();
+            int columnCount = metaData.getColumnCount();
+            // 初始化横轴数据
+            xArrayData = XArrayData.builder()
+                    .title(metaData.getColumnName(1))
+                    .values(new ArrayList<>())
+                    .build();
+            // 初始化纵轴数据
+            for (int i = 2; i <= columnCount; i++) {
+                SeriesData seriesData = SeriesData.builder()
+                        .title(metaData.getColumnName(i))
+                        .data(new ArrayList<>())
+                        .build();
+                seriesDataList.add(seriesData);
+            }
+            // 遍历ResultSet并逐列提取数据
+            while (rs.next()) {
+                // 添加纵轴数据
+                xArrayData.getValues().add(rs.getString(1));
+                // 添加横轴数据
+                for (int i = 2; i <= columnCount; i++) {
+                    Integer value = rs.getInt(i);
+                    seriesDataList.get(i - 2).getData().add(value);  // 按列顺序存入对应的列表
+                }
+            }
+        } catch (SQLException e) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "查询数据异常,请检查数据源");
+        }
+        return GetChartDataVO.builder()
+                .xArrayData(xArrayData)
+                .seriesDataList(seriesDataList)
+                .build();
+    }
+
     /**
      * 根据id执行更新数据源SQL
      * @param datasourceId 数据源id
@@ -116,6 +173,7 @@ public class DatasourceEngine {
             // Execute the query or update
             return preparedStatement.executeUpdate();
         }
+
     }
 
     /**
@@ -379,6 +437,7 @@ public class DatasourceEngine {
         }
         return resultList;
     }
+
 
 
 }

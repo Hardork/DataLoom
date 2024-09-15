@@ -2,12 +2,10 @@ package com.hwq.dataloom.controller;
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.framework.result.BaseResponse;
 import com.hwq.dataloom.framework.result.ResultUtils;
-import com.hwq.dataloom.model.dto.dashboard.AddDashboardChartRequestDTO;
-import com.hwq.dataloom.model.dto.dashboard.AddDashboardRequestDTO;
-import com.hwq.dataloom.model.dto.dashboard.EditDashboardChartRequestDTO;
-import com.hwq.dataloom.model.dto.dashboard.SaveDashboardRequestDTO;
+import com.hwq.dataloom.model.dto.dashboard.*;
 import com.hwq.dataloom.model.entity.ChartOption;
 import com.hwq.dataloom.model.entity.Dashboard;
+import com.hwq.dataloom.model.vo.dashboard.GetChartDataVO;
 import com.hwq.dataloom.service.DashboardService;
 import com.hwq.dataloom.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -102,5 +100,12 @@ public class DashboardController {
     public BaseResponse<Boolean> deleteChart(Long dashboardId, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         return ResultUtils.success(dashboardService.deleteChart(dashboardId, loginUser));
+    }
+
+    @Operation(summary = "获取图表")
+    @PostMapping("/getChartData")
+    public BaseResponse<GetChartDataVO> getChartData(@Valid @RequestBody GetChartDataRequestDTO getChartDataRequestDTO, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        return ResultUtils.success(dashboardService.getChartData(getChartDataRequestDTO, loginUser));
     }
 }
