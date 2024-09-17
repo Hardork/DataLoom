@@ -230,6 +230,15 @@ public class DashboardServiceImpl extends ServiceImpl<DashboardMapper, Dashboard
         }
     }
 
+    @Override
+    public GetChartDataVO getChartDataById(Long chartId, User loginUser) {
+        ChartOption chartOption = chartOptionService.getById(chartId);
+        ThrowUtils.throwIf(chartOption == null, ErrorCode.NOT_FOUND_ERROR);
+        GetChartDataRequestDTO getChartDataRequestDTO = new GetChartDataRequestDTO();
+        getChartDataRequestDTO.setDataOption(chartOption.getDataOption());
+        return this.getChartData(getChartDataRequestDTO, loginUser);
+    }
+
     private GetChartDataVO handleFieldGroup(Long datasourceId, String tableName, List<GroupField> groupList, List<Series> seriesList) {
         ThrowUtils.throwIf(groupList.isEmpty(), ErrorCode.PARAMS_ERROR, "分组字段不得为空");
         ThrowUtils.throwIf(seriesList.isEmpty(), ErrorCode.PARAMS_ERROR, "数值字段不得为空");

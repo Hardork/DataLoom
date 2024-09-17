@@ -112,7 +112,7 @@ public class ExcelDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
                         .stream()
                         .map(field -> {
                             CoreDatasetTableField coreDatasetTableField = new CoreDatasetTableField();
-                            coreDatasetTableField.setDatasourceId(datasetTableId);
+                            coreDatasetTableField.setDatasourceId(coreDatasourceId);
                             coreDatasetTableField.setDatasetTableId(datasetTableId);
                             coreDatasetTableField.setOriginName(field.getOriginName());
                             coreDatasetTableField.setName(field.getName());
@@ -153,7 +153,7 @@ public class ExcelDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
         LambdaQueryWrapper<CoreDatasetTable> lqw = new LambdaQueryWrapper<>();
         lqw
                 .eq(CoreDatasetTable::getDatasourceId, datasourceId)
-                .eq(CoreDatasetTable::getName, tableName);
+                .eq(CoreDatasetTable::getTableName, tableName);
         CoreDatasetTable coreDatasetTable = coreDatasetTableService.getOne(lqw);
         ThrowUtils.throwIf(coreDatasetTable == null, ErrorCode.NOT_FOUND_ERROR);
         // 2. 查询表字段信息

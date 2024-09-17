@@ -107,7 +107,7 @@ public class CoreDataSourceController {
      * @param request
      * @return
      */
-    @GetMapping("/getTableFields")
+    @PostMapping("/getTableFields")
     public BaseResponse<List<CoreDatasetTableField>> getTableFieldsByDatasourceIdAndTableName(@RequestBody @Valid GetTableFieldsDTO getTableFieldsDTO, HttpServletRequest request) {
         ThrowUtils.throwIf(getTableFieldsDTO == null, ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(request);

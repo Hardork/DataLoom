@@ -1,4 +1,6 @@
 package com.hwq.dataloom.controller;
+import com.hwq.dataloom.framework.errorcode.ErrorCode;
+import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.framework.result.BaseResponse;
 import com.hwq.dataloom.framework.result.ResultUtils;
@@ -102,10 +104,19 @@ public class DashboardController {
         return ResultUtils.success(dashboardService.deleteChart(dashboardId, loginUser));
     }
 
-    @Operation(summary = "获取图表")
+    @Operation(summary = "根据配置获取图表数据")
     @PostMapping("/getChartData")
     public BaseResponse<GetChartDataVO> getChartData(@Valid @RequestBody GetChartDataRequestDTO getChartDataRequestDTO, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         return ResultUtils.success(dashboardService.getChartData(getChartDataRequestDTO, loginUser));
     }
+
+    @Operation(summary = "根据id获取图表数据")
+    @GetMapping("/getChartDataById")
+    public BaseResponse<GetChartDataVO> getChartDataById(Long chartId, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        ThrowUtils.throwIf(chartId == null, ErrorCode.PARAMS_ERROR, "id不得为空");
+        return ResultUtils.success(dashboardService.getChartDataById(chartId, loginUser));
+    }
+
 }

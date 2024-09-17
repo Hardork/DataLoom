@@ -91,4 +91,12 @@ public interface DashboardService extends IService<Dashboard> {
      */
     GetChartDataVO getChartData(GetChartDataRequestDTO getChartDataRequestDTO, User loginUser);
 
+    /**
+     * 根据图表id查询图表数据
+     * @param chartId 图表id
+     * @param loginUser 登录用户
+     * @return
+     */
+    GetChartDataVO getChartDataById(Long chartId, User loginUser);
+
 }
