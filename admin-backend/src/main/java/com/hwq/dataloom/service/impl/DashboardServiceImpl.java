@@ -14,6 +14,7 @@ import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.framework.model.entity.User;
+import com.hwq.dataloom.manager.AiManager;
 import com.hwq.dataloom.model.dto.dashboard.*;
 import com.hwq.dataloom.model.entity.ChartOption;
 import com.hwq.dataloom.model.entity.CoreDatasource;
@@ -58,6 +59,9 @@ public class DashboardServiceImpl extends ServiceImpl<DashboardMapper, Dashboard
 
     @Resource
     private CoreDatasetTableService coreDatasetTableService;
+
+    @Resource
+    private AiManager aiManager;
 
     @Override
     public void addDashboard(AddDashboardRequestDTO addDashboardRequestDTO, User loginUser) {
@@ -237,6 +241,15 @@ public class DashboardServiceImpl extends ServiceImpl<DashboardMapper, Dashboard
         GetChartDataRequestDTO getChartDataRequestDTO = new GetChartDataRequestDTO();
         getChartDataRequestDTO.setDataOption(chartOption.getDataOption());
         return this.getChartData(getChartDataRequestDTO, loginUser);
+    }
+
+    @Override
+    public GetChartDataVO getChartAnalysis(Long chartId, User loginUser) {
+        // 根据chartId请求chartOption数据
+        GetChartDataVO chartData = getChartDataById(chartId, loginUser);
+        // TODO: 生成智能分析报告
+//        String res = aiManager.doAskChartAnalysis(chartData);
+        return null;
     }
 
     private GetChartDataVO handleFieldGroup(Long datasourceId, String tableName, List<GroupField> groupList, List<Series> seriesList) {

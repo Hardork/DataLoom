@@ -18,5 +18,5 @@ public interface UserChatForSQLConstant {
 
     String SPLIT = ",";
 
-    Integer LIMIT_RECORDS = 100;
+    Integer LIMIT_RECORDS = 20;
 }

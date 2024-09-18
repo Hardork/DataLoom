@@ -99,4 +99,6 @@ public interface DashboardService extends IService<Dashboard> {
      */
     GetChartDataVO getChartDataById(Long chartId, User loginUser);
 
+    GetChartDataVO getChartAnalysis(Long chartId, User loginUser);
+
 }

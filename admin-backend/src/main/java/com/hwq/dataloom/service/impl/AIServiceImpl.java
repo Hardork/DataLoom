@@ -86,7 +86,6 @@ public class AIServiceImpl implements AIService {
                     .coreDatasetTableFieldList(tableFields)
                     .build();
             dataTablesAndFieldsRequests.add(askAIWithDataTablesAndFieldsRequest);
-
         });
         // 4. 构造请求AI的输入
         String input = buildAskAISQLInput(dataTablesAndFieldsRequests, question);
@@ -107,8 +106,8 @@ public class AIServiceImpl implements AIService {
         QueryAICustomSQLVO queryAICustomSQLVO = null;
         try {
             queryAICustomSQLVO = buildUserChatForSqlVO(datasourceId, sql);
-        } catch (Exception e) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "查询数据异常");
+        } catch (Exception e) { // 防止异常发生，前端还继续等待接收数据
+            notifyMessageEnd(loginUser.getId());
         }
         // 9. 将查询的结果存放在数据库中
         ChatHistory chatHistory = new ChatHistory();
@@ -117,7 +116,11 @@ public class AIServiceImpl implements AIService {
         chatHistory.setModelId(chat.getModelId());
         // 10. 存储结果类JSON字符串
         chatHistory.setContent(JSONUtil.toJsonStr(queryAICustomSQLVO));
-        chatHistoryService.save(chatHistory);
+        try {
+            chatHistoryService.save(chatHistory);
+        } catch (Exception e) {
+            notifyMessageEnd(loginUser.getId());
+        }
         // 11. 利用webSocket发送消息通知
         AskSQLWebSocketMsgVO res = AskSQLWebSocketMsgVO.builder()
                 .res(queryAICustomSQLVO.getRes())
@@ -127,9 +130,13 @@ public class AIServiceImpl implements AIService {
                 .build();
         askSQLWebSocket.sendOneMessage(loginUser.getId(), res);
         // 12. 通知结束
+        notifyMessageEnd(loginUser.getId());
+    }
+
+    public void notifyMessageEnd(Long userId) {
         AskSQLWebSocketMsgVO end = new AskSQLWebSocketMsgVO();
         end.setType("end");
-        askSQLWebSocket.sendOneMessage(loginUser.getId(), end);
+        askSQLWebSocket.sendOneMessage(userId, end);
     }
 
     /**

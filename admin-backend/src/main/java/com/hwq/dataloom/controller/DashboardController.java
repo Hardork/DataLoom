@@ -119,4 +119,12 @@ public class DashboardController {
         return ResultUtils.success(dashboardService.getChartDataById(chartId, loginUser));
     }
 
+    @Operation(summary = "根据id图表获取智能分析报告")
+    @GetMapping("/getChartAnalysis")
+    public BaseResponse<GetChartDataVO> getChartAnalysis(Long chartId, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        ThrowUtils.throwIf(chartId == null, ErrorCode.PARAMS_ERROR, "id不得为空");
+        return ResultUtils.success(dashboardService.getChartAnalysis(chartId, loginUser));
+    }
+
 }
