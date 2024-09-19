@@ -5,6 +5,7 @@ import com.hwq.dataloom.model.dto.dashboard.*;
 import com.hwq.dataloom.model.entity.ChartOption;
 import com.hwq.dataloom.model.entity.Dashboard;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.hwq.dataloom.model.vo.dashboard.GetChartAnalysisVO;
 import com.hwq.dataloom.model.vo.dashboard.GetChartDataVO;
 
 import java.util.List;
@@ -99,6 +100,6 @@ public interface DashboardService extends IService<Dashboard> {
      */
     GetChartDataVO getChartDataById(Long chartId, User loginUser);
 
-    GetChartDataVO getChartAnalysis(Long chartId, User loginUser);
+    GetChartAnalysisVO getChartAnalysis(Long chartId, User loginUser);
 
 }

@@ -1,6 +1,7 @@
 package com.hwq.dataloom.manager;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.model.enums.RoleEnum;
@@ -95,4 +96,25 @@ public class AiManager {
         return moonshotAiClient.chat("moonshot-v1-32k",messages);
     }
 
+    public String doAskChartAnalysis(String type, String dataOption, String seriesDataListJsonStr, String xArrayDataJsonStr) {
+        String prompt = "现在你是一名图表分析专家\n" +
+                "下面我将给出图表的类型、图表数据请求配置（其中dataTableName表示数据表的名称，seriesArray代表数据列也就图表纵轴的数据，fieldName表示字段的名称，rollup表示数据分组统计的函数，group表示分组的字段）以及查询出的图表数据(seriesDataList表示图表数值数据，xarrayData表示横轴数据)\n" +
+                "请返回图表的分析报告(包含洞察与建议、具体分析、数据概括)，要求格式为md格式：\n" +
+                "### 洞察与建议\n" +
+                "### 具体分析\n" +
+                "### 数据概括";
+        String message = String.format(
+                "图表类型：%s\n" +
+                "图表数据请求配置：%s\n" +
+                "图表数据：%s\n",
+                type,
+                dataOption,
+                seriesDataListJsonStr + xArrayDataJsonStr
+                );
+        List<Message> messages = CollUtil.newArrayList(
+                new Message(RoleEnum.system.name(), prompt),
+                new Message(RoleEnum.user.name(), message)
+        );
+        return moonshotAiClient.chat("moonshot-v1-32k",messages);
+    }
 }

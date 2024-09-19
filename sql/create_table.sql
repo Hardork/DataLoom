@@ -566,6 +566,8 @@ create table chart_option(
     chartName   varchar(255)    null comment '图表名称',
     chartOption longtext   null comment '图表配置',
     dataOption longtext   null comment '请求数据配置（包含数据源ID、数据表ID、选择字段等信息）',
+    analysisRes longtext null comment '图表分析结果',
+    analysisLastFlag boolean null default false comment '图表分析是否是已更新并且是最新的',
     customSql         text        null comment '图表配置对应的自定义sql',
     status      tinyint     default 0 comment '图表状态',
     createTime      datetime null default CURRENT_TIMESTAMP comment '创建时间',

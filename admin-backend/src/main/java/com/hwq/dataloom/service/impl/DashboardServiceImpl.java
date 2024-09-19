@@ -23,6 +23,7 @@ import com.hwq.dataloom.model.enums.SeriesArrayRollUpEnum;
 import com.hwq.dataloom.model.enums.SeriesArrayTypeEnum;
 import com.hwq.dataloom.model.json.GroupField;
 import com.hwq.dataloom.model.json.Series;
+import com.hwq.dataloom.model.vo.dashboard.GetChartAnalysisVO;
 import com.hwq.dataloom.model.vo.dashboard.GetChartDataVO;
 import com.hwq.dataloom.service.ChartOptionService;
 import com.hwq.dataloom.service.CoreDatasetTableService;
@@ -220,7 +221,6 @@ public class DashboardServiceImpl extends ServiceImpl<DashboardMapper, Dashboard
             List<Series> seriesList = seriesArray.toJavaList(Series.class);
             JSONArray group = jsonObject.getJSONArray("group");
             List<GroupField> groupList = group.toJavaList(GroupField.class);
-
             // 1.3 根据不同的纵轴类型进行数据抽取
             if (seriesArrayTypeEnum == SeriesArrayTypeEnum.RECORD_COUNT) { // 查询记录总数
                 return handleRecordCount(datasourceId, tableName, groupList);
@@ -244,12 +244,26 @@ public class DashboardServiceImpl extends ServiceImpl<DashboardMapper, Dashboard
     }
 
     @Override
-    public GetChartDataVO getChartAnalysis(Long chartId, User loginUser) {
-        // 根据chartId请求chartOption数据
+    public GetChartAnalysisVO getChartAnalysis(Long chartId, User loginUser) {
+        ChartOption chartOption = chartOptionService.getById(chartId);
+        ThrowUtils.throwIf(chartOption == null, ErrorCode.NOT_FOUND_ERROR);
+        if (chartOption.getAnalysisLastFlag()) { // 图表分析结果已经是最新的，直接返回结果
+            return GetChartAnalysisVO.builder()
+                    .analysisRes(chartOption.getAnalysisRes())
+                    .build();
+        }
+        String dataOption = chartOption.getDataOption();
         GetChartDataVO chartData = getChartDataById(chartId, loginUser);
-        // TODO: 生成智能分析报告
-//        String res = aiManager.doAskChartAnalysis(chartData);
-        return null;
+        String seriesDataListJsonStr = JSONUtil.toJsonStr(chartData.getSeriesDataList());
+        String xArrayDataJsonStr = JSONUtil.toJsonStr(chartData.getXArrayData());
+        // TODO: 流式返回结果
+        String res = aiManager.doAskChartAnalysis(chartOption.getChartName(), dataOption, seriesDataListJsonStr, xArrayDataJsonStr);
+        chartOption.setAnalysisLastFlag(Boolean.TRUE);
+        chartOption.setAnalysisRes(res);
+        chartOptionService.updateById(chartOption);
+        return GetChartAnalysisVO.builder()
+                .analysisRes(res)
+                .build();
     }
 
     private GetChartDataVO handleFieldGroup(Long datasourceId, String tableName, List<GroupField> groupList, List<Series> seriesList) {

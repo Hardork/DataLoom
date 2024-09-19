@@ -7,6 +7,7 @@ import com.hwq.dataloom.framework.result.ResultUtils;
 import com.hwq.dataloom.model.dto.dashboard.*;
 import com.hwq.dataloom.model.entity.ChartOption;
 import com.hwq.dataloom.model.entity.Dashboard;
+import com.hwq.dataloom.model.vo.dashboard.GetChartAnalysisVO;
 import com.hwq.dataloom.model.vo.dashboard.GetChartDataVO;
 import com.hwq.dataloom.service.DashboardService;
 import com.hwq.dataloom.service.UserService;
@@ -121,7 +122,7 @@ public class DashboardController {
 
     @Operation(summary = "根据id图表获取智能分析报告")
     @GetMapping("/getChartAnalysis")
-    public BaseResponse<GetChartDataVO> getChartAnalysis(Long chartId, HttpServletRequest request) {
+    public BaseResponse<GetChartAnalysisVO> getChartAnalysis(Long chartId, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         ThrowUtils.throwIf(chartId == null, ErrorCode.PARAMS_ERROR, "id不得为空");
         return ResultUtils.success(dashboardService.getChartAnalysis(chartId, loginUser));

@@ -10,6 +10,8 @@
             <result property="chartName" column="chartName" jdbcType="VARCHAR"/>
             <result property="chartOption" column="chartOption" jdbcType="VARCHAR"/>
             <result property="dataOption" column="chartOption" jdbcType="VARCHAR"/>
+            <result property="analysisRes" column="analysisRes" jdbcType="VARCHAR"/>
+            <result property="analysisLastFlag" column="analysisLastFlag" jdbcType="BOOLEAN"/>
             <result property="customSql" column="customSql" jdbcType="VARCHAR"/>
             <result property="status" column="status" jdbcType="TINYINT"/>
             <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
@@ -19,7 +21,7 @@
 
     <sql id="Base_Column_List">
         id,dashboardId,chartName,
-        chartOption,dataOption,customSql,status,
+        chartOption,dataOption,analysisRes,analysisLastFlag,customSql,status,
         createTime,updateTime,isDelete
     </sql>
 </mapper>

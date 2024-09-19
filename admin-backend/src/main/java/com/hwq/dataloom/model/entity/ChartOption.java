@@ -46,6 +46,16 @@ public class ChartOption implements Serializable {
     private String customSql;
 
     /**
+     * 图表智能分析结果
+     */
+    private String analysisRes;
+
+    /**
+     * 图表更新状态
+     */
+    private Boolean analysisLastFlag;
+
+    /**
      * 图表状态
      */
     private Integer status;
