@@ -1,6 +1,9 @@
 package com.hwq.dataloom.websocket.vo;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @Author:HWQ
@@ -8,6 +11,9 @@ import lombok.Data;
  * @Description:
  **/
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class AiWebSocketVO {
     private String content;
     private String type;

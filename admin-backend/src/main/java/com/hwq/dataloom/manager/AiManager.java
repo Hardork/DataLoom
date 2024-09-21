@@ -96,6 +96,14 @@ public class AiManager {
         return moonshotAiClient.chat("moonshot-v1-32k",messages);
     }
 
+    /**
+     * 执行图表分析
+     * @param type
+     * @param dataOption
+     * @param seriesDataListJsonStr
+     * @param xArrayDataJsonStr
+     * @return
+     */
     public String doAskChartAnalysis(String type, String dataOption, String seriesDataListJsonStr, String xArrayDataJsonStr) {
         String prompt = "现在你是一名图表分析专家\n" +
                 "下面我将给出图表的类型、图表数据请求配置（其中dataTableName表示数据表的名称，seriesArray代表数据列也就图表纵轴的数据，fieldName表示字段的名称，rollup表示数据分组统计的函数，group表示分组的字段）以及查询出的图表数据(seriesDataList表示图表数值数据，xarrayData表示横轴数据)\n" +
