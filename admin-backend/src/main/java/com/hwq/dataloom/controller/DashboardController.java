@@ -128,4 +128,12 @@ public class DashboardController {
         return ResultUtils.success(dashboardService.getChartAnalysis(chartId, loginUser));
     }
 
+    @Operation(summary = "根据id图表流式获取智能分析报告")
+    @GetMapping("/getChartAnalysisFlux")
+    public BaseResponse<Boolean> getChartAnalysisFlux(Long chartId, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        ThrowUtils.throwIf(chartId == null, ErrorCode.PARAMS_ERROR, "id不得为空");
+        return ResultUtils.success(dashboardService.getChartAnalysisFlux(chartId, loginUser));
+    }
+
 }

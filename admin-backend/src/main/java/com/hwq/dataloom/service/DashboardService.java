@@ -100,6 +100,19 @@ public interface DashboardService extends IService<Dashboard> {
      */
     GetChartDataVO getChartDataById(Long chartId, User loginUser);
 
+    /**
+     * 获取图表智能分析
+     * @param chartId
+     * @param loginUser
+     * @return
+     */
     GetChartAnalysisVO getChartAnalysis(Long chartId, User loginUser);
 
+    /**
+     * 流式获取图表智能分析
+     * @param chartId
+     * @param loginUser
+     * @return
+     */
+    Boolean getChartAnalysisFlux(Long chartId, User loginUser);
 }

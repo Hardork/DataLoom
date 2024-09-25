@@ -156,7 +156,7 @@ public class MoonshotAiClient {
                         chartAnalysisWebSocket.sendOneMessage(loginUser.getId(),
                                 AiWebSocketVO.builder()
                                 .type("running")
-                                .content(x)
+                                .content(res.toString())
                                 .build()
                         );
                         res.append(x);

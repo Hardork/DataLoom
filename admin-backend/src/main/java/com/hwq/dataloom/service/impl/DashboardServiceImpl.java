@@ -257,13 +257,32 @@ public class DashboardServiceImpl extends ServiceImpl<DashboardMapper, Dashboard
         String seriesDataListJsonStr = JSONUtil.toJsonStr(chartData.getSeriesDataList());
         String xArrayDataJsonStr = JSONUtil.toJsonStr(chartData.getXArrayData());
         // TODO: 流式返回结果
-        String res = aiManager.doAskChartAnalysis(chartOption.getChartName(), dataOption, seriesDataListJsonStr, xArrayDataJsonStr);
+        String res = aiManager.doAskChartAnalysis(chartOption.getChartName(), dataOption, seriesDataListJsonStr, xArrayDataJsonStr, false, null);
         chartOption.setAnalysisLastFlag(Boolean.TRUE);
         chartOption.setAnalysisRes(res);
         chartOptionService.updateById(chartOption);
         return GetChartAnalysisVO.builder()
                 .analysisRes(res)
                 .build();
+    }
+
+    @Override
+    public Boolean getChartAnalysisFlux(Long chartId, User loginUser) {
+        ChartOption chartOption = chartOptionService.getById(chartId);
+        ThrowUtils.throwIf(chartOption == null, ErrorCode.NOT_FOUND_ERROR);
+        if (chartOption.getAnalysisLastFlag()) { // 图表分析结果已经是最新的，直接返回结果
+            return Boolean.TRUE;
+        }
+        String dataOption = chartOption.getDataOption();
+        GetChartDataVO chartData = getChartDataById(chartId, loginUser);
+        String seriesDataListJsonStr = JSONUtil.toJsonStr(chartData.getSeriesDataList());
+        String xArrayDataJsonStr = JSONUtil.toJsonStr(chartData.getXArrayData());
+        // TODO: 流式返回结果
+        String res = aiManager.doAskChartAnalysis(chartOption.getChartName(), dataOption, seriesDataListJsonStr, xArrayDataJsonStr, true, loginUser);
+        chartOption.setAnalysisLastFlag(Boolean.TRUE);
+        chartOption.setAnalysisRes(res);
+        chartOptionService.updateById(chartOption);
+        return Boolean.TRUE;
     }
 
     private GetChartDataVO handleFieldGroup(Long datasourceId, String tableName, List<GroupField> groupList, List<Series> seriesList) {
