@@ -50,6 +50,11 @@ public class Dashboard implements Serializable {
     private Date updateTime;
 
     /**
+     * 图表状态 0-正常 1-AI生成图表中（不可操作）
+     */
+    private Integer status;
+
+    /**
      * 逻辑删除
      */
     @TableLogic

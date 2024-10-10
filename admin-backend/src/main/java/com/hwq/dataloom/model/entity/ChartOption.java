@@ -4,7 +4,11 @@ import com.baomidou.mybatisplus.annotation.*;
 
 import java.io.Serializable;
 import java.util.Date;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 图表配置表
@@ -12,6 +16,9 @@ import lombok.Data;
  */
 @TableName(value ="chart_option")
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ChartOption implements Serializable {
     /**
      * 主键

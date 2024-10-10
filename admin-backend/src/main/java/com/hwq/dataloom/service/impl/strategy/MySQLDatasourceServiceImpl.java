@@ -115,6 +115,6 @@ public class MySQLDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
             field.setDatasourceId(coreDatasource.getId());
             tableFieldList.add(field);
         }
-        return null;
+        return tableFieldList;
     }
 }

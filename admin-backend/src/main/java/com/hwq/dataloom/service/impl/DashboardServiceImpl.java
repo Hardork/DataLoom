@@ -4,12 +4,14 @@ import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.hwq.dataloom.config.CommonThreadPool;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
@@ -19,8 +21,11 @@ import com.hwq.dataloom.model.dto.dashboard.*;
 import com.hwq.dataloom.model.entity.ChartOption;
 import com.hwq.dataloom.model.entity.CoreDatasource;
 import com.hwq.dataloom.model.entity.Dashboard;
+import com.hwq.dataloom.model.enums.DashboardStatusEnum;
 import com.hwq.dataloom.model.enums.SeriesArrayRollUpEnum;
 import com.hwq.dataloom.model.enums.SeriesArrayTypeEnum;
+import com.hwq.dataloom.model.json.AiGenChartDataOptions;
+import com.hwq.dataloom.model.json.GenChartGroup;
 import com.hwq.dataloom.model.json.GroupField;
 import com.hwq.dataloom.model.json.Series;
 import com.hwq.dataloom.model.vo.dashboard.GetChartAnalysisVO;
@@ -32,13 +37,18 @@ import com.hwq.dataloom.service.DashboardService;
 import com.hwq.dataloom.mapper.DashboardMapper;
 import com.hwq.dataloom.utils.datasource.DatasourceEngine;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.executor.BatchExecutorException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+
+import static com.hwq.dataloom.model.enums.SeriesArrayTypeEnum.FIELD_GROUP;
 
 /**
 * @author wqh
@@ -60,6 +70,13 @@ public class DashboardServiceImpl extends ServiceImpl<DashboardMapper, Dashboard
 
     @Resource
     private CoreDatasetTableService coreDatasetTableService;
+
+
+    @Resource
+    private AIServiceImpl aiService;
+
+    @Resource
+    private CommonThreadPool commonThreadPool;
 
     @Resource
     private AiManager aiManager;
@@ -256,7 +273,6 @@ public class DashboardServiceImpl extends ServiceImpl<DashboardMapper, Dashboard
         GetChartDataVO chartData = getChartDataById(chartId, loginUser);
         String seriesDataListJsonStr = JSONUtil.toJsonStr(chartData.getSeriesDataList());
         String xArrayDataJsonStr = JSONUtil.toJsonStr(chartData.getXArrayData());
-        // TODO: 流式返回结果
         String res = aiManager.doAskChartAnalysis(chartOption.getChartName(), dataOption, seriesDataListJsonStr, xArrayDataJsonStr, false, null);
         chartOption.setAnalysisLastFlag(Boolean.TRUE);
         chartOption.setAnalysisRes(res);
@@ -277,7 +293,6 @@ public class DashboardServiceImpl extends ServiceImpl<DashboardMapper, Dashboard
         GetChartDataVO chartData = getChartDataById(chartId, loginUser);
         String seriesDataListJsonStr = JSONUtil.toJsonStr(chartData.getSeriesDataList());
         String xArrayDataJsonStr = JSONUtil.toJsonStr(chartData.getXArrayData());
-        // TODO: 流式返回结果
         String res = aiManager.doAskChartAnalysis(chartOption.getChartName(), dataOption, seriesDataListJsonStr, xArrayDataJsonStr, true, loginUser);
         chartOption.setAnalysisLastFlag(Boolean.TRUE);
         chartOption.setAnalysisRes(res);
@@ -285,6 +300,134 @@ public class DashboardServiceImpl extends ServiceImpl<DashboardMapper, Dashboard
         return Boolean.TRUE;
     }
 
+    @Override
+    public Boolean aiGenChart(Long dashBoardId, User loginUser) {
+        Dashboard dashboard = this.getById(dashBoardId);
+        ThrowUtils.throwIf(dashboard == null, ErrorCode.NOT_FOUND_ERROR);
+        ThrowUtils.throwIf(!dashboard.getUserId().equals(loginUser.getId()), ErrorCode.NO_AUTH_ERROR);
+        Long datasourceId = dashboard.getDatasourceId();
+        // 1. 获取dataOption（JSON数组格式）
+        // TODO： 2. 更新仪表盘状态
+        dashboard.setStatus(DashboardStatusEnum.GENERATING.getValue());
+        this.updateById(dashboard);
+//        CompletableFuture.runAsync(() -> {
+//            String dataOptionsJsonStr = aiService.genChartByAi(dashboard.getDatasourceId(), loginUser);
+//            // 3. 反序列JSON
+//            List<AiGenChartDataOptions> aiGenChartDataOptions = JSON.parseObject(dataOptionsJsonStr, new TypeReference<List<AiGenChartDataOptions>>() {
+//            });
+//            // 4. 生成图表
+//            List<Long> chartIds = new ArrayList<>();
+//            aiGenChartDataOptions.forEach(item -> {
+//                ChartOption chartOption = ChartOption.builder()
+//                        .chartOption(convertAiGenChartDataOption2ChartOption(datasourceId, item))
+//                        .chartName(item.getChartName())
+//                        .build();
+//                chartOptionService.save(chartOption);
+//                chartIds.add(chartOption.getId());
+//            });
+//            // 6. 初始化图表位置
+//            String layout = generateLayout(chartIds);
+//            // TODO：6. 更新仪表盘状态
+//            dashboard.setSnapshot(layout);
+//            dashboard.setStatus(DashboardStatusEnum.NORMAL.getValue());
+//            this.updateById(dashboard);
+//        }, commonThreadPool.getThreadPoolExecutor())
+//                .exceptionally((throwable) -> {
+//                    log.error("异步任务执行失败");
+//                    return null;
+//                });
+        String dataOptionsJsonStr = aiService.genChartByAi(dashboard.getDatasourceId(), loginUser);
+        // 3. 反序列JSON
+        List<AiGenChartDataOptions> aiGenChartDataOptions = JSON.parseObject(dataOptionsJsonStr, new TypeReference<List<AiGenChartDataOptions>>() {
+        });
+        // 4. 生成图表
+        List<Long> chartIds = new ArrayList<>();
+        aiGenChartDataOptions.forEach(item -> {
+            ChartOption chartOption = ChartOption.builder()
+                    .dashboardId(dashBoardId)
+                    .dataOption(convertAiGenChartDataOption2ChartOption(datasourceId, item))
+                    .chartName(item.getChartType())
+                    .build();
+            chartOptionService.save(chartOption);
+            chartIds.add(chartOption.getId());
+        });
+        // 6. 初始化图表位置
+        String layout = generateLayout(chartIds);
+        // TODO：6. 更新仪表盘状态
+        dashboard.setSnapshot(layout);
+        dashboard.setStatus(DashboardStatusEnum.NORMAL.getValue());
+        this.updateById(dashboard);
+        return true;
+    }
+
+    /**
+     * 将AI返回的DataOption转换为正式的DataOption
+     * @param datasourceId 数据源Id
+     * @param aiGenChartDataOption I返回的DataOption
+     * @return 正式的DataOption
+     */
+    private String convertAiGenChartDataOption2ChartOption(Long datasourceId, AiGenChartDataOptions aiGenChartDataOption) {
+        JSONObject jsonObject = new JSONObject();
+        List<Series> seriesArray = aiGenChartDataOption.getSeriesArray();
+        List<GenChartGroup> group = aiGenChartDataOption.getGroup();
+        List<GroupField>  groupFields = new ArrayList<>();
+        group.forEach(item -> {
+            GroupField groupField = GroupField
+                    .builder()
+                    .fieldName(item.getFieldName())
+                    .mode("integrated")
+                    .build();
+            groupFields.add(groupField);
+        });
+        jsonObject.put("datasourceId", datasourceId);
+        jsonObject.put("dataTableName", aiGenChartDataOption.getDataTableName());
+        jsonObject.put("seriesArrayType", FIELD_GROUP.getValue());
+        jsonObject.put("seriesArray", seriesArray);
+        jsonObject.put("group", groupFields);
+        return jsonObject.toJSONString();
+    }
+
+
+    public String generateLayout(List<Long> chartIds) {
+        int n = chartIds.size(); // 图表总数
+        int cols = 12; // 每行的列数
+        int w = 4; // 每个图表的宽度
+        int h = 3; // 每个图表的高度
+        JSONArray layoutArray = new JSONArray();
+        int x = 0;
+        int y = 0;
+        int index = 0;
+        int currentX = x;
+        while (index < n) {
+            currentX = 0;
+            while (index < n && (currentX + w) <= cols) {
+                JSONObject layout = new JSONObject();
+                layout.put("i", chartIds.get(index).toString());
+                layout.put("x", currentX);
+                layout.put("y", y);
+                layout.put("w", w);
+                layout.put("h", h);
+                layoutArray.add(layout);
+                index++;
+                currentX += w;
+            }
+            y += h;
+        }
+
+        JSONObject layoutObject = new JSONObject();
+        layoutObject.put("lg", layoutArray);
+
+        return layoutObject.toJSONString();
+    }
+
+    /**
+     * 根据dataOption查询数据
+     * @param datasourceId 数据源ID
+     * @param tableName 表名
+     * @param groupList 分组列表
+     * @param seriesList 查询列字段
+     * @return 查询数据
+     */
     private GetChartDataVO handleFieldGroup(Long datasourceId, String tableName, List<GroupField> groupList, List<Series> seriesList) {
         ThrowUtils.throwIf(groupList.isEmpty(), ErrorCode.PARAMS_ERROR, "分组字段不得为空");
         ThrowUtils.throwIf(seriesList.isEmpty(), ErrorCode.PARAMS_ERROR, "数值字段不得为空");

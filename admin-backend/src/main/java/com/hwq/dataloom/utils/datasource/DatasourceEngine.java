@@ -59,36 +59,35 @@ public class DatasourceEngine {
      * @param parameters 参数
      * @return
      */
-    @SneakyThrows
-    public QueryAICustomSQLVO execSelectSqlToQueryAICustomSQLVO(Long datasourceId, String sql, Object... parameters) {
+    public QueryAICustomSQLVO execSelectSqlToQueryAICustomSQLVO(Long datasourceId, String sql, Object... parameters) throws SQLException {
         int dsIndex = (int) (datasourceId % (dataSourceMap.size()));
         // 获取对应连接池
         DataSource dataSource = dataSourceMap.get(dsIndex);
         QueryAICustomSQLVO queryAICustomSQLVO = new QueryAICustomSQLVO();
+        // 所有列
         List<String> columns = new ArrayList<>();
+        // 所有结果
         List<Map<String, Object>> res = new ArrayList<>();
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-
-            // Set parameters to prevent SQL injection
-            for (int i = 0; i < parameters.length; i++) {
-                preparedStatement.setObject(i + 1, parameters[i]);
-            }
-            ResultSet rs = preparedStatement.executeQuery();
-            // Execute the query or update
-            // 处理查询结果
-            ResultSetMetaData rsmd = rs.getMetaData();
-            int columnCount = rsmd.getColumnCount();
+        Connection connection = dataSource.getConnection();
+        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        // Set parameters to prevent SQL injection
+        for (int i = 0; i < parameters.length; i++) {
+            preparedStatement.setObject(i + 1, parameters[i]);
+        }
+        ResultSet rs = preparedStatement.executeQuery();
+        // Execute the query or update
+        // 处理查询结果
+        ResultSetMetaData rsmd = rs.getMetaData();
+        int columnCount = rsmd.getColumnCount();
+        for (int i = 1; i <= columnCount; i++) {
+            columns.add(rsmd.getColumnName(i));
+        }
+        while (rs.next()) {
+            Map<String, Object> resMap = new HashMap<>();
             for (int i = 1; i <= columnCount; i++) {
-                columns.add(rsmd.getColumnName(i));
+                resMap.put(rsmd.getColumnName(i), rs.getString(i));
             }
-            while (rs.next()) {
-                Map<String, Object> resMap = new HashMap<>();
-                for (int i = 1; i <= columnCount; i++) {
-                    resMap.put(rsmd.getColumnName(i), rs.getString(i));
-                }
-                res.add(resMap);
-            }
+            res.add(resMap);
         }
         queryAICustomSQLVO.setSql(sql);
         queryAICustomSQLVO.setColumns(columns);

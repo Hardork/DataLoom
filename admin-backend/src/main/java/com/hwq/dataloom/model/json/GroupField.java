@@ -1,6 +1,9 @@
 package com.hwq.dataloom.model.json;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author HWQ
@@ -8,6 +11,9 @@ import lombok.Data;
  * @description
  */
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class GroupField {
     private String fieldName;
     private String mode;

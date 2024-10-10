@@ -136,4 +136,12 @@ public class DashboardController {
         return ResultUtils.success(dashboardService.getChartAnalysisFlux(chartId, loginUser));
     }
 
+    @Operation(summary = "AI一键生成仪表盘(异步)")
+    @PostMapping("/aiGenChart")
+    public BaseResponse<Boolean> aiGenChart(Long dashBoardId, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        ThrowUtils.throwIf(dashBoardId == null, ErrorCode.PARAMS_ERROR, "id不得为空");
+        return ResultUtils.success(dashboardService.aiGenChart(dashBoardId, loginUser));
+    }
+
 }

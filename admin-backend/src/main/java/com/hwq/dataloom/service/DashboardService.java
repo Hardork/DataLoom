@@ -115,4 +115,12 @@ public interface DashboardService extends IService<Dashboard> {
      * @return
      */
     Boolean getChartAnalysisFlux(Long chartId, User loginUser);
+
+    /**
+     * 一键生成AI图表
+     * @param dashBoardId 仪表盘ID
+     * @param loginUser 用户
+     * @return
+     */
+    Boolean aiGenChart(Long dashBoardId, User loginUser);
 }

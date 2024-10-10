@@ -4,13 +4,20 @@ import com.baomidou.mybatisplus.annotation.*;
 
 import java.io.Serializable;
 import java.util.Date;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 
  * @TableName chat_history
  */
 @TableName(value ="chat_history")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
 public class ChatHistory implements Serializable {
     /**

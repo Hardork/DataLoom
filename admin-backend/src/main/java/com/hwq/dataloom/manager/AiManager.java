@@ -129,4 +129,43 @@ public class AiManager {
         }
         return moonshotAiClient.chat("moonshot-v1-32k",messages);
     }
+
+    /**
+     * 执行图表分析
+     * @param datasourceMetaInfo
+     * @return
+     */
+    public String doAiGenChartByDatasource(String datasourceMetaInfo, boolean isFlux, User loginUser) {
+        String prompt = "现在你是一名图表分析专家\n" +
+                "下面我将给出数据源的元信息, 请你返回所有你认为有价值的图表数据配置" +
+                "所有的数据表元数据:[{数据库表名、表注释、数据库表的字段、注释以及类型}] \n" +
+                "请返回图表的数据配置，示例格式为以下的JSON数组：\n" +
+                "[{\n" +
+                "  \"chartType\":\"当前图表类型\",\n" +
+                "  \"chartName\":\"当前图表名称\",\n" +
+                "  \"dataTableName\":\"数据库表名\",\n" +
+                "  \"seriesArray\":[\n" +
+                "    {\"fieldName\":\"数据库表字段\",\"rollup\":\"计算函数\"}\n" +
+                "  ],\n" +
+                "  \"group\":[\n" +
+                "    {\"fieldName\":\"数据库表字段\"}\n" +
+                "  ]\n" +
+                "}]" +
+                "其中rollup为分组检索的聚合函数有COUNT、MAX、MIN、SUM四种计算类型，chartType有line、pie、scatter、bar，返回的JSON数组长度不超过3"
+                ;
+        String message = String.format(
+                        "数据源元数据：%s\n",
+                datasourceMetaInfo
+        );
+        List<Message> messages = CollUtil.newArrayList(
+                new Message(RoleEnum.system.name(), prompt),
+                new Message(RoleEnum.user.name(), message)
+        );
+        if (isFlux) { // 流获取
+            return moonshotAiClient.chatFlux("moonshot-v1-32k",messages, loginUser);
+        }
+        return moonshotAiClient.chat("moonshot-v1-32k",messages);
+    }
+
+
 }

@@ -17,5 +17,4 @@ public class ChatForSQLRequest {
      * 询问的数据
      */
     private String question;
-
 }
