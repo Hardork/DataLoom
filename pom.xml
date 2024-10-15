@@ -32,6 +32,8 @@
         <module>points-service</module>
         <module>framework</module>
         <module>gateway</module>
+        <module>product-service</module>
+        <module>account-service</module>
     </modules>
     <properties>
         <java.version>1.8</java.version>

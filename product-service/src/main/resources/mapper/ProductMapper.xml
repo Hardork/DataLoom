@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hwq.dataloom.product.mapper.ProductMapper">
+
+    <resultMap id="BaseResultMap" type="com.hwq.dataloom.product.model.entity.Product">
+        <id property="id" column="id"/>
+        <result property="stockCount" column="userId" />
+        <result property="stockCountSurplus" column="stockCountSurplus" />
+        <result property="productAmount" column="productAmount" />
+        <result property="availablePointType" column="availablePointType" />
+        <result property="productDesc" column="productDesc" />
+        <result property="productConfig" column="productConfig" />
+        <result property="createTime" column="createTime" />
+        <result property="updateTime" column="updateTime" />
+        <result property="isDelete" column="isDelete" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,stockCount,stockCountSurplus,productAmount,availablePointType,productConfig,createTime,updateTime,isDelete
+    </sql>
+</mapper>

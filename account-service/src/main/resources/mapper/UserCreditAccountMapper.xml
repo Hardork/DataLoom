@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hwq.dataloom.account.mapper.UserCreditAccountMapper">
+
+    <resultMap id="BaseResultMap" type="com.hwq.dataloom.account.model.entity.UserCreditAccount">
+        <id property="id" column="id" />
+        <result property="userId" column="userId" />
+        <result property="totalAmount" column="totalAmount"/>
+        <result property="availableAmount" column="availableAmount" />
+        <result property="accountStatus" column="accountStatus" />
+        <result property="createTime" column="createTime" />
+        <result property="updateTime" column="updateTime" />
+        <result property="isDelete" column="isDelete" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,userId,totalAmount,availableAmount,accountStatus,createTime,updateTime,isDelete
+    </sql>
+</mapper>
