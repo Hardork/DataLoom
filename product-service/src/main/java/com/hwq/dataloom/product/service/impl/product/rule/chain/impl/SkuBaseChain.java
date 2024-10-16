@@ -1,9 +1,9 @@
-package com.hwq.dataloom.product.service.impl.product.chain.impl;
+package com.hwq.dataloom.product.service.impl.product.rule.chain.impl;
 
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.product.model.entity.Product;
-import com.hwq.dataloom.product.service.impl.product.chain.AbstractActionChain;
+import com.hwq.dataloom.product.service.impl.product.rule.chain.AbstractActionChain;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

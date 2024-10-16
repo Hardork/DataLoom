@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hwq.dataloom.account.mapper.UserCreditAccountMapper;
 import com.hwq.dataloom.account.model.request.credit.UserCreditAccountAdjustRequest;
-import com.hwq.dataloom.account.model.entity.UserCreditAccount;
+import com.hwq.dataloom.framework.model.entity.UserCreditAccount;
 import com.hwq.dataloom.account.service.UserCreditAccountService;
 
 /**

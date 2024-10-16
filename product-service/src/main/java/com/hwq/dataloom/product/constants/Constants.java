@@ -14,4 +14,9 @@ public interface Constants {
 
         String ACTIVITY_SKU_COUNT_QUERY = "activity:sku:count:query";
     }
+
+    interface MQKey{
+        String PRODUCT_DISTRIBUTE_TOPIC = "PRODUCT_DISTRIBUTE_TOPIC";
+        String PRODUCT_DISTRIBUTE_GROUP = "PRODUCT_DISTRIBUTE_GROUP";
+    }
 }

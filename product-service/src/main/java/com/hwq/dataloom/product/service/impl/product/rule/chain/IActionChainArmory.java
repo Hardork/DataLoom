@@ -1,4 +1,4 @@
-package com.hwq.dataloom.product.service.impl.product.chain;
+package com.hwq.dataloom.product.service.impl.product.rule.chain;
 
 /**
  * @Author: HCJ

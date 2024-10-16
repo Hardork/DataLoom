@@ -2,7 +2,7 @@ package com.hwq.dataloom.account.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.hwq.dataloom.account.model.request.credit.UserCreditAccountAdjustRequest;
-import com.hwq.dataloom.account.model.entity.UserCreditAccount;
+import com.hwq.dataloom.framework.model.entity.UserCreditAccount;
 
 /**
  * @Author: HCJ

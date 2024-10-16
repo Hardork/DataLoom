@@ -1,8 +1,7 @@
 package com.hwq.dataloom.account.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.hwq.dataloom.account.model.entity.MemberAccount;
-import com.hwq.dataloom.account.model.entity.UserCreditAccount;
+import com.hwq.dataloom.framework.model.entity.UserCreditAccount;
 
 /**
  * @Author: HCJ

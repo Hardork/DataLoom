@@ -25,6 +25,7 @@ public class Product {
     private String productConfig;
     private Date beginDateTime;
     private Date endDateTime;
+    private String type;
     private Date createTime;
     private Date updateTime;
     @TableLogic

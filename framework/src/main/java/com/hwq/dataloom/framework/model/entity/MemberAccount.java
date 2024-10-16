@@ -1,4 +1,4 @@
-package com.hwq.dataloom.account.model.entity;
+package com.hwq.dataloom.framework.model.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;

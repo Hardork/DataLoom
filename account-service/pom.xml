@@ -205,6 +205,10 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.hwq</groupId>
+            <artifactId>framework</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

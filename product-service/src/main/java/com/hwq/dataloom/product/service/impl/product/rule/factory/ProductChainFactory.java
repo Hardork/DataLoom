@@ -1,6 +1,6 @@
-package com.hwq.dataloom.product.service.impl.product.factory;
+package com.hwq.dataloom.product.service.impl.product.rule.factory;
 
-import com.hwq.dataloom.product.service.impl.product.chain.IActionChain;
+import com.hwq.dataloom.product.service.impl.product.rule.chain.IActionChain;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.stereotype.Service;
