@@ -151,6 +151,10 @@ yarn build or npm run build
 ```
 
 ### 后端
+由于部分服务需要使用到第三方的大模型的接口，目前系统仅接入了Kimi，需要先申请对应的秘钥，并替换admin-backend模块中application.yml中的kimi AI配置
+[Kimi API开放平台调用文档](https://platform.moonshot.cn/)
+![img_1.png](img/img_14.png)
+
 请确保你包含以下中间件：
 - MySQL
 - RabbitMQ

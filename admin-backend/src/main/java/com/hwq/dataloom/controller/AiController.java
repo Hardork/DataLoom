@@ -36,7 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * @Author:HWQ
  * @DateTime:2023/9/25 20:42
- * @Description:
+ * @Description: AI接口
  **/
 @RestController
 @Slf4j

@@ -19,6 +19,7 @@ public class AnalysisInitMain {
             factory.setHost("127.0.0.1");
             factory.setUsername("admin");
             factory.setPassword("123");
+            factory.setConnectionTimeout(10000); // 设置连接超时时间为 10 秒
             Connection connection = factory.newConnection();
             Channel channel = connection.createChannel();
             // 创建普通交换机

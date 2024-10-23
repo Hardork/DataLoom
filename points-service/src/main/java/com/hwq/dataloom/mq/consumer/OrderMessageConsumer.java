@@ -36,6 +36,7 @@ public class OrderMessageConsumer {
 
     @DubboReference
     private InnerWSServiceInterface userWebSocket;
+
     @SneakyThrows
     @RabbitListener(queues = {MqConstant.ORDER_DEAD_QUEUE_NAME}, ackMode = "MANUAL")
     public void receiveOrderMessage(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
