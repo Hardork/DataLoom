@@ -24,29 +24,8 @@ import java.util.List;
 public class AiManager {
 
     @Resource
-    private YuCongMingClient yuCongMingClient;
-
-    @Resource
     private MoonshotAiClient moonshotAiClient;
 
-
-    /**
-     * AI 对话
-     *
-     * @param modelId
-     * @param message
-     * @return
-     */
-    public String doChat(long modelId, String message) {
-        DevChatRequest devChatRequest = new DevChatRequest();
-        devChatRequest.setModelId(modelId);
-        devChatRequest.setMessage(message);
-        BaseResponse<DevChatResponse> response = yuCongMingClient.doChat(devChatRequest);
-        if (response == null) {
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "AI 响应错误");
-        }
-        return response.getData().getContent();
-    }
 
     public String doChatWithKimi(String message) {
         String prompt = "你是一个数据分析师和前端开发专家，接下来我会按照以下固定格式给你提供内容： \n" +

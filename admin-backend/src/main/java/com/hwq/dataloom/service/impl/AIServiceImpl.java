@@ -16,9 +16,11 @@ import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
 import com.hwq.dataloom.service.*;
 import com.hwq.dataloom.utils.datasource.DatasourceEngine;
 import com.hwq.dataloom.websocket.AskSQLWebSocket;
+import com.hwq.dataloom.websocket.constants.MessageStatusEnum;
 import com.hwq.dataloom.websocket.vo.AskSQLWebSocketMsgVO;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -84,31 +86,13 @@ public class AIServiceImpl implements AIService {
         chatHistoryService.save(user_q);
         // 5. 利用webSocket发送消息通知开始
         AskSQLWebSocketMsgVO askSQLWebSocketMsgVO = new AskSQLWebSocketMsgVO();
-        askSQLWebSocketMsgVO.setType("start");
+        askSQLWebSocketMsgVO.setType(MessageStatusEnum.START.getStatus());
         askSQLWebSocket.sendOneMessage(loginUser.getId(), askSQLWebSocketMsgVO);
         // 6. 询问AI，获取返回的SQL
         String sql = aiManager.doAskSQLWithKimi(input, LIMIT_RECORDS);
         // 7. 执行SQL，并得到返回的结果
-        QueryAICustomSQLVO queryAICustomSQLVO = null;
-        try {
-            queryAICustomSQLVO = buildUserChatForSqlVO(datasourceId, sql);
-        } catch (Exception e) { // 防止异常发生，前端还继续等待接收数据
-            if (e instanceof SQLException) { // 记录异常
-                queryAICustomSQLVO = new QueryAICustomSQLVO();
-                queryAICustomSQLVO.setSql(sql);
-                ChatHistory chatHistory = ChatHistory.builder()
-                        .chatRole(ChatHistoryRoleEnum.MODEL.getValue())
-                        .chatId(chatId)
-                        .modelId(chat.getModelId())
-                        .status(ChatHistoryStatusEnum.FAIL.getValue())
-                        .execMessage("查询异常")
-                        .content(JSONUtil.toJsonStr(queryAICustomSQLVO))
-                        .build();
-                chatHistoryService.updateById(chatHistory);
-            }
-            notifyMessageEnd(loginUser.getId());
-            return;
-        }
+        QueryAICustomSQLVO queryAICustomSQLVO = getQueryAICustomSQLVO(loginUser, datasourceId, sql, chatId, chat);
+        if (queryAICustomSQLVO == null) return;
         // 8. 将查询的结果存放在数据库中
         ChatHistory chatHistory = new ChatHistory();
         chatHistory.setChatRole(ChatHistoryRoleEnum.MODEL.getValue());
@@ -126,7 +110,7 @@ public class AIServiceImpl implements AIService {
         AskSQLWebSocketMsgVO res = AskSQLWebSocketMsgVO.builder()
                 .res(queryAICustomSQLVO.getRes())
                 .columns(queryAICustomSQLVO.getColumns())
-                .type("running")
+                .type(MessageStatusEnum.RUNNING.getStatus())
                 .sql(sql)
                 .build();
         askSQLWebSocket.sendOneMessage(loginUser.getId(), res);
@@ -135,12 +119,47 @@ public class AIServiceImpl implements AIService {
     }
 
     /**
-     * 查询对应数据源所有元数据（表信息、表字段）
-     * @param loginUser
-     * @param datasourceId
-     * @return
+     * 根据sql获取对应的查询结果
+     * @param loginUser 用户
+     * @param datasourceId 数据源id
+     * @param sql 查询sql
+     * @param chatId 对话id
+     * @param chat 聊天记录
+     * @return 查询结果
      */
-    private List<AskAIWithDataTablesAndFieldsRequest> getAskAIWithDataTablesAndFieldsRequests(User loginUser, Long datasourceId) {
+    @Nullable
+    private QueryAICustomSQLVO getQueryAICustomSQLVO(User loginUser, Long datasourceId, String sql, Long chatId, Chat chat) {
+        QueryAICustomSQLVO queryAICustomSQLVO;
+        try {
+            queryAICustomSQLVO = buildUserChatForSqlVO(datasourceId, sql);
+        } catch (Exception e) { // 防止异常发生，前端还继续等待接收数据
+            if (e instanceof SQLException) { // 记录异常
+                queryAICustomSQLVO = new QueryAICustomSQLVO();
+                queryAICustomSQLVO.setSql(sql);
+                ChatHistory chatHistory = ChatHistory.builder()
+                        .chatRole(ChatHistoryRoleEnum.MODEL.getValue())
+                        .chatId(chatId)
+                        .modelId(chat.getModelId())
+                        .status(ChatHistoryStatusEnum.FAIL.getValue())
+                        .execMessage("数据源异常")
+                        .content(JSONUtil.toJsonStr(queryAICustomSQLVO))
+                        .build();
+                chatHistoryService.updateById(chatHistory);
+            }
+            notifyMessageEnd(loginUser.getId());
+            return null;
+        }
+        return queryAICustomSQLVO;
+    }
+
+    /**
+     * 查询对应数据源所有元数据（表信息、表字段）
+     * @param loginUser 用户
+     * @param datasourceId 数据源id
+     * @return 数据源元信息
+     */
+    public List<AskAIWithDataTablesAndFieldsRequest> getAskAIWithDataTablesAndFieldsRequests(User loginUser, Long datasourceId) {
+        // 获取对应数据源所有表信息
         List<CoreDatasetTable> tables = coreDatasourceService.getTablesByDatasourceId(datasourceId, loginUser);
         ThrowUtils.throwIf(tables.isEmpty(), ErrorCode.PARAMS_ERROR, "数据源暂无数据");
         List<AskAIWithDataTablesAndFieldsRequest> dataTablesAndFieldsRequests = new ArrayList<>();
@@ -162,7 +181,7 @@ public class AIServiceImpl implements AIService {
 
     public void notifyMessageEnd(Long userId) {
         AskSQLWebSocketMsgVO end = new AskSQLWebSocketMsgVO();
-        end.setType("end");
+        end.setType(MessageStatusEnum.END.getStatus());
         askSQLWebSocket.sendOneMessage(userId, end);
     }
 
@@ -218,7 +237,7 @@ public class AIServiceImpl implements AIService {
      * {表名: %s, 表注释： %s, 字段列表:[{%s}、{%s}]}
      * ]
      */
-    private String buildAskAISQLInput(List<AskAIWithDataTablesAndFieldsRequest> dataTablesAndFieldsRequests, String question) {
+    public String buildAskAISQLInput(List<AskAIWithDataTablesAndFieldsRequest> dataTablesAndFieldsRequests, String question) {
         StringBuilder res = new StringBuilder();
         // 1. 构造需求
         res.append(String.format(ANALYSIS_QUESTION, question));
@@ -242,7 +261,9 @@ public class AIServiceImpl implements AIService {
         return res.toString();
     }
 
-    private String buildGenChartInput(List<AskAIWithDataTablesAndFieldsRequest> dataTablesAndFieldsRequests) {
+
+
+    public String buildGenChartInput(List<AskAIWithDataTablesAndFieldsRequest> dataTablesAndFieldsRequests) {
         StringBuilder res = new StringBuilder();
         // 1. 构造需求
         // 2. 构造表与字段信息

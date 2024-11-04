@@ -1,4 +1,4 @@
-package com.hwq.dataloom.service.basic;
+package com.hwq.dataloom.service.basic.strategy;
 
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.entity.CoreDatasetTable;

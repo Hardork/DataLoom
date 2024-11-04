@@ -1,4 +1,4 @@
-package com.hwq.dataloom.service.basic;
+package com.hwq.dataloom.service.basic.strategy;
 
 import org.springframework.beans.BeansException;
 import org.springframework.boot.CommandLineRunner;

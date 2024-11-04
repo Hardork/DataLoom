@@ -14,7 +14,7 @@ import com.hwq.dataloom.model.enums.DirTypeEnum;
 import com.hwq.dataloom.model.json.StructDatabaseConfiguration;
 import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.service.DatasourceDirTreeService;
-import com.hwq.dataloom.service.basic.DatasourceExecuteStrategy;
+import com.hwq.dataloom.service.basic.strategy.DatasourceExecuteStrategy;
 import com.hwq.dataloom.utils.datasource.MySQLUtil;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;

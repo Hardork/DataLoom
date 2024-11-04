@@ -46,9 +46,6 @@ import java.util.concurrent.locks.ReentrantLock;
 public class CoreDatasetGroupController {
 
     @Resource
-    private DatasourceEngine datasourceEngine;
-
-    @Resource
     private CoreDatasetGroupService coreDatasetGroupService;
 
     @Resource
