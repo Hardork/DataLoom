@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+import static com.hwq.dataloom.constant.PromptConstants.MUL_CHART_SQL_ANALYSIS;
 import static com.hwq.dataloom.model.enums.SeriesArrayTypeEnum.FIELD_GROUP;
 
 /**
@@ -241,7 +242,7 @@ public class DashboardServiceImpl extends ServiceImpl<DashboardMapper, Dashboard
             // 1.3 根据不同的纵轴类型进行数据抽取
             if (seriesArrayTypeEnum == SeriesArrayTypeEnum.RECORD_COUNT) { // 查询记录总数
                 return handleRecordCount(datasourceId, tableName, groupList);
-            } else { // TODO: 查询字段值
+            } else {
                 return handleFieldGroup(datasourceId, tableName, groupList, seriesList);
             }
 
@@ -273,7 +274,15 @@ public class DashboardServiceImpl extends ServiceImpl<DashboardMapper, Dashboard
         GetChartDataVO chartData = getChartDataById(chartId, loginUser);
         String seriesDataListJsonStr = JSONUtil.toJsonStr(chartData.getSeriesDataList());
         String xArrayDataJsonStr = JSONUtil.toJsonStr(chartData.getXArrayData());
-        String res = aiManager.doAskChartAnalysis(chartOption.getChartName(), dataOption, seriesDataListJsonStr, xArrayDataJsonStr, false, null);
+        String message = String.format(
+                "图表类型：%s\n" +
+                        "图表数据请求配置：%s\n" +
+                        "图表数据：%s\n",
+                chartOption.getChartName(),
+                dataOption,
+                seriesDataListJsonStr + xArrayDataJsonStr
+        );
+        String res = aiManager.doChatWithKimi32KFlux(message, MUL_CHART_SQL_ANALYSIS, loginUser);
         chartOption.setAnalysisLastFlag(Boolean.TRUE);
         chartOption.setAnalysisRes(res);
         chartOptionService.updateById(chartOption);
@@ -293,7 +302,15 @@ public class DashboardServiceImpl extends ServiceImpl<DashboardMapper, Dashboard
         GetChartDataVO chartData = getChartDataById(chartId, loginUser);
         String seriesDataListJsonStr = JSONUtil.toJsonStr(chartData.getSeriesDataList());
         String xArrayDataJsonStr = JSONUtil.toJsonStr(chartData.getXArrayData());
-        String res = aiManager.doAskChartAnalysis(chartOption.getChartName(), dataOption, seriesDataListJsonStr, xArrayDataJsonStr, true, loginUser);
+        String message = String.format(
+                "图表类型：%s\n" +
+                        "图表数据请求配置：%s\n" +
+                        "图表数据：%s\n",
+                chartOption.getChartName(),
+                dataOption,
+                seriesDataListJsonStr + xArrayDataJsonStr
+        );
+        String res = aiManager.doChatWithKimi32K(message, MUL_CHART_SQL_ANALYSIS);
         chartOption.setAnalysisLastFlag(Boolean.TRUE);
         chartOption.setAnalysisRes(res);
         chartOptionService.updateById(chartOption);

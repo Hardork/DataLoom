@@ -19,7 +19,6 @@ import com.hwq.dataloom.framework.model.enums.WebSocketMsgTypeEnum;
 import com.hwq.dataloom.mq.constant.AnalysisMqConstant;
 import com.hwq.dataloom.service.*;
 import com.hwq.dataloom.service.basic.handler.AITaskChainContext;
-import com.hwq.dataloom.utils.datasource.MongoEngineUtils;
 import com.hwq.dataloom.websocket.UserWebSocket;
 import com.rabbitmq.client.Channel;
 import lombok.SneakyThrows;
@@ -34,6 +33,8 @@ import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.*;
+
+import static com.hwq.dataloom.constant.PromptConstants.SINGLE_CHART_ANALYSIS_PROMPT;
 
 @Component
 @Slf4j
@@ -97,17 +98,19 @@ public class AnalysisMessageConsumer {
         // 构造查询数据的SQL
         String input = aiService.buildAskAISQLInput(dataTablesAndFieldsRequests, chart.getGoal());
         AnalysisChartByAIRequest aiRequest = AnalysisChartByAIRequest.builder()
-                .userQuestion(chart.getGoal())
-                .curRes(input)
+                .question(chart.getGoal())
+                .res(input)
                 .build();
+        // 责任链执行编排好的AI任务
         aiTaskChainContext.handle("analysis_chart", aiRequest);
-        // TODO: 处理input
+        // TODO: 获取结果
         // 超时重试机制
         Retryer<String[]> retryer = getRetryer(2, 10, TimeUnit.SECONDS);
         String[] result;
         try {
             result =  retryer.call(() -> { // 提交任务
-                String chatRes = aiManager.doChatWithKimi(input);
+                String question = aiRequest.getRes();
+                String chatRes = aiManager.doChatWithKimi128K(question, SINGLE_CHART_ANALYSIS_PROMPT);
                 return chatRes.split("【【【【【");
             });
         } catch (RetryException e) { // 重试器抛出异常，说明重试了两次还是失败了,设置失败

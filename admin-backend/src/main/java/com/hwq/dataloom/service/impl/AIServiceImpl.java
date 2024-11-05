@@ -32,6 +32,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.hwq.dataloom.constant.PromptConstants.AI_GEN_CHART;
+import static com.hwq.dataloom.constant.PromptConstants.SQL_ANALYSIS_PROMPT;
 import static com.hwq.dataloom.constant.UserChatForSQLConstant.*;
 
 /**
@@ -89,7 +91,8 @@ public class AIServiceImpl implements AIService {
         askSQLWebSocketMsgVO.setType(MessageStatusEnum.START.getStatus());
         askSQLWebSocket.sendOneMessage(loginUser.getId(), askSQLWebSocketMsgVO);
         // 6. 询问AI，获取返回的SQL
-        String sql = aiManager.doAskSQLWithKimi(input, LIMIT_RECORDS);
+        String prompt = String.format(SQL_ANALYSIS_PROMPT, 200);
+        String sql = aiManager.doChatWithKimi32K(input, prompt);
         // 7. 执行SQL，并得到返回的结果
         QueryAICustomSQLVO queryAICustomSQLVO = getQueryAICustomSQLVO(loginUser, datasourceId, sql, chatId, chat);
         if (queryAICustomSQLVO == null) return;
@@ -197,38 +200,22 @@ public class AIServiceImpl implements AIService {
 
     /**
      * 根据数据源一键生成AI图表
-     * @param datasourceId
-     * @param loginUser
-     * @return 图表数据配置数组（JSON）
-     * [
-     *   {
-     *     "chartType": "line",
-     *     "chartName": "北京空气质量变化趋势",
-     *     "dataTableName": "excel_108_北京空气质量",
-     *     "seriesArray": [
-     *       {"fieldName": "AQI", "rollup": "SUM"},
-     *       {"fieldName": "PM2_5", "rollup": "SUM"},
-     *       {"fieldName": "PM10", "rollup": "SUM"},
-     *       {"fieldName": "S02", "rollup": "SUM"},
-     *       {"fieldName": "NO2", "rollup": "SUM"},
-     *       {"fieldName": "CO", "rollup": "SUM"}
-     *     ],
-     *     "group": [
-     *       {"fieldName": "日期"}
-     *     ]
-     *   }
-     * ]
+     * @param datasourceId 数据源id
+     * @param loginUser 登录用户
      */
     public String genChartByAi(Long datasourceId, User loginUser) {
         List<AskAIWithDataTablesAndFieldsRequest> askAIWithDataTablesAndFieldsRequests = this.getAskAIWithDataTablesAndFieldsRequests(loginUser, datasourceId);
-        String input = buildGenChartInput(askAIWithDataTablesAndFieldsRequests);
-        return aiManager.doAiGenChartByDatasource(input, false, loginUser);
+        String input = String.format(
+                "数据源元数据：%s\n",
+                buildGenChartInput(askAIWithDataTablesAndFieldsRequests)
+        );
+        return aiManager.doChatWithKimi32K(input, AI_GEN_CHART);
     }
 
     /**
      * 构造智能问数的问题
      * @param dataTablesAndFieldsRequests 数据源元数据
-     * @param question
+     * @param question 问题
      * @return
      * 示例：
      * 分析需求：%s,
@@ -262,7 +249,11 @@ public class AIServiceImpl implements AIService {
     }
 
 
-
+    /**
+     * 构造生成图表输入
+     * @param dataTablesAndFieldsRequests 表和字段元信息
+     * @return 图表输入
+     */
     public String buildGenChartInput(List<AskAIWithDataTablesAndFieldsRequest> dataTablesAndFieldsRequests) {
         StringBuilder res = new StringBuilder();
         // 1. 构造需求

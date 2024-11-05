@@ -36,7 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * @Author:HWQ
  * @DateTime:2023/9/25 20:42
- * @Description:
+ * @Description: AI应用接口
  **/
 @RestController
 @Slf4j
@@ -98,13 +98,11 @@ public class AiController {
         ThrowUtils.throwIf(StringUtils.isEmpty(text), ErrorCode.PARAMS_ERROR);
         ThrowUtils.throwIf(ObjectUtils.isEmpty(assistantId), ErrorCode.PARAMS_ERROR);
         AiRole aiRole = aiRoleService.getById(assistantId);
-
         User loginUser = userService.getLoginUser(request);
         // 校验提问字数 < 200字
         ThrowUtils.throwIf(aiChatRequest.getText().length() > 2000, ErrorCode.PARAMS_ERROR, "提问字数过多");
         ThrowUtils.throwIf(aiRole == null, ErrorCode.PARAMS_ERROR, "不存在该助手");
         String aiRoleInput = buildAiRoleInput(text, aiRole);
-
         // 限流
         sparkAiManager.setUserId(loginUser.getId());
         sparkAiManager.startTalk(aiRoleInput);

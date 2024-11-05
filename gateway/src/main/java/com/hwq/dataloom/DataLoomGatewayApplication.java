@@ -24,17 +24,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class DataLoomGatewayApplication {
 
-//    @DubboReference
-//    private InnerHealthCheckService innerHealthCheckService;
-
     public static void main(String[] args) {
         ConfigurableApplicationContext context = SpringApplication.run(DataLoomGatewayApplication.class, args);
-//        DataLoomGatewayApplication application = context.getBean(DataLoomGatewayApplication.class);
-//        application.printHealthCheckRes();
     }
-
-
-//    public void printHealthCheckRes() {
-//        System.out.println(innerHealthCheckService.checkHealth());
-//    }
 }
