@@ -100,6 +100,8 @@ public class AnalysisMessageConsumer {
         AnalysisChartByAIRequest aiRequest = AnalysisChartByAIRequest.builder()
                 .question(chart.getGoal())
                 .res(input)
+                .datasourceId(chart.getDatasourceId())
+                .chartId(chartId)
                 .build();
         // 责任链执行编排好的AI任务
         aiTaskChainContext.handle("analysis_chart", aiRequest);

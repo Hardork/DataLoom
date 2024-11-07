@@ -21,6 +21,11 @@ public interface AITaskAbstractChainHandler<T> extends Ordered {
     void handle(T request);
 
     /**
+     * 失败后执行逻辑
+     */
+    void doAfterFailed(T request);
+
+    /**
      * 日志记录
      */
     void doLog();

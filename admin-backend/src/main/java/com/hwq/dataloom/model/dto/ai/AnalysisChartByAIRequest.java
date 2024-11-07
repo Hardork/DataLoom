@@ -35,4 +35,14 @@ public class AnalysisChartByAIRequest {
      * 用户信息
      */
     private User userInfo;
+
+    /**
+     * 对应数据源id
+     */
+    private Long datasourceId;
+
+    /**
+     * 分析图表id
+     */
+    private Long chartId;
 }

@@ -3,6 +3,7 @@ package com.hwq.dataloom.service;
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.dto.ai.AskAIWithDataTablesAndFieldsRequest;
 import com.hwq.dataloom.model.dto.ai.ChatForSQLRequest;
+import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
 
 import java.util.List;
 
