@@ -16,6 +16,7 @@ import com.hwq.dataloom.model.entity.UserData;
 import com.hwq.dataloom.model.vo.DataCollaboratorsVO;
 import com.hwq.dataloom.model.vo.DataPage;
 import com.hwq.dataloom.model.vo.data.PreviewExcelDataVO;
+import com.hwq.dataloom.model.vo.user_data.UserDataTeamVO;
 import com.hwq.dataloom.mongo.dto.AddChardDataRecordRequest;
 import com.hwq.dataloom.mongo.dto.DeleteChartDataRecordRequest;
 import com.hwq.dataloom.mongo.dto.EditChartDataRecordRequest;
@@ -133,13 +134,11 @@ public class DataController {
         return ResultUtils.success(res);
     }
 
-    @GetMapping("/list/collaborators/{dataId}")
-    @Operation(summary = "查看数据协作者")
-    public BaseResponse<List<DataCollaboratorsVO>> getDataCollaborators(@PathVariable Long dataId, HttpServletRequest request) {
-        User loginUser = userService.getLoginUser(request);
-        ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
+    @GetMapping("/list/team/{dataId}")
+    @Operation(summary = "查看团队成员")
+    public BaseResponse<List<UserDataTeamVO>> getDataCollaborators(@PathVariable Long dataId) {
         ThrowUtils.throwIf(dataId == null || dataId < 0, ErrorCode.PARAMS_ERROR);
-        List<DataCollaboratorsVO> userList = userDataService.getDataCollaborators(dataId, loginUser);
+        List<UserDataTeamVO> userList = userDataService.getUserDataTeam(dataId);
         return ResultUtils.success(userList);
     }
 

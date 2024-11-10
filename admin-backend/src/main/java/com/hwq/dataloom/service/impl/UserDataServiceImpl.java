@@ -21,6 +21,7 @@ import com.hwq.dataloom.model.enums.UserDataPermissionRoleEnum;
 import com.hwq.dataloom.model.enums.UserDataTypeEnum;
 import com.hwq.dataloom.model.vo.DataCollaboratorsVO;
 import com.hwq.dataloom.model.vo.UserVO;
+import com.hwq.dataloom.model.vo.user_data.UserDataTeamVO;
 import com.hwq.dataloom.service.DatasourceMetaInfoService;
 import com.hwq.dataloom.service.UserDataPermissionService;
 import com.hwq.dataloom.service.UserDataService;
@@ -192,11 +193,6 @@ public class UserDataServiceImpl extends ServiceImpl<UserDataMapper, UserData>
 
     @Override
     public Boolean checkLinkAndAuthorization(Long dataId, Integer type, String secret, User loginUser) {
-        // 校验参数
-        ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
-        ThrowUtils.throwIf(dataId == null || dataId < 0, ErrorCode.PARAMS_ERROR);
-        ThrowUtils.throwIf(type == null, ErrorCode.PARAMS_ERROR, "请求类型为空");
-        ThrowUtils.throwIf(StringUtils.isEmpty(secret), ErrorCode.PARAMS_ERROR);
         // 获取对应数据集元数据
         UserData userData = this.getById(dataId);
         ThrowUtils.throwIf(userData == null, ErrorCode.PARAMS_ERROR, "对应数据集不存在");
@@ -344,6 +340,28 @@ public class UserDataServiceImpl extends ServiceImpl<UserDataMapper, UserData>
         QueryWrapper<UserData> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("id", dataIds).eq("uploadType", UserDataTypeEnum.MYSQL.getValue());
         return this.list(queryWrapper);
+    }
+
+    @Override
+    public List<UserDataTeamVO> getUserDataTeam(Long dataId) {
+        // 查询对应dataId的数据团队成员
+        LambdaQueryWrapper<UserDataPermission> qw = new LambdaQueryWrapper<>();
+        qw.select(UserDataPermission::getUserId, UserDataPermission::getPermission,UserDataPermission::getRole);
+        qw.eq(UserDataPermission::getDataId, dataId);
+        List<UserDataPermission> permissionList = userDataPermissionService.list(qw);
+        // 查询对应团队成员信息
+        List<UserDataTeamVO> userDataTeamVOList = permissionList.stream()
+                .map(item -> {
+                    User user = userService.getById(item.getUserId());
+                    UserVO userVO = userService.getUserVO(user);
+                    return UserDataTeamVO.builder()
+                            .userVO(userVO)
+                            .role(item.getRole())
+                            .permission(item.getPermission())
+                            .build();
+                })
+                .collect(Collectors.toList());
+        return userDataTeamVOList;
     }
 }
 

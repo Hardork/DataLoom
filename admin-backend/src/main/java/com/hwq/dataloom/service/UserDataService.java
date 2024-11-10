@@ -6,6 +6,7 @@ import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.entity.UserData;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.hwq.dataloom.model.vo.DataCollaboratorsVO;
+import com.hwq.dataloom.model.vo.user_data.UserDataTeamVO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -75,4 +76,11 @@ public interface UserDataService extends IService<UserData> {
      * @return
      */
     List<UserData> listMySQLByPermission(User loginUser);
+
+    /**
+     * 获取数据集的团队成员
+     * @param dataId
+     * @return
+     */
+    List<UserDataTeamVO> getUserDataTeam(Long dataId);
 }

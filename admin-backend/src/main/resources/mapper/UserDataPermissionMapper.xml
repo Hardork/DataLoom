@@ -9,6 +9,7 @@
             <result property="dataId" column="dataId" jdbcType="BIGINT"/>
             <result property="userId" column="userId" jdbcType="BIGINT"/>
             <result property="permission" column="permission" jdbcType="TINYINT"/>
+            <result property="role" column="permission" jdbcType="TINYINT"/>
             <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
             <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
             <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
@@ -16,7 +17,7 @@
 
     <sql id="Base_Column_List">
         id,dataId,userId,
-        permission,createTime,updateTime,
+        permission,role,createTime,updateTime,
         isDelete
     </sql>
 </mapper>
