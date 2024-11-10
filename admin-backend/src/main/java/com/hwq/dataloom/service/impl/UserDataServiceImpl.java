@@ -10,11 +10,14 @@ import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.model.dto.datasource.TableFieldInfo;
 import com.hwq.dataloom.model.dto.user_data.ShareUserDataRequest;
+import com.hwq.dataloom.model.dto.user_data_permission.UserDataPermissionQuery;
+import com.hwq.dataloom.model.dto.user_data_permission.UserDataPermissionSave;
 import com.hwq.dataloom.model.entity.DatasourceMetaInfo;
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.entity.UserData;
 import com.hwq.dataloom.model.entity.UserDataPermission;
 import com.hwq.dataloom.model.enums.UserDataPermissionEnum;
+import com.hwq.dataloom.model.enums.UserDataPermissionRoleEnum;
 import com.hwq.dataloom.model.enums.UserDataTypeEnum;
 import com.hwq.dataloom.model.vo.DataCollaboratorsVO;
 import com.hwq.dataloom.model.vo.UserVO;
@@ -77,6 +80,7 @@ public class UserDataServiceImpl extends ServiceImpl<UserDataMapper, UserData>
 
     @Resource
     private MongoEngineUtils mongoEngineUtils;
+
 
     @Override
     public Boolean deleteUserData(Long id, User loginUser) {
@@ -212,22 +216,7 @@ public class UserDataServiceImpl extends ServiceImpl<UserDataMapper, UserData>
             return true;
         }
         // 将当前用户加入到权限表中
-        // 1.判断当前用户是否在权限表中已经存在
-        QueryWrapper<UserDataPermission> qw = new QueryWrapper<>();
-        qw.eq("dataId", dataId);
-        qw.eq("userId", loginUser.getId());
-        UserDataPermission permission = userDataPermissionService.getOne(qw);
-        if (permission != null && permission.getPermission() >= type) { // 说明当前用户已经在权限表中，并且申请的权限小于等于当前的权限，直接返回成功
-            return true;
-        }
-        // 2.不存在，将当前用户插入到权限表
-        UserDataPermission userDataPermission = new UserDataPermission();
-        userDataPermission.setDataId(dataId);
-        userDataPermission.setUserId(loginUser.getId());
-        userDataPermission.setPermission(type);
-        boolean save = userDataPermissionService.save(userDataPermission);
-        ThrowUtils.throwIf(!save, ErrorCode.SYSTEM_ERROR);
-        return true;
+        return userDataPermissionService.authorization(dataId, loginUser.getId(), type);
     }
 
     @Override

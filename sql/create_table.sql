@@ -478,7 +478,8 @@ create table user_data_permission (
     id bigint primary key auto_increment,
     dataId bigint not null comment '对应数据集id',
     userId bigint not null comment '对应用户id',
-    permission tinyint default 0 comment '权限',
+    permission tinyint default 0 comment '权限 0-读 1-写',
+    role tinyint not null comment '角色 0-创建者 1-协作者',
     createTime  datetime      default CURRENT_TIMESTAMP null,
     updateTime  datetime      default CURRENT_TIMESTAMP null,
     isDelete    tinyint       default 0                 null

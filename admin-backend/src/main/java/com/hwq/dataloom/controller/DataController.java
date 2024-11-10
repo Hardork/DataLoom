@@ -21,6 +21,7 @@ import com.hwq.dataloom.mongo.dto.DeleteChartDataRecordRequest;
 import com.hwq.dataloom.mongo.dto.EditChartDataRecordRequest;
 import com.hwq.dataloom.mongo.entity.ChartData;
 import com.hwq.dataloom.service.MongoService;
+import com.hwq.dataloom.service.UserDataPermissionService;
 import com.hwq.dataloom.service.UserDataService;
 import com.hwq.dataloom.service.UserService;
 import com.hwq.dataloom.utils.datasource.ExcelUtils;
@@ -56,6 +57,8 @@ public class DataController {
     @Resource
     private ExcelUtils excelUtils;
 
+    @Resource
+    private UserDataPermissionService userDataPermissionService;
 
     @ReduceRewardPoint
     @PostMapping("/upload")

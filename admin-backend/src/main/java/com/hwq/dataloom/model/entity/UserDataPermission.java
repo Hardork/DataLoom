@@ -4,7 +4,11 @@ import com.baomidou.mybatisplus.annotation.*;
 
 import java.io.Serializable;
 import java.util.Date;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 
@@ -12,6 +16,9 @@ import lombok.Data;
  */
 @TableName(value ="user_data_permission")
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserDataPermission implements Serializable {
     /**
      * 
@@ -33,6 +40,11 @@ public class UserDataPermission implements Serializable {
      * 权限
      */
     private Integer permission;
+
+    /**
+     * 角色
+     */
+    private Integer role;
 
     /**
      * 
