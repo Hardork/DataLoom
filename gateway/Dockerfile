@@ -1,17 +1,15 @@
 # Docker 镜像构建
 # @author <a href="https://github.com/Hardork">老山羊</a>
 #
-FROM maven:3.8.1-jdk-8-slim as builder
-
-# Copy local code to the container image.
+FROM openjdk:8-jre-slim
+# 设置工作目录
 WORKDIR /app
-COPY pom.xml .
-COPY src ./src
+
+# 将 Maven 打包生成的 JAR 文件复制到容器中
+COPY target/gateway-*.jar app.jar
 EXPOSE 8090
+
 ENV nacos-server=121.36.48.205
 
-# Build a release artifact.
-RUN mvn package -DskipTests
-
-# Run the web service on container startup.
-CMD ["java","-jar","/app/target/gateway-SNAPSHOT.jar","--spring.profiles.active=prod"]
+# 运行应用程序
+CMD ["java", "-jar", "app.jar"]
