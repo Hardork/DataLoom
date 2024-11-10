@@ -39,20 +39,20 @@ jobs:
       # Step 5: 构建并推送 admin-backend 镜像
       - name: Build and Push admin-backend Docker image
         run: |
-          docker build -t $DOCKER_USERNAME/admin-backend:latest -f ./admin-backend/Dockerfile .
-          docker push $DOCKER_USERNAME/admin-backend:latest
+          docker build -t $DOCKER_USERNAME/admin-backend -f ./admin-backend/Dockerfile .
+          docker push $DOCKER_USERNAME/admin-backend
 
       # Step 6: 构建并推送 gateway 镜像
       - name: Build and Push gateway Docker image
         run: |
-          docker build -t $DOCKER_USERNAME/gateway:latest -f ./gateway/Dockerfile .
-          docker push $DOCKER_USERNAME/gateway:latest
+          docker build -t $DOCKER_USERNAME/gateway -f ./gateway/Dockerfile .
+          docker push $DOCKER_USERNAME/gateway
 
       # Step 7: 构建并推送 points-service 镜像
       - name: Build and Push points-service Docker image
         run: |
-          docker build -t $DOCKER_USERNAME/points-service:latest -f ./points-service/Dockerfile .
-          docker push $DOCKER_USERNAME/points-service:latest
+          docker build -t $DOCKER_USERNAME/points-service -f ./points-service/Dockerfile .
+          docker push $DOCKER_USERNAME/points-service
 
       # Step 8: 部署到远程服务器
       - name: Deploy to Server
