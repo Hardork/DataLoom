@@ -157,6 +157,7 @@ public class DataController {
         queryWrapper.eq("id", id);
         Boolean delete = userDataService.deleteUserData(id, loginUser);
         Boolean delMongo = mongoService.deleteUserData(id);
+        // todo 删除对于权限数据
         return ResultUtils.success(delete && delMongo);
     }
 
