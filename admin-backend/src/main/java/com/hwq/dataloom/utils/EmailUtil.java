@@ -1,6 +1,7 @@
 package com.hwq.dataloom.utils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.BufferedReader;
@@ -29,39 +30,12 @@ public class EmailUtil {
      * @return {@link String}
      */
     public static String buildEmailContent(String emailHtmlPath, String captcha) {
-        // 加载邮件html模板
-        ClassPathResource resource = new ClassPathResource(emailHtmlPath);
-        InputStream inputStream = null;
-        BufferedReader fileReader = null;
-        StringBuilder buffer = new StringBuilder();
-        String line;
-        try {
-            inputStream = resource.getInputStream();
-            fileReader = new BufferedReader(new InputStreamReader(inputStream));
-            while ((line = fileReader.readLine()) != null) {
-                buffer.append(line);
-            }
-        } catch (Exception e) {
-            log.info("发送邮件读取模板失败{}", e.getMessage());
-        } finally {
-            if (fileReader != null) {
-                try {
-                    fileReader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+        StringBuilder buffer = getEmailTemplate(emailHtmlPath);
         // 替换html模板中的参数
         return MessageFormat.format(buffer.toString(), captcha, EMAIL_TITLE, EMAIL_TITLE_ENGLISH, PLATFORM_RESPONSIBLE_PERSON, PLATFORM_ADDRESS);
     }
+
+
 
 
     /**
@@ -74,6 +48,20 @@ public class EmailUtil {
      */
     public static String buildPaySuccessEmailContent(String emailHtmlPath, String orderName, String orderTotal) {
         // 加载邮件html模板
+        StringBuilder buffer = getEmailTemplate(emailHtmlPath);
+        // 替换html模板中的参数
+        return MessageFormat.format(buffer.toString(), orderName, orderTotal, PLATFORM_RESPONSIBLE_PERSON, PATH_ADDRESS, EMAIL_TITLE);
+    }
+
+    public static String buildUpdateDataEmailContent(String emailHtmlPath, String userName, String updateContent) {
+        StringBuilder buffer = getEmailTemplate(emailHtmlPath);
+        // todo 参数修改
+        return MessageFormat.format(buffer.toString(), userName, updateContent, PLATFORM_RESPONSIBLE_PERSON, PATH_ADDRESS, EMAIL_TITLE);
+    }
+
+    @NotNull
+    private static StringBuilder getEmailTemplate(String emailHtmlPath) {
+        // 加载邮件html模板
         ClassPathResource resource = new ClassPathResource(emailHtmlPath);
         InputStream inputStream = null;
         BufferedReader fileReader = null;
@@ -103,8 +91,7 @@ public class EmailUtil {
                 }
             }
         }
-        // 替换html模板中的参数
-        return MessageFormat.format(buffer.toString(), orderName, orderTotal, PLATFORM_RESPONSIBLE_PERSON, PATH_ADDRESS, EMAIL_TITLE);
+        return buffer;
     }
 
 }
