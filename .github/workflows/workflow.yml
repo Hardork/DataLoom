@@ -74,12 +74,12 @@ jobs:
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            docker pull $DOCKER_HUB_USERNAME/admin-backend:latest
-            docker pull $DOCKER_HUB_USERNAME/gateway:latest
-            docker pull $DOCKER_HUB_USERNAME/points-service:latest
+            docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/admin-backend:latest
+            docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/gateway:latest
+            docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/points-service:latest
             docker stop admin-backend || true && docker rm admin-backend || true
             docker stop gateway || true && docker rm gateway || true
             docker stop points-service || true && docker rm points-service || true
-            docker run -d --name admin-backend -p 8081:8081 $DOCKER_HUB_USERNAME/admin-backend:latest
-            docker run -d --name gateway -p 8090:8090 $DOCKER_HUB_USERNAME/gateway:latest
-            docker run -d --name points-service -p 8082:8082 $DOCKER_HUB_USERNAME/points-service:latest
+            docker run -d --name admin-backend -p 8081:8081 ${{ secrets.DOCKER_HUB_USERNAME }}/admin-backend:latest
+            docker run -d --name gateway -p 8090:8090 ${{ secrets.DOCKER_HUB_USERNAME }}/gateway:latest
+            docker run -d --name points-service -p 8082:8082 ${{ secrets.DOCKER_HUB_USERNAME }}/points-service:latest
