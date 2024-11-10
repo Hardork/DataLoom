@@ -8,6 +8,7 @@ WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 EXPOSE 8090
+ENV nacos-server=121.36.48.205
 
 # Build a release artifact.
 RUN mvn package -DskipTests
