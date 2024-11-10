@@ -33,26 +33,28 @@ jobs:
         run: mvn clean package -DskipTests
 
       # Step 4: 登录 DockerHub（或其他容器注册表）
-      - name: Log in to DockerHub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v1
-      # build 镜像并push到中央仓库中
-      - name: Build and push
-        id: docker_build
-        uses: docker/build-push-action@v2
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
         with:
-          context: ./
-          file: ./admin-backend/Dockerfile
-          push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/admin-backend:latest
-#      # Step 5: 构建并推送 admin-backend 镜像
-#      - name: Build and Push admin-backend Docker image
-#        run: |
-#          docker build -t $DOCKER_USERNAME/admin-backend -f ./admin-backend/Dockerfile .
-#          docker push $DOCKER_USERNAME/admin-backend
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+#      - name: Set up Docker Buildx
+#        id: buildx
+#        uses: docker/setup-buildx-action@v1
+#      # build 镜像并push到中央仓库中
+#      - name: Build and push
+#        id: docker_build
+#        uses: docker/build-push-action@v2
+#        with:
+#          context: ./admin-backend
+#          file: ./admin-backend/Dockerfile
+#          push: true
+#          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/admin-backend:latest
+      # Step 5: 构建并推送 admin-backend 镜像
+      - name: Build and Push admin-backend Docker image
+        run: |
+          docker build -t $DOCKER_HUB_USERNAME/admin-backend -f ./admin-backend/Dockerfile .
+          docker push $DOCKER_HUB_USERNAME/admin-backend
 
       # Step 6: 构建并推送 gateway 镜像
       - name: Build and Push gateway Docker image
