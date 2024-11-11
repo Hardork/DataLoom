@@ -48,9 +48,4 @@ dubbo:
     port: -1
   registry: #配置注册中心
     address: nacos://${nacos-server}:8848
-logging:
-  file:
-    path: my-log/myLog
-  pattern:
-    file: %d{yyyy-MM-dd} === [%thread] === %-5level === %logger{50} === - %msg%n
 
