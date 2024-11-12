@@ -40,7 +40,7 @@ public class UserWebSocket {
      * 链接成功调用的方法
      */
     @OnOpen
-    public void onOpen(Session session, @PathParam(value="userId")Long userId) {
+    public void onOpen(Session session, @PathParam(value="userId") Long userId) {
         try {
             this.session = session;
             this.userId = userId;
@@ -79,8 +79,7 @@ public class UserWebSocket {
      */
     @OnError
     public void onError(Session session, Throwable error) {
-
-        log.error("用户错误,原因:"+error.getMessage());
+        log.error("用户错误,原因:" + error.getMessage());
         error.printStackTrace();
     }
 

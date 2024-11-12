@@ -19,6 +19,7 @@ import com.hwq.dataloom.websocket.AskSQLWebSocket;
 import com.hwq.dataloom.websocket.constants.MessageStatusEnum;
 import com.hwq.dataloom.websocket.vo.AskSQLWebSocketMsgVO;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -42,6 +43,7 @@ import static com.hwq.dataloom.constant.UserChatForSQLConstant.*;
  * @description
  */
 @Component
+@Slf4j
 public class AIServiceImpl implements AIService {
 
 
@@ -75,13 +77,14 @@ public class AIServiceImpl implements AIService {
             // 1. 获取模型ID
             Chat chat = chatService.getById(chatId);
             ThrowUtils.throwIf(chat == null, ErrorCode.PARAMS_ERROR, "不存在该助手");
-            // 2. 获取数据源所有的元数据
+            // 2. 持久化用户消息
+            ChatHistory chatHistory = saveChatHistory(ChatHistoryRoleEnum.USER, chatId, chat, question);
+            // 3. 获取数据源所有的元数据
             Long datasourceId = chat.getDatasourceId();
             List<AskAIWithDataTablesAndFieldsRequest> dataTablesAndFieldsRequests = getAskAIWithDataTablesAndFieldsRequests(loginUser, datasourceId);
-            // 3. 构造请求AI的输入
+            // 4. 构造请求AI的输入
             String input = buildAskAISQLInput(dataTablesAndFieldsRequests, question);
-            // 4. 持久化消息
-            saveChatHistory(ChatHistoryRoleEnum.USER, chatId, chat, question);
+            log.info("智能问数 消息ID： {}  AI输入: {}", chatHistory.getId(), input);
             // 5. 利用webSocket发送消息通知开始
             AskSQLWebSocketMsgVO askSQLWebSocketMsgVO = new AskSQLWebSocketMsgVO();
             askSQLWebSocketMsgVO.setType(MessageStatusEnum.START.getStatus());
@@ -116,13 +119,14 @@ public class AIServiceImpl implements AIService {
      * @param chat 模型
      * @param content 查询结果
      */
-    private void saveChatHistory(ChatHistoryRoleEnum model, Long chatId, Chat chat, String content) {
+    private ChatHistory saveChatHistory(ChatHistoryRoleEnum model, Long chatId, Chat chat, String content) {
         ChatHistory chatHistory = new ChatHistory();
         chatHistory.setChatRole(model.getValue());
         chatHistory.setChatId(chatId);
         chatHistory.setModelId(chat.getModelId());
         chatHistory.setContent(content);
         chatHistoryService.save(chatHistory);
+        return chatHistory;
     }
 
     /**
