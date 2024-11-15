@@ -2,6 +2,7 @@ package com.hwq.dataloom.manager.message.update_data.impl;
 
 import com.hwq.dataloom.config.EmailConfig;
 import com.hwq.dataloom.manager.message.update_data.IUpdateDataMessage;
+import com.hwq.dataloom.manager.model.UpdateDataBuildMessage;
 import com.hwq.dataloom.utils.EmailUtil;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -48,7 +49,7 @@ public class EMailImpl implements IUpdateDataMessage {
     }
 
     @Override
-    public String buildMessage(String userName, String updateContent) {
-        return EmailUtil.buildUpdateDataEmailContent(UPDATE_DATA_EMAIL_HTML_CONTENT_PATH, userName, updateContent);
+    public String buildMessage(UpdateDataBuildMessage buildMessage) {
+        return EmailUtil.buildUpdateDataEmailContent(UPDATE_DATA_EMAIL_HTML_CONTENT_PATH, buildMessage.getUserName(), buildMessage.getUpdateContent());
     }
 }

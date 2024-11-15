@@ -1,6 +1,7 @@
 package com.hwq.dataloom.manager.message.update_data.impl;
 
 import com.hwq.dataloom.manager.message.update_data.IUpdateDataMessage;
+import com.hwq.dataloom.manager.model.UpdateDataBuildMessage;
 import org.springframework.stereotype.Component;
 
 /**
@@ -21,7 +22,7 @@ public class DingDingImpl implements IUpdateDataMessage {
     }
 
     @Override
-    public String buildMessage(String userName, String updateContent) {
+    public String buildMessage(UpdateDataBuildMessage buildMessage) {
         return null;
     }
 }

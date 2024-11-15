@@ -2,6 +2,7 @@ package com.hwq.dataloom.manager;
 
 import com.hwq.dataloom.manager.message.ISendMessage;
 import com.hwq.dataloom.manager.message.update_data.IUpdateDataMessage;
+import com.hwq.dataloom.manager.model.UpdateDataBuildMessage;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -28,7 +29,10 @@ public class SendMessageManager {
      */
     public boolean send(String type,String userName,String updateContent,String account) {
         IUpdateDataMessage sendMessage = sendMessageMap.get(type);
-        String message = sendMessage.buildMessage(userName, updateContent);
+        String message = sendMessage.buildMessage(UpdateDataBuildMessage.builder()
+                .userName(userName)
+                .updateContent(updateContent)
+                .build());
         sendMessage.send(message,account);
         return true;
     }
@@ -44,7 +48,10 @@ public class SendMessageManager {
      */
     public boolean send(String type, String userName, String updateContent, List<String> accountList) {
         IUpdateDataMessage sendMessage = sendMessageMap.get(type);
-        String message = sendMessage.buildMessage(userName, updateContent);
+        String message = sendMessage.buildMessage(UpdateDataBuildMessage.builder()
+                .userName(userName)
+                .updateContent(updateContent)
+                .build());
         for (String account : accountList) {
             sendMessage.send(message,account);
         }
