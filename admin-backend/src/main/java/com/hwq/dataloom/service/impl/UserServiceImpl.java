@@ -13,7 +13,6 @@ import com.hwq.dataloom.model.dto.user.UserEmailRegisterRequest;
 import com.hwq.dataloom.model.dto.user.UserQueryRequest;
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.enums.UserRoleEnum;
-import com.hwq.dataloom.service.MongoService;
 import com.hwq.dataloom.utils.RedissonLockUtil;
 import com.hwq.dataloom.utils.SqlUtils;
 import com.hwq.dataloom.constant.CommonConstant;
@@ -58,13 +57,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Resource
     private RedissonLockUtil redissonLockUtil;
 
-    private MongoService mongoService;
-
-
-    @Autowired
-    public void setMongoService(@Lazy MongoService mongoService) {
-        this.mongoService = mongoService;
-    }
 
 
     @Override
@@ -346,9 +338,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             if (!saveResult) {
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR, "注册失败，数据库错误");
             }
-
-            // 给用户添加示例数据
-            mongoService.copyDataToNewCollection("chart_example", user);
             return user.getId();
         }, "邮箱账号注册失败");
     }

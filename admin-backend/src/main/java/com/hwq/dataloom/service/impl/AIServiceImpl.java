@@ -71,32 +71,38 @@ public class AIServiceImpl implements AIService {
 
     @Override
     public void userChatForSQL(ChatForSQLRequest chatForSQLRequest, User loginUser) {
+        Long chatId = chatForSQLRequest.getChatId();
+        String question = chatForSQLRequest.getQuestion();
+        // 1. 获取模型ID
+        Chat chat = chatService.getById(chatId);
+        ThrowUtils.throwIf(chat == null, ErrorCode.PARAMS_ERROR, "不存在该助手");
+        // 2. 持久化用户消息
+        ChatHistory chatHistory = saveChatHistory(ChatHistoryRoleEnum.USER, chatId, chat, question);
+        // 3. 获取数据源所有的元数据
+        Long datasourceId = chat.getDatasourceId();
+        List<AskAIWithDataTablesAndFieldsRequest> dataTablesAndFieldsRequests = getAskAIWithDataTablesAndFieldsRequests(loginUser, datasourceId);
+        // 4. 构造请求AI的输入
+        String input = buildAskAISQLInput(dataTablesAndFieldsRequests, question);
+        log.info("智能问数 消息ID： {}  AI输入: {}", chatHistory.getId(), input);
+        // 5. 利用webSocket发送消息通知开始
+        AskSQLWebSocketMsgVO askSQLWebSocketMsgVO = new AskSQLWebSocketMsgVO();
+        askSQLWebSocketMsgVO.setType(MessageStatusEnum.START.getStatus());
+        askSQLWebSocket.sendOneMessage(loginUser.getId(), askSQLWebSocketMsgVO);
+        // 6. 询问AI，获取返回的SQL
+        String prompt = String.format(SQL_ANALYSIS_PROMPT, 200);
+        String sql = aiManager.doChatWithKimi32K(input, prompt);
         try {
-            Long chatId = chatForSQLRequest.getChatId();
-            String question = chatForSQLRequest.getQuestion();
-            // 1. 获取模型ID
-            Chat chat = chatService.getById(chatId);
-            ThrowUtils.throwIf(chat == null, ErrorCode.PARAMS_ERROR, "不存在该助手");
-            // 2. 持久化用户消息
-            ChatHistory chatHistory = saveChatHistory(ChatHistoryRoleEnum.USER, chatId, chat, question);
-            // 3. 获取数据源所有的元数据
-            Long datasourceId = chat.getDatasourceId();
-            List<AskAIWithDataTablesAndFieldsRequest> dataTablesAndFieldsRequests = getAskAIWithDataTablesAndFieldsRequests(loginUser, datasourceId);
-            // 4. 构造请求AI的输入
-            String input = buildAskAISQLInput(dataTablesAndFieldsRequests, question);
-            log.info("智能问数 消息ID： {}  AI输入: {}", chatHistory.getId(), input);
-            // 5. 利用webSocket发送消息通知开始
-            AskSQLWebSocketMsgVO askSQLWebSocketMsgVO = new AskSQLWebSocketMsgVO();
-            askSQLWebSocketMsgVO.setType(MessageStatusEnum.START.getStatus());
-            askSQLWebSocket.sendOneMessage(loginUser.getId(), askSQLWebSocketMsgVO);
-            // 6. 询问AI，获取返回的SQL
-            String prompt = String.format(SQL_ANALYSIS_PROMPT, 200);
-            String sql = aiManager.doChatWithKimi32K(input, prompt);
             // 7. 执行SQL，并得到返回的结果
             QueryAICustomSQLVO queryAICustomSQLVO = getQueryAICustomSQLVO(loginUser, datasourceId, sql, chatId, chat);
-            if (queryAICustomSQLVO == null) return;
-            // 8. 将查询的结果存放在数据库中
-            saveChatHistory(ChatHistoryRoleEnum.MODEL, chatId, chat, JSONUtil.toJsonStr(queryAICustomSQLVO));
+            // TODO: 判断当前的数据大小，如果太大只存SQL，不将结果存入数据库
+            List<Map<String, Object>> dataList = queryAICustomSQLVO.getRes();
+            if (dataList.size() < 20) {
+                // 8. 将查询的结果存放在数据库中
+                saveChatHistory(ChatHistoryRoleEnum.MODEL, chatId, chat, JSONUtil.toJsonStr(queryAICustomSQLVO));
+            } else {
+                // TODO：只存储SQL，后续查询通过SQL进行查询
+                saveChatHistory(ChatHistoryRoleEnum.MODEL, chatId, chat, JSONUtil.toJsonStr(queryAICustomSQLVO));
+            }
             // 9. 利用webSocket发送消息通知
             AskSQLWebSocketMsgVO res = AskSQLWebSocketMsgVO.builder()
                     .res(queryAICustomSQLVO.getRes())
@@ -105,11 +111,24 @@ public class AIServiceImpl implements AIService {
                     .sql(sql)
                     .build();
             askSQLWebSocket.sendOneMessage(loginUser.getId(), res);
-        } finally {
-            // 10. 通知结束
-            notifyMessageEnd(loginUser.getId());
+        } catch (Exception e) {
+            if (e instanceof SQLException) { // 记录异常
+                QueryAICustomSQLVO queryAICustomSQLVO = new QueryAICustomSQLVO();
+                queryAICustomSQLVO.setSql(sql);
+                chatHistory = ChatHistory.builder()
+                        .chatRole(ChatHistoryRoleEnum.MODEL.getValue())
+                        .chatId(chatId)
+                        .modelId(chat.getModelId())
+                        .status(ChatHistoryStatusEnum.FAIL.getValue())
+                        .execMessage("数据源异常")
+                        .content(JSONUtil.toJsonStr(queryAICustomSQLVO))
+                        .build();
+                chatHistoryService.save(chatHistory);
+            }
+            notifyMessageEnd(loginUser.getId(), MessageStatusEnum.ERROR);
+            return;
         }
-
+        notifyMessageEnd(loginUser.getId(), MessageStatusEnum.END);
     }
 
     /**
@@ -139,28 +158,8 @@ public class AIServiceImpl implements AIService {
      * @return 查询结果
      */
     @Nullable
-    private QueryAICustomSQLVO getQueryAICustomSQLVO(User loginUser, Long datasourceId, String sql, Long chatId, Chat chat) {
-        QueryAICustomSQLVO queryAICustomSQLVO;
-        try {
-            queryAICustomSQLVO = buildUserChatForSqlVO(datasourceId, sql);
-        } catch (Exception e) { // 防止异常发生，前端还继续等待接收数据
-            if (e instanceof SQLException) { // 记录异常
-                queryAICustomSQLVO = new QueryAICustomSQLVO();
-                queryAICustomSQLVO.setSql(sql);
-                ChatHistory chatHistory = ChatHistory.builder()
-                        .chatRole(ChatHistoryRoleEnum.MODEL.getValue())
-                        .chatId(chatId)
-                        .modelId(chat.getModelId())
-                        .status(ChatHistoryStatusEnum.FAIL.getValue())
-                        .execMessage("数据源异常")
-                        .content(JSONUtil.toJsonStr(queryAICustomSQLVO))
-                        .build();
-                chatHistoryService.updateById(chatHistory);
-            }
-            notifyMessageEnd(loginUser.getId());
-            return null;
-        }
-        return queryAICustomSQLVO;
+    private QueryAICustomSQLVO getQueryAICustomSQLVO(User loginUser, Long datasourceId, String sql, Long chatId, Chat chat) throws SQLException {
+        return buildUserChatForSqlVO(datasourceId, sql);
     }
 
     /**
@@ -190,9 +189,15 @@ public class AIServiceImpl implements AIService {
         return dataTablesAndFieldsRequests;
     }
 
-    public void notifyMessageEnd(Long userId) {
+
+    /**
+     * 通知用户结束OR异常
+     * @param userId 用户ID
+     * @param messageStatusEnum 消息状态枚举
+     */
+    public void notifyMessageEnd(Long userId, MessageStatusEnum messageStatusEnum) {
         AskSQLWebSocketMsgVO end = new AskSQLWebSocketMsgVO();
-        end.setType(MessageStatusEnum.END.getStatus());
+        end.setType(messageStatusEnum.getStatus());
         askSQLWebSocket.sendOneMessage(userId, end);
     }
 

@@ -21,14 +21,11 @@ import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.enums.DataSourceTypeEnum;
 import com.hwq.dataloom.model.enums.TableFieldTypeEnum;
 import com.hwq.dataloom.model.json.ExcelSheetData;
-import com.hwq.dataloom.model.vo.data.PreviewExcelDataVO;
-import com.hwq.dataloom.mongo.entity.ChartData;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -230,89 +227,6 @@ public class ExcelUtils {
             chartMapper.DropTableAfterException(id);
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "请根据文件规范，检查上传文件是否正常,列字段不能包含特殊字符");
         }
-    }
-
-
-    /**
-     * 查询上传文件对应字段类型
-     * @param multipartFile
-     * @return
-     */
-    public PreviewExcelDataVO queryDataFields(MultipartFile multipartFile) {
-        // 读取数据
-        List<Map<Integer, String>> list = null;
-        try {
-            list = EasyExcel.read(multipartFile.getInputStream())
-                    .excelType(ExcelTypeEnum.XLSX)
-                    .sheet()
-                    .headRowNumber(0)
-                    .doReadSync();
-        } catch (IOException e) {
-            log.error("表格处理错误", e);
-        }
-        if (CollUtil.isEmpty(list)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "表格数据为空");
-        }
-        LinkedHashMap<Integer, String> headerMap = (LinkedHashMap) list.get(0);
-        // 取出表头
-        List<String> headerList = new ArrayList<>(headerMap.values());
-        // 结果类
-        PreviewExcelDataVO dataPage = new PreviewExcelDataVO();
-
-        // 校验表头是否包含特殊字符
-        if(!DBColumnValidator.validateColumnNames(headerList)) {
-            dataPage.setIsValid(false);
-            dataPage.setErrorMessage("列名中不得包含特殊字符：" + DBColumnValidator.SPECIAL_CHARACTERS);
-        }
-        // 存储字段头
-        List<TableFieldInfo> fields = new ArrayList<>();
-        // 初始化表头字段
-        for (String s : headerList) {
-            TableFieldInfo tableFiled = new TableFieldInfo();
-            tableFiled.setFieldType(null);
-            tableFiled.setName(s);
-            tableFiled.setOriginName(s);
-            fields.add(tableFiled);
-        }
-        List<ChartData> previewDataList = new ArrayList<>();
-        // 统计字数
-        try {
-            // 取出前5行作为预览数据
-            for (int i = 1; i < 6 && i < list.size(); i++) {
-                LinkedHashMap<Integer, String> dataMap = (LinkedHashMap) list.get(i); // [1, 2]
-                // dataList存储当前行所有列的数据
-                List<String> dataList = new ArrayList<>(dataMap.values());
-                ChartData chartData = new ChartData();
-                Map<String, Object> data = new HashMap<>();
-                // 遍历每一个元素
-                for (int j = 0; j < dataList.size(); j++) {
-                    if (j < headerList.size()) {
-                        data.put(headerList.get(j), dataList.get(j));
-                    }
-                }
-                chartData.setData(data);
-                previewDataList.add(chartData);
-            }
-            // 只校验前200行数据
-            for (int i = 1; i < list.size() && i < 200; i++) {
-                LinkedHashMap<Integer, String> dataMap = (LinkedHashMap) list.get(i); // [1, 2]
-                // dataList存储当前行所有列的数据
-                List<String> dataList = new ArrayList<>(dataMap.values());
-                // 校验数据类型
-                // 遍历每一个元素
-                for (int j = 0; j < dataList.size(); j++) {
-                    if (j < headerList.size()) {
-                        cellType(dataList.get(j), fields.get(j));
-                    }
-                }
-            }
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请根据文件规范，检查上传文件是否正常");
-        }
-        dataPage.setTableFieldInfosList(fields);
-        dataPage.setDataList(previewDataList);
-        return dataPage;
     }
 
 

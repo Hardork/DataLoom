@@ -1,11 +1,13 @@
 package com.hwq.dataloom.controller;
 import java.util.List;
+import java.util.Objects;
 
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.hwq.dataloom.annotation.AiService;
 import com.hwq.dataloom.annotation.CheckPoint;
 import com.hwq.dataloom.annotation.ReduceRewardPoint;
+import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.framework.result.BaseResponse;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
@@ -14,15 +16,12 @@ import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.manager.AiManager;
 import com.hwq.dataloom.manager.SparkAiManager;
 import com.hwq.dataloom.model.dto.ai.*;
+import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
 import com.hwq.dataloom.model.entity.*;
 import com.hwq.dataloom.model.enums.ChatHistoryRoleEnum;
 import com.hwq.dataloom.model.vo.GetUserChatHistoryVO;
 import com.hwq.dataloom.model.vo.ai.GetUserSQLChatRecordVO;
-import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
 import com.hwq.dataloom.service.*;
-import com.hwq.dataloom.utils.datasource.MySQLUtil;
-import com.hwq.dataloom.websocket.AskSQLWebSocket;
-import com.hwq.dataloom.websocket.vo.AskSQLWebSocketMsgVO;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -59,6 +58,9 @@ public class AiController {
 
     @Resource
     private UserCreateAssistantService userCreateAssistantService;
+
+    @Resource
+    private CoreDatasourceService coreDatasourceService;
     /**
      * 单次会话
      * @param aiTalkRequest
@@ -79,7 +81,6 @@ public class AiController {
         sparkAiManager.startTalk(aiTalkRequest.getText());
         return ResultUtils.success(true);
     }
-
 
     /**
      * 与助手单次会话
@@ -225,6 +226,11 @@ public class AiController {
             getUserChatHistoryVO.setAssistantName(aiRole.getAssistantName());
             getUserChatHistoryVO.setFunctionDes(aiRole.getFunctionDes());
         }
+        // 查询对应数据源信息 填充数据源信息
+        DatasourceDTO dataSource = coreDatasourceService.getDataSource(chat.getDatasourceId(), userService.getLoginUser(request));
+        getUserChatHistoryVO.setDatasourceId(chat.getDatasourceId());
+        getUserChatHistoryVO.setDatasourceName(dataSource.getName());
+        getUserChatHistoryVO.setDatasourceType(dataSource.getType());
         // 校验提问字数 < 200字
         return ResultUtils.success(getUserChatHistoryVO);
     }
@@ -238,7 +244,6 @@ public class AiController {
         ThrowUtils.throwIf(ObjectUtils.isEmpty(modelId), ErrorCode.PARAMS_ERROR);
         // 限流
         User loginUser = userService.getLoginUser(request);
-
         QueryWrapper<Chat> qw = new QueryWrapper<>();
         qw.eq("userId", loginUser.getId()).eq("modelId", modelId);
         Chat chat = chatService.getOne(qw);
@@ -251,6 +256,8 @@ public class AiController {
         }
         return ResultUtils.success(chat.getId());
     }
+
+
 
     @Operation(summary = "用户获取AI对话历史")
     @PostMapping("/get/chatRecord")
@@ -305,6 +312,27 @@ public class AiController {
         User loginUser = userService.getLoginUser(request);
         Boolean res = chatService.addUserAskSqlHistory(dataId, loginUser);
         return ResultUtils.success(res);
+    }
+
+    @Operation(summary = "删除用户智能问数对话")
+    @DeleteMapping("/delete/askSql/history/{chatId}")
+    public BaseResponse<Boolean> deleteUserAskSqlHistory(@PathVariable("chatId") Long chatId, HttpServletRequest request) {
+        // 数据校验
+        QueryWrapper<Chat> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("chatId", chatId);
+        Chat deleteChat = chatService.getOne(queryWrapper);
+        if (deleteChat == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        if (!Objects.equals(deleteChat.getUserId(), loginUser.getId())) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        }
+        boolean remove = chatService.removeById(deleteChat);
+        if (!remove) {
+            log.error("数据库操作失败系统异常");
+        }
+        return ResultUtils.success(true);
     }
 
     @Operation(summary = "获取用户创建的AI对话")
