@@ -53,14 +53,6 @@ public interface UserDataService extends IService<UserData> {
     List<UserData> listByPermission(User loginUser);
 
     /**
-     * 获取数据集的所有数据协作者
-     * @param dataId
-     * @param loginUser
-     * @return
-     */
-    List<DataCollaboratorsVO> getDataCollaborators(Long dataId, User loginUser);
-
-    /**
      * 将数据集存储到MySQL中
      * @param loginUser
      * @param dataName

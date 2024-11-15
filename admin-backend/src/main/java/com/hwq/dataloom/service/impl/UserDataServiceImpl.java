@@ -252,38 +252,6 @@ public class UserDataServiceImpl extends ServiceImpl<UserDataMapper, UserData>
         return userData;
     }
 
-    /**
-     *
-     * @param dataId
-     * @param loginUser
-     * @return
-     */
-    @Override
-    public List<DataCollaboratorsVO> getDataCollaborators(Long dataId, User loginUser) {
-        // 校验
-        ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
-        ThrowUtils.throwIf(dataId == null, ErrorCode.PARAMS_ERROR);
-        // 查询对应dataId的数据协作者
-        QueryWrapper<UserDataPermission> qw = new QueryWrapper<>();
-        qw.select("userId", "permission");
-        qw.eq("dataId", dataId);
-        List<UserDataPermission> permissionList = userDataPermissionService.list(qw);
-        // 去掉创建者本身
-        List<UserDataPermission> userDataPermissionList = permissionList.stream()
-                .filter(userDataPermission -> !userDataPermission.getUserId().equals(loginUser.getId()))
-                .collect(Collectors.toList());
-        // 查询对应协作者信息
-        List<DataCollaboratorsVO> res = new ArrayList<>();
-        userDataPermissionList.forEach(userDataPermission -> {
-            User user = userService.getById(userDataPermission.getUserId());
-            UserVO userVO = userService.getUserVO(user);
-            DataCollaboratorsVO dataCollaboratorsVO = new DataCollaboratorsVO();
-            dataCollaboratorsVO.setUserVO(userVO);
-            dataCollaboratorsVO.setPermission(userDataPermission.getPermission());
-            res.add(dataCollaboratorsVO);
-        });
-        return res;
-    }
 
     @Override
     @Transactional
