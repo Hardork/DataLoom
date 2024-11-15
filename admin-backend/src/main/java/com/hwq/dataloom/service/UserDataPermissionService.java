@@ -9,6 +9,8 @@ import com.hwq.dataloom.model.dto.user_data_permission.UserDataPermissionSave;
 import com.hwq.dataloom.model.entity.UserDataPermission;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.List;
+
 /**
 * @author wqh
 * @description 针对表【user_data_permission】的数据库操作Service
@@ -21,4 +23,6 @@ public interface UserDataPermissionService extends IService<UserDataPermission> 
     boolean saveUserDataPermission(UserDataPermissionSave userDataPermissionSave);
 
     boolean authorization(Long dataId, Long id, Integer type);
+
+    List<Long> queryUserIdByDataId(Long dataId);
 }

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.MessageFormat;
+import java.util.Date;
 
 import static com.hwq.dataloom.constant.EmailConstant.*;
 
@@ -53,9 +54,10 @@ public class EmailUtil {
         return MessageFormat.format(buffer.toString(), orderName, orderTotal, PLATFORM_RESPONSIBLE_PERSON, PATH_ADDRESS, EMAIL_TITLE);
     }
 
-    public static String buildUpdateDataEmailContent(String emailHtmlPath, String userName, String updateContent) {
+    public static String buildUpdateDataEmailContent(String emailHtmlPath, String userName, String updateContent,
+                                                     Date updateDate) {
         StringBuilder buffer = getEmailTemplate(emailHtmlPath);
-        return MessageFormat.format(buffer.toString(), userName, updateContent, EMAIL_TITLE);
+        return MessageFormat.format(buffer.toString(), userName, updateContent,updateDate, EMAIL_TITLE);
     }
 
     @NotNull

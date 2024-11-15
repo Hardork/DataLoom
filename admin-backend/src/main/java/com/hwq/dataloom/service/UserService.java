@@ -116,5 +116,10 @@ public interface UserService extends IService<User> {
      */
     long userEmailRegister(UserEmailRegisterRequest userEmailRegisterRequest);
 
+    /**
+     *
+     */
+    List<UserVO> getUserEmailById(List<Long> userIdList);
+
 
 }

@@ -50,6 +50,7 @@ public class EMailImpl implements IUpdateDataMessage {
 
     @Override
     public String buildMessage(UpdateDataBuildMessage buildMessage) {
-        return EmailUtil.buildUpdateDataEmailContent(UPDATE_DATA_EMAIL_HTML_CONTENT_PATH, buildMessage.getUserName(), buildMessage.getUpdateContent());
+        return EmailUtil.buildUpdateDataEmailContent(UPDATE_DATA_EMAIL_HTML_CONTENT_PATH, buildMessage.getUpdateUserName(), buildMessage.getUpdateContent(),
+                buildMessage.getUpdateDate());
     }
 }

@@ -19,6 +19,9 @@ import com.hwq.dataloom.mapper.UserDataPermissionMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
 * @author wqh
 * @description 针对表【user_data_permission】的数据库操作Service实现
@@ -71,6 +74,15 @@ public class UserDataPermissionServiceImpl extends ServiceImpl<UserDataPermissio
                 .role(UserDataPermissionRoleEnum.TEAM_WORKER.getValue())
                 .build();
         return this.saveUserDataPermission(userDataPermissionSave);
+    }
+
+    @Override
+    public List<Long> queryUserIdByDataId(Long dataId) {
+        List<UserDataPermission> userList = list(new LambdaQueryWrapper<UserDataPermission>()
+                .select(UserDataPermission::getUserId)
+                .eq(UserDataPermission::getDataId, dataId));
+        List<Long> userIdList = userList.stream().map(UserDataPermission::getUserId).collect(Collectors.toList());
+        return userIdList;
     }
 }
 

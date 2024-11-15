@@ -353,6 +353,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }, "邮箱账号注册失败");
     }
 
+    @Override
+    public List<UserVO> getUserEmailById(List<Long> userIdList) {
+        List<User> userList = list(new LambdaQueryWrapper<User>()
+                .in(User::getId, userIdList)
+        );
+        return userList.stream().map(this::getUserVO).collect(Collectors.toList());
+    }
+
 
     /**
      * 给用户添加积分

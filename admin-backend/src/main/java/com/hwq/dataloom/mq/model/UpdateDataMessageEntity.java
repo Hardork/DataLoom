@@ -1,6 +1,5 @@
-package com.hwq.dataloom.manager.model;
+package com.hwq.dataloom.mq.model;
 
-import lombok.Builder;
 import lombok.Data;
 
 import java.util.Date;
@@ -11,8 +10,8 @@ import java.util.Date;
  * @Description:
  **/
 @Data
-@Builder
-public class UpdateDataBuildMessage {
+public class UpdateDataMessageEntity {
+
     /**
      * 修改者
      */
@@ -26,4 +25,13 @@ public class UpdateDataBuildMessage {
      * 修改时间
      */
     private Date updateDate;
+
+    /**
+     * 数据集id
+     */
+    private Long dataId;
+    /**
+     * 发送方式
+     */
+    private String type;
 }
