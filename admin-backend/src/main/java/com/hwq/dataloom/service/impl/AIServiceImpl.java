@@ -79,6 +79,7 @@ public class AIServiceImpl implements AIService {
         // 2. 持久化用户消息
         ChatHistory chatHistory = saveChatHistory(ChatHistoryRoleEnum.USER, chatId, chat, question);
         // 3. 获取数据源所有的元数据
+        // TODO: 发送分析数据源完毕
         Long datasourceId = chat.getDatasourceId();
         List<AskAIWithDataTablesAndFieldsRequest> dataTablesAndFieldsRequests = getAskAIWithDataTablesAndFieldsRequests(loginUser, datasourceId);
         // 4. 构造请求AI的输入
@@ -90,6 +91,7 @@ public class AIServiceImpl implements AIService {
         askSQLWebSocket.sendOneMessage(loginUser.getId(), askSQLWebSocketMsgVO);
         // 6. 询问AI，获取返回的SQL
         String prompt = String.format(SQL_ANALYSIS_PROMPT, 200);
+        // TODO：发送提取关联表完毕（显示出关联的表（点击可跳转））
         String sql = aiManager.doChatWithKimi32K(input, prompt);
         try {
             // 7. 执行SQL，并得到返回的结果
