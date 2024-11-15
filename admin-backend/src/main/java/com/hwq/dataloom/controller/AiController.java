@@ -61,6 +61,7 @@ public class AiController {
 
     @Resource
     private CoreDatasourceService coreDatasourceService;
+
     /**
      * 单次会话
      * @param aiTalkRequest
@@ -256,8 +257,6 @@ public class AiController {
         }
         return ResultUtils.success(chat.getId());
     }
-
-
 
     @Operation(summary = "用户获取AI对话历史")
     @PostMapping("/get/chatRecord")
