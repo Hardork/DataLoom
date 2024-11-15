@@ -13,6 +13,8 @@ public interface EmailConstant {
      */
     String EMAIL_HTML_CONTENT_PATH = "email.html";
 
+    String UPDATE_DATA_EMAIL_HTML_CONTENT_PATH = "update_data_email.html";
+
 
     /**
      * captcha缓存键

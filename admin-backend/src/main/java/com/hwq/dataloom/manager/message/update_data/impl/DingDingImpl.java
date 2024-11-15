@@ -1,6 +1,6 @@
-package com.hwq.dataloom.manager.message.impl;
+package com.hwq.dataloom.manager.message.update_data.impl;
 
-import com.hwq.dataloom.manager.message.ISendMessage;
+import com.hwq.dataloom.manager.message.update_data.IUpdateDataMessage;
 import org.springframework.stereotype.Component;
 
 /**
@@ -8,8 +8,8 @@ import org.springframework.stereotype.Component;
  * @DateTime: 2024/11/11
  * @Description:
  **/
-@Component("dingding")
-public class DingDingImpl implements ISendMessage {
+@Component("update_date_dingding")
+public class DingDingImpl implements IUpdateDataMessage {
     @Override
     public String mark() {
         return "dingding";

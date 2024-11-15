@@ -1,7 +1,7 @@
-package com.hwq.dataloom.manager.message.impl;
+package com.hwq.dataloom.manager.message.update_data.impl;
 
 import com.hwq.dataloom.config.EmailConfig;
-import com.hwq.dataloom.manager.message.ISendMessage;
+import com.hwq.dataloom.manager.message.update_data.IUpdateDataMessage;
 import com.hwq.dataloom.utils.EmailUtil;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -12,15 +12,14 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 import static com.hwq.dataloom.constant.EmailConstant.*;
-import static com.hwq.dataloom.utils.EmailUtil.buildEmailContent;
 
 /**
  * @Author: HCJ
  * @DateTime: 2024/11/11
  * @Description:
  **/
-@Component("email")
-public class EMailImpl implements ISendMessage {
+@Component("update_date_email")
+public class EMailImpl implements IUpdateDataMessage {
     @Resource
     private JavaMailSender mailSender;
     @Resource
@@ -50,6 +49,6 @@ public class EMailImpl implements ISendMessage {
 
     @Override
     public String buildMessage(String userName, String updateContent) {
-        return EmailUtil.buildUpdateDataEmailContent("", userName, updateContent);
+        return EmailUtil.buildUpdateDataEmailContent(UPDATE_DATA_EMAIL_HTML_CONTENT_PATH, userName, updateContent);
     }
 }

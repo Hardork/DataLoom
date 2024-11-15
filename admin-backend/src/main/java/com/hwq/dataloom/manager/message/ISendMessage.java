@@ -11,6 +11,4 @@ public interface ISendMessage {
 
     void send(String message,String account);
 
-    String buildMessage(String userName,String updateContent);
-
 }

@@ -55,8 +55,7 @@ public class EmailUtil {
 
     public static String buildUpdateDataEmailContent(String emailHtmlPath, String userName, String updateContent) {
         StringBuilder buffer = getEmailTemplate(emailHtmlPath);
-        // todo 参数修改
-        return MessageFormat.format(buffer.toString(), userName, updateContent, PLATFORM_RESPONSIBLE_PERSON, PATH_ADDRESS, EMAIL_TITLE);
+        return MessageFormat.format(buffer.toString(), userName, updateContent, EMAIL_TITLE);
     }
 
     @NotNull
