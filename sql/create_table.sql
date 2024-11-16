@@ -630,6 +630,7 @@ create table workflow_execution_logs(
                                endTime       datetime null comment '工作流结束时间',
                                runningTime   int unsigned  comment '运行时长',
                                status        varchar(128)   null comment '运行执行状态',
+                               metaData      TEXT           null comment '运行元数据',
                                createTime      datetime null default CURRENT_TIMESTAMP comment '创建时间',
                                updateTime      datetime null default CURRENT_TIMESTAMP comment '更新时间',
                                isDelete        tinyint  default 0  null comment '逻辑删除',
