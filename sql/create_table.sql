@@ -577,4 +577,63 @@ create table chart_option(
     INDEX (dashboardId)
 ) comment '图表配置表';
 
+-- 工作流
+drop table if exists workflow;
+create table workflow(
+    workflowId    bigint  auto_increment comment '主键' primary key,
+    workflowName varchar(255)    null comment '工作流名称',
+    workflowIcon text   null comment '工作流图标',
+    description  text   null comment '工作流作用描述',
+    userId      bigint  not null  comment '创建用户ID',
+    createTime      datetime null default CURRENT_TIMESTAMP comment '创建时间',
+    updateTime      datetime null default CURRENT_TIMESTAMP comment '更新时间',
+    isDelete        tinyint  default 0  null comment '逻辑删除',
+    INDEX (userId, createTime)
+) comment '工作流表';
+
+-- 工作流节点
+drop table if exists nodes;
+create table workflow_nodes(
+                               workflowNodeId   bigint auto_increment  comment '主键' primary key,
+                               workflowId    bigint  not null comment '工作流Id',
+                               nodeType     varchar(255) null comment '节点类型',
+                               description  text   null comment '节点描述',
+                               data         text   null comment '节点数据JSON',
+                               positionX    varchar(128)    null comment '节点所在x轴位置',
+                               positionY    varchar(128)    null comment '节点所在y轴位置',
+                               createTime      datetime null default CURRENT_TIMESTAMP comment '创建时间',
+                               updateTime      datetime null default CURRENT_TIMESTAMP comment '更新时间',
+                               isDelete        tinyint  default 0  null comment '逻辑删除',
+                               INDEX (workflowId)
+) comment '工作流节点表';
+
+-- 工作流节点边信息
+drop table if exists workflow_nodes;
+create table workflow_nodes(
+                               workflowEdgeId   bigint auto_increment  comment '主键' primary key,
+                               workflowId    bigint  not null comment '工作流Id',
+                               sourceWorkflowNodeId     bigint null comment '边的起始节点',
+                               targetWorkflowNodeId     bigint null comment '边的结束节点',
+                               edgeType  text   null comment '节点类型',
+                               createTime      datetime null default CURRENT_TIMESTAMP comment '创建时间',
+                               updateTime      datetime null default CURRENT_TIMESTAMP comment '更新时间',
+                               isDelete        tinyint  default 0  null comment '逻辑删除',
+                               INDEX (workflowId)
+) comment '工作流节点表';
+
+-- 工作流执行记录表
+drop table if exists workflow_execution_logs;
+create table workflow_execution_logs(
+                               id   bigint auto_increment  comment '主键' primary key,
+                               workflowId    bigint  not null comment '工作流Id',
+                               startTime     datetime null default CURRENT_TIMESTAMP comment '开始时间',
+                               endTime       datetime null comment '工作流结束时间',
+                               runningTime   int unsigned  comment '运行时长',
+                               status        varchar(128)   null comment '运行执行状态',
+                               createTime      datetime null default CURRENT_TIMESTAMP comment '创建时间',
+                               updateTime      datetime null default CURRENT_TIMESTAMP comment '更新时间',
+                               isDelete        tinyint  default 0  null comment '逻辑删除',
+                               INDEX (workflowId)
+) comment '工作流节点表';
+
 
