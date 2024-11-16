@@ -97,14 +97,21 @@ public class AIServiceImpl implements AIService {
             // 7. 执行SQL，并得到返回的结果
             QueryAICustomSQLVO queryAICustomSQLVO = getQueryAICustomSQLVO(loginUser, datasourceId, sql, chatId, chat);
             // TODO: 判断当前的数据大小，如果太大只存SQL，不将结果存入数据库
+            boolean isOverSize = false;
             List<Map<String, Object>> dataList = queryAICustomSQLVO.getRes();
-            if (dataList.size() < 20) {
+            if (dataList.size() < 15) {
                 // 8. 将查询的结果存放在数据库中
                 saveChatHistory(ChatHistoryRoleEnum.MODEL, chatId, chat, JSONUtil.toJsonStr(queryAICustomSQLVO));
             } else {
+                isOverSize = true;
                 // TODO：只存储SQL，后续查询通过SQL进行查询
-                saveChatHistory(ChatHistoryRoleEnum.MODEL, chatId, chat, JSONUtil.toJsonStr(queryAICustomSQLVO));
+                QueryAICustomSQLVO saveSqlAnswer = new QueryAICustomSQLVO();
+                saveSqlAnswer.setSql(sql);
+                saveSqlAnswer.setRes(new ArrayList<>());
+                saveSqlAnswer.setColumns(new ArrayList<>());
+                saveChatHistory(ChatHistoryRoleEnum.MODEL, chatId, chat, JSONUtil.toJsonStr(saveSqlAnswer));
             }
+            // TODO: 如果 isOverSize == true 说明超过了限定的数据，我们需要进行分页返回
             // 9. 利用webSocket发送消息通知
             AskSQLWebSocketMsgVO res = AskSQLWebSocketMsgVO.builder()
                     .res(queryAICustomSQLVO.getRes())

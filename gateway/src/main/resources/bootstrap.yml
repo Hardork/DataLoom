@@ -12,7 +12,7 @@ spring:
         file-extension: yml
         namespace: d864e70c-94d2-45f1-b01d-af1d77da1f13
         shared-configs:
-          - data-id: gateway.yml
+          - data-id: gateway-dev.yml
             refresh: true
       discovery:
         server-addr: ${nacos-server}:8848

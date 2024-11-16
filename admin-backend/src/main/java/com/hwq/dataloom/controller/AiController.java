@@ -318,11 +318,16 @@ public class AiController {
     public BaseResponse<Boolean> deleteUserAskSqlHistory(@PathVariable("chatId") Long chatId, HttpServletRequest request) {
         // 数据校验
         QueryWrapper<Chat> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("chatId", chatId);
-        Chat deleteChat = chatService.getOne(queryWrapper);
-        if (deleteChat == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        queryWrapper.eq("id", chatId);
+        List<Chat> deleteChatList = chatService.list(queryWrapper);
+
+        if (deleteChatList.isEmpty()) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "删除数据不存在");
         }
+        if (deleteChatList.size() > 1) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "存在多个同一chatId的记录");
+        }
+        Chat deleteChat = deleteChatList.get(0);
         User loginUser = userService.getLoginUser(request);
         if (!Objects.equals(deleteChat.getUserId(), loginUser.getId())) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
