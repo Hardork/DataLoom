@@ -1,15 +1,15 @@
 package com.hwq.dataloom.mq.consumer;
 
-import cn.hutool.json.JSONUtil;
 import com.github.rholder.retry.*;
-import com.hwq.dataloom.constant.ChartConstant;
-import com.hwq.dataloom.constant.CommonConstant;
 import com.hwq.dataloom.constant.MessageRouteConstant;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
+import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.framework.ws.vo.WebSocketMsgVO;
 import com.hwq.dataloom.manager.AiManager;
+import com.hwq.dataloom.model.dto.ai.AnalysisChartByAIRequest;
+import com.hwq.dataloom.model.dto.ai.AskAIWithDataTablesAndFieldsRequest;
 import com.hwq.dataloom.model.entity.Chart;
 import com.hwq.dataloom.model.entity.FailedChart;
 import com.hwq.dataloom.model.entity.UserMessage;
@@ -17,11 +17,8 @@ import com.hwq.dataloom.model.enums.ChartStatusEnum;
 import com.hwq.dataloom.model.enums.UserMessageTypeEnum;
 import com.hwq.dataloom.framework.model.enums.WebSocketMsgTypeEnum;
 import com.hwq.dataloom.mq.constant.AnalysisMqConstant;
-import com.hwq.dataloom.service.ChartService;
-import com.hwq.dataloom.service.FailedChartService;
-import com.hwq.dataloom.service.UserMessageService;
-import com.hwq.dataloom.utils.datasource.ExcelUtils;
-import com.hwq.dataloom.utils.datasource.MongoEngineUtils;
+import com.hwq.dataloom.service.*;
+import com.hwq.dataloom.service.basic.handler.AITaskChainContext;
 import com.hwq.dataloom.websocket.UserWebSocket;
 import com.rabbitmq.client.Channel;
 import lombok.SneakyThrows;
@@ -29,13 +26,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.support.AmqpHeaders;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.*;
+
+import static com.hwq.dataloom.constant.PromptConstants.SINGLE_CHART_ANALYSIS_PROMPT;
 
 @Component
 @Slf4j
@@ -54,77 +53,25 @@ public class AnalysisMessageConsumer {
     private FailedChartService failedChartService;
 
     @Resource
-    private RedisTemplate<String, String> redisTemplate;
-
-    @Resource
     private UserMessageService userMessageService;
 
     @Resource
-    private MongoEngineUtils mongoEngineUtils;
+    private AIService aiService;
 
-    /**
-     * 监听BI队列消息，并调用ChatGPT接口进行消费
-     * @param message
-     * @param channel
-     * @param deliveryTag
-     */
-    @SneakyThrows
-    @RabbitListener(queues = {AnalysisMqConstant.GEN_CHART_NAME}, ackMode = "MANUAL", containerFactory = "gptContainerFactory")
-    public void receiveMessage(String message, Channel channel, @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag) {
-        log.info("ChatGPT receiveMessage message = {}", message);
-        channel.basicQos(1);
-        if (StringUtils.isBlank(message)) {
-            // 如果失败，消息拒绝, 并且不返回队列中
-            channel.basicNack(deliveryTag, false, false);
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "消息为空");
-        }
-        // 消息确认
-        long chartId = Long.parseLong(message);
-        Chart chart = chartService.getById(chartId);
-        if (chart == null) {
-            channel.basicNack(deliveryTag, false, false);
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "图表为空");
-        }
-        // 修改图表任务状态为 “执行中”
-        // 执行成功后，修改为 “已完成”、保存执行结果；
-        // 执行失败后，状态修改为 “失败”，记录任务失败信息。
-        if (!updateChartRunning(channel, deliveryTag, chart)) return;
-        String input = buildUserInputFromMongo(chart);
-        // 超时重试机制
-        // 定义重试器
-        Retryer<String[]> retryer = getRetryer();
-        String[] result;
-        try {
-            result =  retryer.call(() -> { // 提交任务
-                String chatRes = aiManager.doChat(CommonConstant.BI_MODEL_ID, input);
-                return chatRes.split("【【【【【");
-            });
-        } catch (RetryException e) { // 重试器抛出异常，说明重试了两次还是失败了,设置失败
-            // 将任务设置为失败，不再重新排队
-            channel.basicNack(deliveryTag, false, false);
-            handleChartUpdateError(chart.getId(), "AI生成错误，请检查文件内容，如有异常请联系管理员");
-            return;
-        }
-        // 提炼结果
-        String genChart = result[1].trim(); // 生成的图表option
-        String genResult = result[2].trim(); // 生成的分析结果
-        // 更新图表状态为succeed
-        updateChartSucceed(channel, deliveryTag, chart, genChart, genResult);
-        // 通知入库
-        savaToUserMessage(chart);
-        // 通知用户操作成功
-        notifyUserSucceed(chartId, chart);
-        // 手动确认
-        channel.basicAck(deliveryTag, false);
-    }
+    @Resource
+    private UserService userService;
 
+    @Resource
+    private CoreDatasourceService coreDatasourceService;
+
+    @Resource
+    private AITaskChainContext aiTaskChainContext;
 
     /**
      * 监听BI队列消息，交由KimiAI处理
-     * 从mongoDB中取数据
-     * @param message
-     * @param channel
-     * @param deliveryTag
+     * @param message 消息
+     * @param channel 通道
+     * @param deliveryTag tag标识
      */
     @SneakyThrows
     @RabbitListener(queues = {AnalysisMqConstant.GEN_VIP_CHART_NAME}, ackMode = "MANUAL", containerFactory = "kimiContainerFactory")
@@ -143,27 +90,30 @@ public class AnalysisMessageConsumer {
             channel.basicNack(deliveryTag, false, false);
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "图表为空");
         }
-        // 修改图表任务状态为 “执行中”
-        // 执行成功后，修改为 “已完成”、保存执行结果；
-        // 执行失败后，状态修改为 “失败”，记录任务失败信息。
+        // 修改图表任务状态
         if (!updateChartRunning(channel, deliveryTag, chart)) return;
 
+        User userInfo = userService.getById(chart.getUserId());
+        List<AskAIWithDataTablesAndFieldsRequest> dataTablesAndFieldsRequests = aiService.getAskAIWithDataTablesAndFieldsRequests(userInfo, chart.getDatasourceId());
+        // 构造查询数据的SQL
+        String input = aiService.buildAskAISQLInput(dataTablesAndFieldsRequests, chart.getGoal());
+        AnalysisChartByAIRequest aiRequest = AnalysisChartByAIRequest.builder()
+                .question(chart.getGoal())
+                .res(input)
+                .datasourceId(chart.getDatasourceId())
+                .chartId(chartId)
+                .build();
+        // 责任链执行编排好的AI任务
+        aiTaskChainContext.handle("analysis_chart", aiRequest);
+        // TODO: 获取结果
         // 超时重试机制
-        // 定义重试器
-        Retryer<String[]> retryer = getRetryer();
-        String input = buildUserInputFromMongo(chart);
-        // todo：根据策略模式去选择对应的分析模型
-        // 分析的依据：
-        // 用户的身份 普通用户：8K以下
-
+        Retryer<String[]> retryer = getRetryer(2, 10, TimeUnit.SECONDS);
         String[] result;
         try {
-            result =  retryer.call(new Callable<String[]>() {
-                @Override
-                public String[] call() throws Exception { // 提交任务
-                    String chatRes = aiManager.doChatWithKimi(input);
-                    return chatRes.split("【【【【【");
-                }
+            result =  retryer.call(() -> { // 提交任务
+                String question = aiRequest.getRes();
+                String chatRes = aiManager.doChatWithKimi128K(question, SINGLE_CHART_ANALYSIS_PROMPT);
+                return chatRes.split("【【【【【");
             });
         } catch (RetryException e) { // 重试器抛出异常，说明重试了两次还是失败了,设置失败
             // 将任务设置为失败，不再重新排队
@@ -239,6 +189,10 @@ public class AnalysisMessageConsumer {
     }
 
 
+    /**
+     * 通知用户
+     * @param chart 图表信息
+     */
     private void savaToUserMessage(Chart chart) {
         UserMessage userMessage = new UserMessage();
         userMessage.setTitle("分析图表已生成");
@@ -281,39 +235,25 @@ public class AnalysisMessageConsumer {
     }
 
 
-    // 自定义重试器
-    private static Retryer<String[]> getRetryer() {
-        // 返回结果不符合预期就重试
-        // 重试时间固定为10s一次
-        // 允许重试3次
+    /**
+     * 自定义重试器
+     * @param attemptNumber 最多的尝试次数
+     * @param sleepTime 尝试间隔时间
+     * @param timeUnit 时间单位
+     * @return 重试器
+     */
+    private static Retryer<String[]> getRetryer(int attemptNumber, int sleepTime, TimeUnit timeUnit) {
         return RetryerBuilder.<String[]>newBuilder()
                 .retryIfResult(list -> list.length < 3)
-                .withWaitStrategy(WaitStrategies.fixedWait(5, TimeUnit.SECONDS))
-                .withStopStrategy(StopStrategies.stopAfterAttempt(2))
+                .withWaitStrategy(WaitStrategies.fixedWait(sleepTime, timeUnit))
+                .withStopStrategy(StopStrategies.stopAfterAttempt(attemptNumber))
                 .build();
     }
 
-    /**
-     * 将图表缓存到Redis
-     * @param chartId
-     * @param chart
-     * @param genChart
-     * @param genResult
-     */
-    private void saveToRedis(long chartId, Chart chart, String genChart, String genResult) {
-        String key = ChartConstant.CHART_PREFIX + chartId;
-        chart.setGenChart(genChart);
-        chart.setGenResult(genResult);
-        chart.setStatus(ChartStatusEnum.SUCCEED.getValue());
-        String chartJson = JSONUtil.toJsonStr(chart);
-
-        // 缓存时间1h
-        redisTemplate.opsForValue().set(key, chartJson, 60*60, TimeUnit.SECONDS);
-    }
 
     /**
      * 更新图表状态
-     * @param channel
+     * @param channel 通道
      * @param deliveryTag
      * @param chart
      * @return
@@ -360,79 +300,6 @@ public class AnalysisMessageConsumer {
         ThrowUtils.throwIf(!update, ErrorCode.SYSTEM_ERROR);
     }
 
-
-    private String buildUserInputFromDbEngine(Chart chart) {
-        String goal = chart.getGoal();
-        String chartType = chart.getChartType();
-        Long userDataId = chart.getUserDataId();
-        String csvData = mongoEngineUtils.mongoToCSV(userDataId);
-        // 构造用户输入
-        StringBuilder userInput = new StringBuilder();
-        userInput.append("分析需求：").append("\n");
-
-        // 拼接分析目标
-        String userGoal = goal;
-        if (StringUtils.isNotBlank(chartType)) {
-            userGoal += "，请使用" + chartType;
-        }
-        userInput.append(userGoal).append("\n");
-        userInput.append("原始数据：").append("\n");
-        userInput.append(csvData).append("\n");
-        return userInput.toString();
-    }
-
-
-
-    /**
-     * 将用户存储在mongo中的数据转为构造的input
-     * @param chart
-     * @return
-     */
-//    private String buildUserInputFromDbEngine(Chart chart) {
-//        String goal = chart.getGoal();
-//        String chartType = chart.getChartType();
-//        Long userDataId = chart.getUserDataId();
-//        String csvData = mongoEngineUtils.mongoToCSV(userDataId);
-//        // 构造用户输入
-//        StringBuilder userInput = new StringBuilder();
-//        userInput.append("分析需求：").append("\n");
-//
-//        // 拼接分析目标
-//        String userGoal = goal;
-//        if (StringUtils.isNotBlank(chartType)) {
-//            userGoal += "，请使用" + chartType;
-//        }
-//        userInput.append(userGoal).append("\n");
-//        userInput.append("原始数据：").append("\n");
-//        userInput.append(csvData).append("\n");
-//        return userInput.toString();
-//    }
-
-    /**
-     * 将用户存储在mongo中的数据转为构造的input
-     * @param chart
-     * @return
-     */
-    @Deprecated
-    private String buildUserInputFromMongo(Chart chart) {
-        String goal = chart.getGoal();
-        String chartType = chart.getChartType();
-        Long userDataId = chart.getUserDataId();
-        String csvData = mongoEngineUtils.mongoToCSV(userDataId);
-        // 构造用户输入
-        StringBuilder userInput = new StringBuilder();
-        userInput.append("分析需求：").append("\n");
-
-        // 拼接分析目标
-        String userGoal = goal;
-        if (StringUtils.isNotBlank(chartType)) {
-            userGoal += "，请使用" + chartType;
-        }
-        userInput.append(userGoal).append("\n");
-        userInput.append("原始数据：").append("\n");
-        userInput.append(csvData).append("\n");
-        return userInput.toString();
-    }
 
     private void handleChartUpdateError(long chartId, String execMessage) {
         Chart updateChartResult = new Chart();

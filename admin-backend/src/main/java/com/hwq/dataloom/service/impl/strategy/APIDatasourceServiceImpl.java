@@ -2,7 +2,6 @@ package com.hwq.dataloom.service.impl.strategy;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.json.JSONUtil;
-import com.alibaba.spring.util.BeanUtils;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.hwq.dataloom.constant.DatasourceConstant;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
@@ -22,7 +21,7 @@ import com.hwq.dataloom.service.CoreDatasetTableFieldService;
 import com.hwq.dataloom.service.CoreDatasetTableService;
 import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.service.CoreDatasourceTaskService;
-import com.hwq.dataloom.service.basic.DatasourceExecuteStrategy;
+import com.hwq.dataloom.service.basic.strategy.DatasourceExecuteStrategy;
 import com.hwq.dataloom.utils.ApiUtils;
 import com.hwq.dataloom.utils.datasource.DatasourceEngine;
 import org.apache.commons.lang3.ObjectUtils;

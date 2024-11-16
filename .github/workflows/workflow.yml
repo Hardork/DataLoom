@@ -1,0 +1,89 @@
+name: Build and Deploy Docker Images
+
+on: push
+
+jobs:
+  build-and-deploy:
+    if: contains(github.event.head_commit.message, '#deploy') # 检查提交信息是否包含指定关键词'#deploy'
+    runs-on: ubuntu-latest
+
+    env:
+      SERVER_HOST: ${{ secrets.SERVER_HOST }}         # 远程服务器地址
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }} # SSH 密钥，用于连接服务器
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }} # Docker 仓库用户名
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }} # Docker 仓库密码
+
+    steps:
+      # Step 1: 检出代码
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 2: 设置 Java 环境
+      - name: Set up JDK 8
+        uses: actions/setup-java@v1
+        with:
+          java-version: '1.8'
+
+      # 设置 maven 缓存
+      - name: Cache Maven packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      # Step 3: 使用 Maven 打包整个项目
+      - name: Build all modules
+        run: mvn clean package -DskipTests
+
+      # Step 5: 登录 Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      # Step 6: 构建并推送 admin-backend 镜像
+      - name: Build and Push admin-backend Docker Image
+        uses: docker/build-push-action@v2
+        with:
+          context: ./admin-backend
+          file: ./admin-backend/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/admin-backend:latest
+
+      # Step 7: 构建并推送 gateway 镜像
+      - name: Build and Push gateway Docker Image
+        uses: docker/build-push-action@v2
+        with:
+          context: ./gateway
+          file: ./gateway/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/gateway:latest
+
+      # Step 8: 构建并推送 points-service 镜像
+      - name: Build and Push points-service Docker Image
+        uses: docker/build-push-action@v2
+        with:
+          context: ./points-service
+          file: ./points-service/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/points-service:latest
+
+      # Step 8: 部署到远程服务器
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/admin-backend:latest
+            docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/gateway:latest
+            docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/points-service:latest
+            docker stop admin-backend || true && docker rm admin-backend || true
+            docker stop gateway || true && docker rm gateway || true
+            docker stop points-service || true && docker rm points-service || true
+            docker run -d --name admin-backend -p 8081:8081 ${{ secrets.DOCKER_HUB_USERNAME }}/admin-backend:latest
+            docker run -d --name gateway -p 8090:8090 ${{ secrets.DOCKER_HUB_USERNAME }}/gateway:latest
+            docker run -d --name points-service -p 8082:8082 ${{ secrets.DOCKER_HUB_USERNAME }}/points-service:latest

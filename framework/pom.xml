@@ -9,8 +9,9 @@
 
     <artifactId>framework</artifactId>
     <name>framework</name>
-    <description>项目基础包</description>
+    <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
+    <description>项目基础包</description>
 
     <dependencies>
         <dependency>
@@ -49,16 +50,13 @@
         </dependency>
     </dependencies>
 
-
-
     <build>
         <plugins>
-            <!-- 资源文件拷贝插件 -->
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <encoding>UTF-8</encoding>
+                    <skip>true</skip>
                 </configuration>
             </plugin>
 
@@ -79,4 +77,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>

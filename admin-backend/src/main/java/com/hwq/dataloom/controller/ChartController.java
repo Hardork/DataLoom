@@ -6,7 +6,6 @@ package com.hwq.dataloom.controller;
  * @Description:
  **/
 
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hwq.dataloom.annotation.*;
@@ -27,19 +26,14 @@ import com.hwq.dataloom.model.enums.ChartStatusEnum;
 import com.hwq.dataloom.model.vo.ChartResponse;
 import com.hwq.dataloom.service.*;
 
-import java.util.Arrays;
-import java.util.List;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
-import com.hwq.dataloom.utils.datasource.ExcelUtils;
-import com.hwq.dataloom.utils.datasource.MongoEngineUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author <a href="https://github.com/Hardork">老山羊</a>
@@ -61,40 +55,6 @@ public class ChartController {
 
     @Resource
     private RedisTemplate<String, String> redisTemplate;
-
-    @Resource
-    private MongoEngineUtils mongoEngineUtils;
-
-
-
-    /**
-     * 基于数据集分析
-     * @param request
-     * @return
-     */
-    @PostMapping("/gen/async/mq/coreDataSet")
-    @RateLimiter(ratePerSecond = 2, key = "genSingleChart_")
-    @ReduceRewardPoint(reducePoint = 2)
-    @BiService
-    @CheckPoint(needPoint = 2)
-    public BaseResponse<ChartResponse> genChartByAiWithCoreDataSet(@RequestBody GenChartByAiWithDataRequest genChartByAiWithDataRequest, HttpServletRequest request) {
-        String name = genChartByAiWithDataRequest.getName();
-        String goal = genChartByAiWithDataRequest.getGoal();
-        String chartType = genChartByAiWithDataRequest.getChartType();
-        Long dataId = genChartByAiWithDataRequest.getDataId();
-        // 校验
-        ThrowUtils.throwIf(StringUtils.isBlank(goal), ErrorCode.PARAMS_ERROR, "目标为空");
-        ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length() > 100, ErrorCode.PARAMS_ERROR, "名称过长");
-        ThrowUtils.throwIf(dataId == null, ErrorCode.PARAMS_ERROR, "数据集id不得为空");
-        User loginUser = userService.getLoginUser(request);
-        ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
-        Long chartId = chartService.genChartByAiWithCoreDataSet(name, goal, chartType, dataId, loginUser);
-        // 响应
-        ChartResponse biResponse = new ChartResponse();
-        biResponse.setChartId(chartId);
-        return ResultUtils.success(biResponse);
-    }
-
 
 
     /**
@@ -248,9 +208,9 @@ public class ChartController {
         if (chart == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
-        // 获取mongo中的data数据
-        String chartData = mongoEngineUtils.mongoToCSV(chart.getUserDataId());
-        chart.setChartData(chartData);
+        // TODO: 从MySQL中获取图表数据
+//        String chartData = mongoEngineUtils.mongoToCSV(chart.getUserDataId());
+        chart.setChartData(null);
 
         return ResultUtils.success(chart);
     }

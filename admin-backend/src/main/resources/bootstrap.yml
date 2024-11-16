@@ -49,4 +49,3 @@ dubbo:
   registry: #配置注册中心
     address: nacos://${nacos-server}:8848
 
-

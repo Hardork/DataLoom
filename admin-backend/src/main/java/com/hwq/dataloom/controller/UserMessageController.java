@@ -12,6 +12,7 @@ import com.hwq.dataloom.model.entity.UserMessage;
 import com.hwq.dataloom.model.enums.UserMessageIsReadEnum;
 import com.hwq.dataloom.service.UserMessageService;
 import com.hwq.dataloom.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,11 +38,8 @@ public class UserMessageController {
 
     @Resource
     private UserService userService;
-    /**
-     * 将用户所有的未读消息设置未已读消息
-     * @param request
-     * @return
-     */
+
+    @Operation(summary = "增加消息")
     @PostMapping("/add")
     public BaseResponse<Long> addUserMessage(@RequestBody UserMessageAddRequest userMessageAddRequest, HttpServletRequest request) {
         if (userMessageAddRequest == null) {
@@ -56,6 +54,7 @@ public class UserMessageController {
         return ResultUtils.success(messageId);
     }
 
+    @Operation(summary = "已读消息")
     @PostMapping("/read")
     public BaseResponse<Boolean> hasReadMessage(HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
@@ -64,6 +63,7 @@ public class UserMessageController {
         return ResultUtils.success(res);
     }
 
+    @Operation(summary = "显示所有未读消息")
     @PostMapping("/list")
     public BaseResponse<List<UserMessage>> listUnReadMessage(HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.framework.model.entity.User;
+import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
 import com.hwq.dataloom.model.entity.*;
 import com.hwq.dataloom.model.vo.GetUserChatHistoryVO;
 import com.hwq.dataloom.service.*;
@@ -44,22 +45,32 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
             Long modelId = chat.getModelId();
             // modelId查询对应的助手信息
             AiRole aiRole = aiRoleService.getById(modelId);
+            GetUserChatHistoryVO getUserChatHistoryVO = new GetUserChatHistoryVO();
             if(aiRole == null) { //可能是用户创建的助手
                 UserCreateAssistant userCreateAssistant = userCreateAssistantService.getById(modelId);
-                GetUserChatHistoryVO getUserChatHistoryVO = new GetUserChatHistoryVO();
                 getUserChatHistoryVO.setChatId(id);
                 getUserChatHistoryVO.setAssistantName(userCreateAssistant.getAssistantName());
                 getUserChatHistoryVO.setFunctionDes(userCreateAssistant.getFunctionDes());
-                res.add(getUserChatHistoryVO);
             }
             // 填充信息
             if (aiRole != null) {
-                GetUserChatHistoryVO getUserChatHistoryVO = new GetUserChatHistoryVO();
                 getUserChatHistoryVO.setChatId(id);
                 getUserChatHistoryVO.setAssistantName(aiRole.getAssistantName());
                 getUserChatHistoryVO.setFunctionDes(aiRole.getFunctionDes());
-                res.add(getUserChatHistoryVO);
             }
+            // 查询对应数据源信息 填充数据源信息
+            try {
+                DatasourceDTO dataSource = coreDatasourceService.getDataSource(chat.getDatasourceId(), loginUser);
+                getUserChatHistoryVO.setDatasourceId(chat.getDatasourceId());
+                getUserChatHistoryVO.setDatasourceName(dataSource.getName());
+                getUserChatHistoryVO.setDatasourceType(dataSource.getType());
+            } catch (Exception e) {
+                getUserChatHistoryVO.setDatasourceId(chat.getDatasourceId());
+                getUserChatHistoryVO.setDatasourceName("已删除");
+                getUserChatHistoryVO.setDatasourceType("deleted");
+            }
+
+            res.add(getUserChatHistoryVO);
         }
         return res;
     }
