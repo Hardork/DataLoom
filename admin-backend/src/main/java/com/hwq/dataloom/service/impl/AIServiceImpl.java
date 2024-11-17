@@ -114,21 +114,20 @@ public class AIServiceImpl implements AIService {
                     .build();
             askSQLWebSocket.sendOneMessage(loginUser.getId(), res);
         } catch (Exception e) {
-            if (e instanceof SQLException) { // 记录异常
-                QueryAICustomSQLVO queryAICustomSQLVO = new QueryAICustomSQLVO();
-                queryAICustomSQLVO.setSql(sql);
-                chatHistory = ChatHistory.builder()
-                        .chatRole(ChatHistoryRoleEnum.MODEL.getValue())
-                        .chatId(chatId)
-                        .modelId(chat.getModelId())
-                        .status(ChatHistoryStatusEnum.FAIL.getValue())
-                        .execMessage("数据源异常")
-                        .content(JSONUtil.toJsonStr(queryAICustomSQLVO))
-                        .build();
-                chatHistoryService.save(chatHistory);
-            }
+             // 记录异常
+            log.error("数据源id: {} 错误信息：{}", datasourceId, e.getMessage());
+            QueryAICustomSQLVO queryAICustomSQLVO = new QueryAICustomSQLVO();
+            queryAICustomSQLVO.setSql(sql);
+            chatHistory = ChatHistory.builder()
+                    .chatRole(ChatHistoryRoleEnum.MODEL.getValue())
+                    .chatId(chatId)
+                    .modelId(chat.getModelId())
+                    .status(ChatHistoryStatusEnum.FAIL.getValue())
+                    .execMessage("查询数据源异常")
+                    .content(JSONUtil.toJsonStr(queryAICustomSQLVO))
+                    .build();
+            chatHistoryService.save(chatHistory);
             notifyMessageEnd(loginUser.getId(), MessageStatusEnum.ERROR);
-            return;
         }
         notifyMessageEnd(loginUser.getId(), MessageStatusEnum.END);
     }
