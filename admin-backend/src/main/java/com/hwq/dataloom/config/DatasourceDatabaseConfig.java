@@ -34,9 +34,10 @@ public class DatasourceDatabaseConfig {
         for (int i = 0; i < sources.size(); i++) {
             DataSourceConfig config = sources.get(i);
             HikariConfig hikariConfig = new HikariConfig();
-            hikariConfig.setConnectionTimeout(6000); // 超时时间3s
+            hikariConfig.setConnectionTimeout(10000); // 超时时间3s
             hikariConfig.setPassword(config.getPassword());
-            hikariConfig.setMaximumPoolSize(2);
+            hikariConfig.setMaximumPoolSize(10);
+            hikariConfig.setMaxLifetime(20000);
             hikariConfig.setUsername(config.getUsername());
             hikariConfig.setDriverClassName(config.getDriverClassName());
             hikariConfig.setJdbcUrl(config.getUrl()); // 设置jdbc连接的额外字符串

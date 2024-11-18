@@ -42,9 +42,8 @@ public class DatasourceEngine {
         int dsIndex = (int) (datasourceId % (dataSourceMap.size()));
         // 获取对应连接池
         DataSource dataSource = dataSourceMap.get(dsIndex);
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-
+        Connection connection = dataSource.getConnection();
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             // Set parameters to prevent SQL injection
             for (int i = 0; i < parameters.length; i++) {
                 preparedStatement.setObject(i + 1, parameters[i]);
