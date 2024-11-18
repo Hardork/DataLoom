@@ -34,7 +34,7 @@ public class DatasourceDatabaseConfig {
         for (int i = 0; i < sources.size(); i++) {
             DataSourceConfig config = sources.get(i);
             HikariConfig hikariConfig = new HikariConfig();
-            hikariConfig.setConnectionTimeout(6); // 超时时间6s
+            hikariConfig.setConnectionTimeout(6000); // 超时时间3s
             hikariConfig.setPassword(config.getPassword());
             hikariConfig.setMaximumPoolSize(2);
             hikariConfig.setUsername(config.getUsername());
