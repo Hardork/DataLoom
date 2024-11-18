@@ -117,3 +117,5 @@
 #  filesUrl: https://api.moonshot.cn/v1/files
 #  estimateTokenCountUrl: https://api.moonshot.cn/v1/tokenizers/estimate-token-count
 #  chatCompletionUrl: https://api.moonshot.cn/v1/chat/completions
+#workflow:
+#  defaultIcon: https://i-blog.csdnimg.cn/direct/7821a6d3e23f4bed884445c38821d2d6.png
