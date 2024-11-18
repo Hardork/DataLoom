@@ -5,13 +5,16 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hwq.dataloom.model.entity.ChatHistory;
 import com.hwq.dataloom.model.enums.ChatHistoryRoleEnum;
+import com.hwq.dataloom.model.enums.ChatHistoryStatusEnum;
 import com.hwq.dataloom.model.vo.ai.ColumnsVO;
 import com.hwq.dataloom.model.vo.ai.GetUserSQLChatRecordVO;
 import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
 import com.hwq.dataloom.service.ChatHistoryService;
 import com.hwq.dataloom.mapper.ChatHistoryMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,6 +24,7 @@ import java.util.stream.Collectors;
 * @createDate 2023-10-03 00:51:59
 */
 @Service
+@Slf4j
 public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatHistory>
     implements ChatHistoryService{
 
@@ -28,7 +32,13 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
     public List<ChatHistory> getUserChatRecord(Long chatId) {
         QueryWrapper<ChatHistory> qw = new QueryWrapper<>();
         qw.eq("chatId", chatId);
-        return this.list(qw);
+        List<ChatHistory> res = null;
+        try {
+            res = this.list(qw);
+        } catch (Exception e) {
+            log.error("查询对话历史异常, 错误信息{}",  e.getMessage());
+        }
+        return res;
     }
 
     @Override
@@ -39,6 +49,13 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
         return list.stream().map(item -> {
             String content = item.getContent();
             GetUserSQLChatRecordVO getUserSQLChatRecordVO = new GetUserSQLChatRecordVO();
+            if (ChatHistoryStatusEnum.FAIL.getValue().equals(item.getStatus())) { // 失败状态
+                getUserSQLChatRecordVO.setStatus(ChatHistoryStatusEnum.FAIL.getValue());
+                getUserSQLChatRecordVO.setSql("");
+                getUserSQLChatRecordVO.setRes(new ArrayList<>());
+                return getUserSQLChatRecordVO;
+            }
+            // TODO: 根据状态判断是否要转字段
             if (item.getChatRole().equals(ChatHistoryRoleEnum.USER.getValue())) { // 用户
                 getUserSQLChatRecordVO.setId(item.getId());
                 getUserSQLChatRecordVO.setContent(content);
