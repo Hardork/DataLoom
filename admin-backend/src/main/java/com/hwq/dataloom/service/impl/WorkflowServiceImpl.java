@@ -9,6 +9,7 @@ import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.dto.workflow.AddWorkflowDTO;
 import com.hwq.dataloom.model.dto.workflow.QueryWorkflowDTO;
+import com.hwq.dataloom.model.dto.workflow.SaveWorkflowDTO;
 import com.hwq.dataloom.model.dto.workflow.UpdateWorkflowDTO;
 import com.hwq.dataloom.model.entity.Workflow;
 import com.hwq.dataloom.model.enums.WorkflowTypeEnum;
@@ -37,6 +38,17 @@ public class WorkflowServiceImpl extends ServiceImpl<WorkflowMapper, Workflow>
 
     @Value("workflow.defaultIcon")
     private String defaultIcon;
+
+
+    @Override
+    public Workflow saveWorkflowDraft(SaveWorkflowDTO saveWorkflowDTO, User loginUser) {
+        return null;
+    }
+
+    @Override
+    public Workflow getWorkflowDraft(Long workflowId, User loginUser) {
+        return null;
+    }
 
     @Override
     public Page<WorkflowVO> selectPage(QueryWorkflowDTO queryWorkflowDTO, User loginUser) {
@@ -89,6 +101,7 @@ public class WorkflowServiceImpl extends ServiceImpl<WorkflowMapper, Workflow>
         }
         return Boolean.TRUE;
     }
+
 
 
     public Page<WorkflowVO> convertPageEntity2VO(Page<Workflow> workflowPage) {

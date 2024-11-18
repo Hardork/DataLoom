@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.dto.workflow.AddWorkflowDTO;
 import com.hwq.dataloom.model.dto.workflow.QueryWorkflowDTO;
+import com.hwq.dataloom.model.dto.workflow.SaveWorkflowDTO;
 import com.hwq.dataloom.model.dto.workflow.UpdateWorkflowDTO;
 import com.hwq.dataloom.model.entity.Workflow;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -21,4 +22,8 @@ public interface WorkflowService extends IService<Workflow> {
     Workflow addWorkflow(AddWorkflowDTO addWorkflowRequest, User loginUser);
 
     Boolean updateWorkflow(UpdateWorkflowDTO updateWorkflowDTO, User loginUser);
+
+    Workflow saveWorkflowDraft(SaveWorkflowDTO saveWorkflowDTO, User loginUser);
+
+    Workflow getWorkflowDraft(Long workflowId, User loginUser);
 }
