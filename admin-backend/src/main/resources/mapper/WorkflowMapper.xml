@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hwq.dataloom.mapper.WorkflowMapper">
+
+    <resultMap id="BaseResultMap" type="com.hwq.dataloom.model.entity.Workflow">
+            <id property="workflowId" column="workflowId" jdbcType="BIGINT"/>
+            <result property="workflowName" column="workflowName" jdbcType="VARCHAR"/>
+            <result property="workflowIcon" column="workflowIcon" jdbcType="VARCHAR"/>
+            <result property="description" column="description" jdbcType="VARCHAR"/>
+            <result property="userId" column="userId" jdbcType="BIGINT"/>
+            <result property="type" column="type" jdbcType="VARCHAR"/>
+            <result property="version" column="version" jdbcType="VARCHAR"/>
+            <result property="graph" column="graph" jdbcType="VARCHAR"/>
+            <result property="features" column="features" jdbcType="VARCHAR"/>
+            <result property="envVariables" column="envVariables" jdbcType="VARCHAR"/>
+            <result property="conversationVariables" column="conversationVariables" jdbcType="VARCHAR"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+            <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        workflowId,workflowName,workflowIcon,
+        description,userId,type,
+        version,graph,features,
+        envVariables,conversationVariables,createTime,
+        updateTime,isDelete
+    </sql>
+</mapper>

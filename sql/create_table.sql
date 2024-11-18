@@ -585,41 +585,24 @@ create table workflow(
     workflowIcon text   null comment '工作流图标',
     description  text   null comment '工作流作用描述',
     userId      bigint  not null  comment '创建用户ID',
+    -- 工作流类型，字符串类型，长度255，不能为空，可取值如'workflow'、'chat'等，对应WorkflowType枚举中的值
+    type varchar(255) NOT NULL comment '工作流类型',
+    -- 版本，字符串类型，长度255，不能为空，有诸如'draft'等特定含义的取值情况
+    version varchar(255) NOT NULL comment '版本信息',
+    -- 工作流画布配置（JSON格式文本），存储工作流图相关的详细配置信息
+    graph text  NULL    comment '画布配置（JSON格式）',
+    -- 功能特性相关数据，以文本形式存储，实际存储的应该是JSON格式等可序列化的数据结构，用于记录工作流的各种功能特性配置
+    features text   NULL    comment '功能特性相关数据（JSON格式）',
+    -- 环境变量相关数据，以文本形式存储，通常是JSON格式的序列化数据，存储工作流运行依赖的环境变量信息，默认值为空JSON对象
+    envVariables text  NULL,
+    -- 对话变量相关数据，文本形式存储，同样通常是JSON格式的序列化数据，存储工作流相关的对话场景下的变量信息，默认值为空JSON对象
+    conversationVariables text NULL,
     createTime      datetime null default CURRENT_TIMESTAMP comment '创建时间',
     updateTime      datetime null default CURRENT_TIMESTAMP comment '更新时间',
     isDelete        tinyint  default 0  null comment '逻辑删除',
-    INDEX (userId, createTime)
+    INDEX (userId, updateTime)
 ) comment '工作流表';
 
--- 工作流节点
-drop table if exists nodes;
-create table workflow_nodes(
-                               workflowNodeId   bigint auto_increment  comment '主键' primary key,
-                               workflowId    bigint  not null comment '工作流Id',
-                               nodeType     varchar(255) null comment '节点类型',
-                               description  text   null comment '节点描述',
-                               data         text   null comment '节点数据JSON',
-                               positionX    varchar(128)    null comment '节点所在x轴位置',
-                               positionY    varchar(128)    null comment '节点所在y轴位置',
-                               createTime      datetime null default CURRENT_TIMESTAMP comment '创建时间',
-                               updateTime      datetime null default CURRENT_TIMESTAMP comment '更新时间',
-                               isDelete        tinyint  default 0  null comment '逻辑删除',
-                               INDEX (workflowId)
-) comment '工作流节点表';
-
--- 工作流节点边信息
-drop table if exists workflow_nodes;
-create table workflow_nodes(
-                               workflowEdgeId   bigint auto_increment  comment '主键' primary key,
-                               workflowId    bigint  not null comment '工作流Id',
-                               sourceWorkflowNodeId     bigint null comment '边的起始节点',
-                               targetWorkflowNodeId     bigint null comment '边的结束节点',
-                               edgeType  text   null comment '节点类型',
-                               createTime      datetime null default CURRENT_TIMESTAMP comment '创建时间',
-                               updateTime      datetime null default CURRENT_TIMESTAMP comment '更新时间',
-                               isDelete        tinyint  default 0  null comment '逻辑删除',
-                               INDEX (workflowId)
-) comment '工作流节点表';
 
 -- 工作流执行记录表
 drop table if exists workflow_execution_logs;
@@ -630,6 +613,7 @@ create table workflow_execution_logs(
                                endTime       datetime null comment '工作流结束时间',
                                runningTime   int unsigned  comment '运行时长',
                                status        varchar(128)   null comment '运行执行状态',
+                               runningMetaInfo  text        null comment '运行时元信息（JSON格式）',
                                createTime      datetime null default CURRENT_TIMESTAMP comment '创建时间',
                                updateTime      datetime null default CURRENT_TIMESTAMP comment '更新时间',
                                isDelete        tinyint  default 0  null comment '逻辑删除',
