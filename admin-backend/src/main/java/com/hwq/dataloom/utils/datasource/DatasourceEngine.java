@@ -10,6 +10,7 @@ import com.hwq.dataloom.model.vo.dashboard.SeriesData;
 import com.hwq.dataloom.model.vo.dashboard.XArrayData;
 import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
@@ -23,6 +24,7 @@ import java.util.*;
  * @description 数据源引擎 - 获取数据源数据
  */
 @Service
+@Slf4j
 public class DatasourceEngine {
 
     @Resource
@@ -141,6 +143,8 @@ public class DatasourceEngine {
                 }
             }
         } catch (SQLException e) {
+            log.error(e.getMessage());
+            log.error("查询数据异常，请检查数据源，查询库：ds_{}，查询SQL:{}", dsIndex, selectSql);
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "查询数据异常,请检查数据源");
         }
         return GetChartDataVO.builder()
