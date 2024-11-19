@@ -9,6 +9,7 @@ import com.hwq.dataloom.framework.result.BaseResponse;
 import com.hwq.dataloom.framework.result.ResultUtils;
 import com.hwq.dataloom.model.dto.workflow.AddWorkflowDTO;
 import com.hwq.dataloom.model.dto.workflow.QueryWorkflowDTO;
+import com.hwq.dataloom.model.dto.workflow.SaveWorkflowDTO;
 import com.hwq.dataloom.model.dto.workflow.UpdateWorkflowDTO;
 import com.hwq.dataloom.model.entity.Workflow;
 import com.hwq.dataloom.model.vo.workflow.WorkflowVO;
@@ -34,14 +35,44 @@ public class WorkflowController {
     @Resource
     private UserService userService;
 
-    // TODO：增删改查工作流
+
+    @PostMapping("/draft")
+    @Operation(summary = "保存工作流画布草稿")
+    public BaseResponse<Long> saveWorkflowDraft(
+            @RequestBody SaveWorkflowDTO saveWorkflowDTO,
+            HttpServletRequest request)
+    {
+        if (saveWorkflowDTO == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // TODO：校验saveWorkflowDTO内的属性
+        User loginUser = userService.getLoginUser(request);
+        // TODO：给workflow新增一个uniqueHash字段，实现workflow的自动保存
+        Workflow workflow = workflowService.saveWorkflowDraft(saveWorkflowDTO, loginUser);
+        return ResultUtils.success(workflow.getWorkflowId());
+    }
+
+    @GetMapping("/draft/{workflowId}")
+    @Operation(summary = "获取工作流画布草稿")
+    public BaseResponse<Long> getWorkflowDraft(
+            @PathVariable("workflowId") Long workflowId,
+            HttpServletRequest request)
+    {
+        if (workflowId == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        // TODO：实现workflow的查询
+        Workflow workflow = workflowService.getWorkflowDraft(workflowId, loginUser);
+        return ResultUtils.success(workflow.getWorkflowId());
+    }
+
     @PostMapping("/add")
     @Operation(summary = "创建工作流")
     public BaseResponse<Long> addWorkflow(@RequestBody AddWorkflowDTO addWorkflowRequest, HttpServletRequest request) {
         if (addWorkflowRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        // TODO: 参数校验
         User loginUser = userService.getLoginUser(request);
         Workflow workflow = workflowService.addWorkflow(addWorkflowRequest, loginUser);
         return ResultUtils.success(workflow.getWorkflowId());

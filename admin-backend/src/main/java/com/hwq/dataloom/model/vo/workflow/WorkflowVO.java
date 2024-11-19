@@ -1,13 +1,17 @@
 package com.hwq.dataloom.model.vo.workflow;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 工作流列表查询返回类
  */
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class WorkflowVO {
     /**
      * 主键
