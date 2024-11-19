@@ -12,6 +12,8 @@ import com.hwq.dataloom.model.dto.workflow.QueryWorkflowDTO;
 import com.hwq.dataloom.model.dto.workflow.SaveWorkflowDTO;
 import com.hwq.dataloom.model.dto.workflow.UpdateWorkflowDTO;
 import com.hwq.dataloom.model.entity.Workflow;
+import com.hwq.dataloom.model.vo.workflow.GetWorkflowDaftVO;
+import com.hwq.dataloom.model.vo.workflow.SaveWorkflowDraftVO;
 import com.hwq.dataloom.model.vo.workflow.WorkflowVO;
 import com.hwq.dataloom.service.UserService;
 import com.hwq.dataloom.service.WorkflowService;
@@ -38,23 +40,20 @@ public class WorkflowController {
 
     @PostMapping("/draft")
     @Operation(summary = "保存工作流画布草稿")
-    public BaseResponse<Long> saveWorkflowDraft(
+    public BaseResponse<SaveWorkflowDraftVO> saveWorkflowDraft(
             @RequestBody SaveWorkflowDTO saveWorkflowDTO,
             HttpServletRequest request)
     {
         if (saveWorkflowDTO == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        // TODO：校验saveWorkflowDTO内的属性
         User loginUser = userService.getLoginUser(request);
-        // TODO：给workflow新增一个uniqueHash字段，实现workflow的自动保存
-        Workflow workflow = workflowService.saveWorkflowDraft(saveWorkflowDTO, loginUser);
-        return ResultUtils.success(workflow.getWorkflowId());
+        return ResultUtils.success(workflowService.saveWorkflowDraft(saveWorkflowDTO, loginUser));
     }
 
     @GetMapping("/draft/{workflowId}")
     @Operation(summary = "获取工作流画布草稿")
-    public BaseResponse<Long> getWorkflowDraft(
+    public BaseResponse<GetWorkflowDaftVO> getWorkflowDraft(
             @PathVariable("workflowId") Long workflowId,
             HttpServletRequest request)
     {
@@ -63,8 +62,8 @@ public class WorkflowController {
         }
         User loginUser = userService.getLoginUser(request);
         // TODO：实现workflow的查询
-        Workflow workflow = workflowService.getWorkflowDraft(workflowId, loginUser);
-        return ResultUtils.success(workflow.getWorkflowId());
+        GetWorkflowDaftVO workflow = workflowService.getWorkflowDraft(workflowId, loginUser);
+        return ResultUtils.success(workflow);
     }
 
     @PostMapping("/add")

@@ -1,6 +1,5 @@
-package com.hwq.dataloom.model.dto.workflow;
+package com.hwq.dataloom.model.vo.workflow;
 
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.hwq.dataloom.model.json.workflow.Graph;
 import lombok.Data;
 
@@ -8,29 +7,17 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author HWQ
- * @date 2024/11/18 23:18
- * @description
+ * 工作流草稿返回类
  */
 @Data
-public class SaveWorkflowDTO {
+public class GetWorkflowDaftVO {
     /**
-     * 工作流id
-     */
-    private Long workflowId;
-
-    /**
-     * 工作流画布任务
+     * 画布配置（JSON格式）
      */
     private Graph graph;
 
     /**
-     * 画布草稿对应的哈希值
-     */
-    private String hashUnique;
-
-    /**
-     * 画布特征
+     * 功能特性相关数据（JSON格式）
      */
     private Map<String, Object> features;
 
@@ -43,4 +30,9 @@ public class SaveWorkflowDTO {
      * 对话变量（JSON格式）
      */
     private List<String> conversationVariables;
+
+    /**
+     * 画布哈希值（用于判断是否变更）
+     */
+    private String uniqueHash;
 }

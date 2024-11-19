@@ -1,5 +1,7 @@
 package com.hwq.dataloom.service.impl;
 
+import cn.hutool.core.map.MapUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -7,12 +9,17 @@ import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.framework.model.entity.User;
+import com.hwq.dataloom.framework.result.ResultUtils;
 import com.hwq.dataloom.model.dto.workflow.AddWorkflowDTO;
 import com.hwq.dataloom.model.dto.workflow.QueryWorkflowDTO;
 import com.hwq.dataloom.model.dto.workflow.SaveWorkflowDTO;
 import com.hwq.dataloom.model.dto.workflow.UpdateWorkflowDTO;
 import com.hwq.dataloom.model.entity.Workflow;
 import com.hwq.dataloom.model.enums.WorkflowTypeEnum;
+import com.hwq.dataloom.model.enums.WorkflowVersionEnum;
+import com.hwq.dataloom.model.json.workflow.Graph;
+import com.hwq.dataloom.model.vo.workflow.GetWorkflowDaftVO;
+import com.hwq.dataloom.model.vo.workflow.SaveWorkflowDraftVO;
 import com.hwq.dataloom.model.vo.workflow.WorkflowVO;
 import com.hwq.dataloom.service.WorkflowService;
 import com.hwq.dataloom.mapper.WorkflowMapper;
@@ -23,6 +30,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -41,12 +49,43 @@ public class WorkflowServiceImpl extends ServiceImpl<WorkflowMapper, Workflow>
 
 
     @Override
-    public Workflow saveWorkflowDraft(SaveWorkflowDTO saveWorkflowDTO, User loginUser) {
-        return null;
+    public SaveWorkflowDraftVO saveWorkflowDraft(SaveWorkflowDTO saveWorkflowDTO, User loginUser) {
+        // valid params
+        Graph graph = saveWorkflowDTO.getGraph();
+        List<String> envVariables = saveWorkflowDTO.getEnvVariables();
+        List<String> conversationVariables = saveWorkflowDTO.getConversationVariables();
+        Map<String, Object> features = saveWorkflowDTO.getFeatures();
+        ThrowUtils.throwIf(graph == null, ErrorCode.PARAMS_ERROR, "graph参数错误");
+        String hashUnique = saveWorkflowDTO.getHashUnique();
+        ThrowUtils.throwIf(StringUtils.isEmpty(hashUnique), ErrorCode.PARAMS_ERROR, "uniqueHash不得为空");
+        Long workflowId = saveWorkflowDTO.getWorkflowId();
+        ThrowUtils.throwIf(workflowId == null, ErrorCode.PARAMS_ERROR, "id不得为空");
+        Workflow workflow = this.getById(workflowId);
+        ThrowUtils.throwIf(workflow == null, ErrorCode.NOT_FOUND_ERROR);
+        ThrowUtils.throwIf(!workflow.getUserId().equals(loginUser.getId()), ErrorCode.NO_AUTH_ERROR, "无权限");
+        ThrowUtils.throwIf(!workflow.getUniqueHash().equals(hashUnique), ErrorCode.OPERATION_ERROR, "更新失败，请先同步画布");
+        // update workflow
+        workflow.setGraph(JSONUtil.toJsonStr(graph));
+        workflow.setFeatures(JSONUtil.toJsonStr(features));
+        workflow.setEnvVariables(JSONUtil.toJsonStr(envVariables));
+        workflow.setConversationVariables(JSONUtil.toJsonStr(conversationVariables));
+        workflow.setUniqueHash(workflow.uniqueHash());
+        boolean update = this.updateById(workflow);
+        if (!update) {
+            log.error("更新工作流失败，工作流:{}", workflow);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+        }
+        return SaveWorkflowDraftVO.builder()
+                .uniqueHash(hashUnique)
+                .status("success").build();
     }
 
     @Override
-    public Workflow getWorkflowDraft(Long workflowId, User loginUser) {
+    public GetWorkflowDaftVO getWorkflowDraft(Long workflowId, User loginUser) {
+        Workflow workflow = this.getById(workflowId);
+        ThrowUtils.throwIf(workflow == null, ErrorCode.NOT_FOUND_ERROR);
+        ThrowUtils.throwIf(workflow.getUserId().equals(loginUser.getId()), ErrorCode.NO_AUTH_ERROR);
+        // TODO: 获取工作流草稿
         return null;
     }
 
@@ -72,6 +111,11 @@ public class WorkflowServiceImpl extends ServiceImpl<WorkflowMapper, Workflow>
         ThrowUtils.throwIf(workflowTypeEnum == null, ErrorCode.PARAMS_ERROR, "不存在对应类型的工作流");
         Workflow workflow = new Workflow();
         BeanUtils.copyProperties(addWorkflowRequest, workflow);
+        workflow.setUserId(loginUser.getId());
+        // 初始化工作流的唯一哈希
+        workflow.setUniqueHash(workflow.uniqueHash());
+        // 初始化工作流的版本信息
+        workflow.setVersion(WorkflowVersionEnum.DRAFT.getValue());
         if (StringUtils.isEmpty(workflowIcon)) {
             workflow.setWorkflowIcon(defaultIcon);
         }

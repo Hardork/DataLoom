@@ -1,10 +1,17 @@
 package com.hwq.dataloom.model.entity;
 
+import cn.hutool.core.lang.TypeReference;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.annotation.*;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.util.*;
+
+import com.hwq.dataloom.framework.errorcode.ErrorCode;
+import com.hwq.dataloom.framework.exception.BusinessException;
 import lombok.Data;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * 工作流表
@@ -16,7 +23,7 @@ public class Workflow implements Serializable {
     /**
      * 主键
      */
-    @TableId(value = "workflowId", type = IdType.AUTO)
+    @TableId(value = "workflowId", type = IdType.ASSIGN_ID)
     private Long workflowId;
 
     /**
@@ -80,6 +87,12 @@ public class Workflow implements Serializable {
     private String conversationVariables;
 
     /**
+     * 画布哈希值（用于判断是否变更）
+     */
+    @TableField(value = "uniqueHash")
+    private String uniqueHash;
+
+    /**
      * 创建时间
      */
     @TableField(value = "createTime")
@@ -100,4 +113,68 @@ public class Workflow implements Serializable {
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
+
+
+    /**
+     * 获取graph对应的map
+     * @return map
+     */
+    public Map<String, Object> graphDict() {
+        if (StringUtils.isNotEmpty(graph)) {
+            return JSONUtil.toBean(graph, new TypeReference<Map<String, Object>>() {}, false);
+        }
+        return new HashMap<>();
+    }
+
+    /**
+     * 获取features对应的map
+     * @return map
+     */
+    public Map<String, Object> featuresDict() {
+        if (StringUtils.isNotEmpty(features)) {
+            return JSONUtil.toBean(features, new TypeReference<Map<String, Object>>() {}, false);
+        }
+        return new HashMap<>();
+    }
+
+    /**
+     * 获取画布的起始节点
+     * @return 获取画布起始输入表单
+     */
+    public List<Map<String, Object>> findStartNodeInputForm() {
+        if (StringUtils.isNotEmpty(graph)) {
+            return new ArrayList<>();
+        }
+        Map<String, Object> graphDict = graphDict();
+        try {
+            List<Map<String, Object>> nodes = (List<Map<String, Object>>) graphDict.get("nodes");
+            Optional<Map<String, Object>> startNodeOptional = nodes.stream()
+                    .filter(node -> {
+                        Map<String, Object> data = (Map<String, Object>) node.get("data");
+                        return Objects.nonNull(data) && "start".equals(data.get("type"));
+                    })
+                    .findFirst();
+            if (!startNodeOptional.isPresent()) {
+                return Collections.emptyList();
+            }
+            Map<String, Object> startNode = startNodeOptional.get();
+            Map<String, Object> data = (Map<String, Object>) startNode.get("data");
+            return (List<Map<String, Object>>) data.get("variables");
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "画布解析失败");
+        }
+    }
+
+    /**
+     * 根据graph和features计算画布的唯一哈希值
+     * @return 画布唯一哈希值
+     */
+    public String uniqueHash() {
+        Map<String, Object> entity = new HashMap<>();
+        entity.put("graph", graph);
+        entity.put("features", features);
+        Map<String, Object> sortedEntity = new TreeMap<>(entity);
+        String jsonStr = JSONUtil.toJsonStr(sortedEntity);
+        return DigestUtils.md5Hex(jsonStr);
+    }
 }

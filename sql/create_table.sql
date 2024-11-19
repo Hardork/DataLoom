@@ -597,6 +597,7 @@ create table workflow(
     envVariables text  NULL,
     -- 对话变量相关数据，文本形式存储，同样通常是JSON格式的序列化数据，存储工作流相关的对话场景下的变量信息，默认值为空JSON对象
     conversationVariables text NULL,
+    uniqueHash            varchar(255)  null comment '画布哈希值',
     createTime      datetime null default CURRENT_TIMESTAMP comment '创建时间',
     updateTime      datetime null default CURRENT_TIMESTAMP comment '更新时间',
     isDelete        tinyint  default 0  null comment '逻辑删除',

@@ -15,6 +15,7 @@
             <result property="graph" column="graph" jdbcType="VARCHAR"/>
             <result property="features" column="features" jdbcType="VARCHAR"/>
             <result property="envVariables" column="envVariables" jdbcType="VARCHAR"/>
+            <result property="uniqueHash" column="uniqueHash" jdbcType="VARCHAR"/>
             <result property="conversationVariables" column="conversationVariables" jdbcType="VARCHAR"/>
             <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
             <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
@@ -23,7 +24,7 @@
 
     <sql id="Base_Column_List">
         workflowId,workflowName,workflowIcon,
-        description,userId,type,
+        description,userId,type,uniqueHash,
         version,graph,features,
         envVariables,conversationVariables,createTime,
         updateTime,isDelete

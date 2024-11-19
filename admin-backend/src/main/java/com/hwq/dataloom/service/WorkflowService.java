@@ -8,6 +8,8 @@ import com.hwq.dataloom.model.dto.workflow.SaveWorkflowDTO;
 import com.hwq.dataloom.model.dto.workflow.UpdateWorkflowDTO;
 import com.hwq.dataloom.model.entity.Workflow;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.hwq.dataloom.model.vo.workflow.GetWorkflowDaftVO;
+import com.hwq.dataloom.model.vo.workflow.SaveWorkflowDraftVO;
 import com.hwq.dataloom.model.vo.workflow.WorkflowVO;
 
 /**
@@ -23,7 +25,7 @@ public interface WorkflowService extends IService<Workflow> {
 
     Boolean updateWorkflow(UpdateWorkflowDTO updateWorkflowDTO, User loginUser);
 
-    Workflow saveWorkflowDraft(SaveWorkflowDTO saveWorkflowDTO, User loginUser);
+    SaveWorkflowDraftVO saveWorkflowDraft(SaveWorkflowDTO saveWorkflowDTO, User loginUser);
 
-    Workflow getWorkflowDraft(Long workflowId, User loginUser);
+    GetWorkflowDaftVO getWorkflowDraft(Long workflowId, User loginUser);
 }
