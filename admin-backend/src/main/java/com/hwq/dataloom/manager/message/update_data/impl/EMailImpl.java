@@ -1,7 +1,7 @@
 package com.hwq.dataloom.manager.message.update_data.impl;
 
 import com.hwq.dataloom.config.EmailConfig;
-import com.hwq.dataloom.manager.message.update_data.IUpdateDataMessage;
+import com.hwq.dataloom.manager.message.update_data.IUpdateDataMessageService;
 import com.hwq.dataloom.manager.model.UpdateDataBuildMessage;
 import com.hwq.dataloom.utils.EmailUtil;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -20,7 +20,7 @@ import static com.hwq.dataloom.constant.EmailConstant.*;
  * @Description:
  **/
 @Component("update_date_email")
-public class EMailImpl implements IUpdateDataMessage {
+public class EMailImpl implements IUpdateDataMessageService {
     @Resource
     private JavaMailSender mailSender;
     @Resource

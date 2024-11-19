@@ -8,7 +8,7 @@ import com.hwq.dataloom.manager.model.UpdateDataBuildMessage;
  * @DateTime: 2024/11/15
  * @Description:
  **/
-public interface IUpdateDataMessage extends ISendMessage<UpdateDataBuildMessage> {
+public interface IUpdateDataMessageService extends ISendMessage<UpdateDataBuildMessage> {
 
     String buildMessage(UpdateDataBuildMessage buildMessage);
 }

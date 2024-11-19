@@ -1,6 +1,8 @@
 package com.hwq.dataloom.mq.producer;
 
 import com.hwq.dataloom.constant.MqConstant;
+import com.hwq.dataloom.framework.mq.EventPublisher;
+import com.hwq.dataloom.mq.event.UpdateDataMessageEvent;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
@@ -15,9 +17,12 @@ import javax.annotation.Resource;
 public class UpdateDataMessageProducer {
 
     @Resource
-    private RabbitTemplate rabbitTemplate;
+    private EventPublisher eventPublisher;
 
-    public void sendMessage(String message) {
-        rabbitTemplate.convertAndSend(MqConstant.UPDATE_DATA_EXCHANGE_NAME,MqConstant.UPDATE_DATA_ROUTING_KEY,message);
+    @Resource
+    private UpdateDataMessageEvent updateDataMessageEvent;
+
+    public void sendMessage(UpdateDataMessageEvent.UpdateDataMessage message) {
+        eventPublisher.publish(MqConstant.UPDATE_DATA_QUEUE_NAME,updateDataMessageEvent.buildEventMessage(message));
     }
 }
