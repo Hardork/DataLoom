@@ -15,7 +15,7 @@ import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.entity.CoreDatasource;
 import com.hwq.dataloom.model.enums.DataSourceTypeEnum;
 import com.hwq.dataloom.model.enums.DirTypeEnum;
-import com.hwq.dataloom.model.json.ExcelSheetData;
+import com.hwq.dataloom.model.json.datasource.ExcelSheetData;
 import com.hwq.dataloom.service.CoreDatasetTableFieldService;
 import com.hwq.dataloom.service.CoreDatasetTableService;
 import com.hwq.dataloom.service.CoreDatasourceService;

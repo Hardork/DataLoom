@@ -5,8 +5,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.hwq.dataloom.model.dto.user.UserEmailRegisterRequest;
 import com.hwq.dataloom.model.dto.user.UserQueryRequest;
 import com.hwq.dataloom.framework.model.entity.User;
-import com.hwq.dataloom.model.vo.LoginUserVO;
-import com.hwq.dataloom.model.vo.UserVO;
+import com.hwq.dataloom.model.vo.user.LoginUserVO;
+import com.hwq.dataloom.model.vo.user.UserVO;
 
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;

@@ -1,6 +1,6 @@
 package com.hwq.dataloom.model.vo.user_data;
 
-import com.hwq.dataloom.model.vo.UserVO;
+import com.hwq.dataloom.model.vo.user.UserVO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

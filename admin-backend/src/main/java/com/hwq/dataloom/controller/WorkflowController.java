@@ -39,8 +39,8 @@ public class WorkflowController {
 
 
     @PostMapping("/draft")
-    @Operation(summary = "保存工作流画布草稿")
-    public BaseResponse<SaveWorkflowDraftVO> saveWorkflowDraft(
+    @Operation(summary = "同步工作流画布草稿")
+    public BaseResponse<SaveWorkflowDraftVO> syncWorkflowDraft(
             @RequestBody SaveWorkflowDTO saveWorkflowDTO,
             HttpServletRequest request)
     {
@@ -48,7 +48,7 @@ public class WorkflowController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
-        return ResultUtils.success(workflowService.saveWorkflowDraft(saveWorkflowDTO, loginUser));
+        return ResultUtils.success(workflowService.syncWorkflowDraft(saveWorkflowDTO, loginUser));
     }
 
     @GetMapping("/draft/{workflowId}")
@@ -61,7 +61,6 @@ public class WorkflowController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
-        // TODO：实现workflow的查询
         GetWorkflowDaftVO workflow = workflowService.getWorkflowDraft(workflowId, loginUser);
         return ResultUtils.success(workflow);
     }

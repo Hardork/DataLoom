@@ -1,20 +1,20 @@
-package com.hwq.dataloom.model.vo;
+package com.hwq.dataloom.model.vo.user;
 
 import java.io.Serializable;
 import java.util.Date;
 import lombok.Data;
 
 /**
- * 用户视图（脱敏）
+ * 已登录用户视图（脱敏）
  *
  * @author <a href="https://github.com/Hardork">老山羊</a>
  * 
- */
+ **/
 @Data
-public class UserVO implements Serializable {
+public class LoginUserVO implements Serializable {
 
     /**
-     * id
+     * 用户 id
      */
     private Long id;
 
@@ -29,28 +29,39 @@ public class UserVO implements Serializable {
     private String userAvatar;
 
     /**
-     * 用户邮箱
-     */
-    private String email;
-
-    /**
-     * 用户邀请码
-     */
-    private String invitationCode;
-    /**
      * 用户简介
      */
     private String userProfile;
 
     /**
-     * 用户角色：user/admin/ban
+     * 用户角色：user/admin/vip/ban
      */
     private String userRole;
+
+    /**
+     * 总积分
+     */
+    private Integer totalRewardPoints;
+
+    /**
+     * 邮箱
+     */
+    private String email;
+
+    /**
+     * 邀请码
+     */
+    private String invitationCode;
 
     /**
      * 创建时间
      */
     private Date createTime;
+
+    /**
+     * 更新时间
+     */
+    private Date updateTime;
 
     private static final long serialVersionUID = 1L;
 }

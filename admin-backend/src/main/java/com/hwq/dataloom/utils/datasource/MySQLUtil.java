@@ -6,7 +6,7 @@ package com.hwq.dataloom.utils.datasource;/**
 
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
-import com.hwq.dataloom.model.json.StructDatabaseConfiguration;
+import com.hwq.dataloom.model.json.datasource.StructDatabaseConfiguration;
 import com.hwq.dataloom.model.dto.datasource.PreviewData;
 import com.hwq.dataloom.model.dto.datasource.SchemaStructure;
 import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;

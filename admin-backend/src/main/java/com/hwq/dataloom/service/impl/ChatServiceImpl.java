@@ -7,7 +7,7 @@ import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
 import com.hwq.dataloom.model.entity.*;
-import com.hwq.dataloom.model.vo.GetUserChatHistoryVO;
+import com.hwq.dataloom.model.vo.chat.GetUserChatHistoryVO;
 import com.hwq.dataloom.service.*;
 import com.hwq.dataloom.mapper.ChatMapper;
 import org.springframework.stereotype.Service;

@@ -15,10 +15,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * 增量同步帖子到 es
+ * 智能分析失败重试
  */
-// todo 取消注释开启任务
-@Component
+//@Component
 @Slf4j
 public class RetryTimeoutChart {
     @Resource

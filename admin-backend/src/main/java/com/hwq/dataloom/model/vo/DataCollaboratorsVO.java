@@ -1,5 +1,6 @@
 package com.hwq.dataloom.model.vo;
 
+import com.hwq.dataloom.model.vo.user.UserVO;
 import lombok.Data;
 
 /**

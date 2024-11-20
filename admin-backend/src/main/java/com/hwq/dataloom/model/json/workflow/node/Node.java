@@ -11,7 +11,7 @@ import java.util.Map;
 @Data
 public class Node {
     /**
-     * 节点数据，TODO：考虑是使用Map还是对应的Data类进行参数的接收
+     * 节点数据
      */
     private Map<String, Object> data;
     /**

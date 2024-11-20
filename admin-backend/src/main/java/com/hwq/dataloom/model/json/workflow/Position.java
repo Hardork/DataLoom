@@ -7,6 +7,13 @@ import lombok.Data;
  */
 @Data
 public class Position {
+    /**
+     * 节点所在x轴位置
+     */
     private double x;
+
+    /**
+     * 节点所在y轴位置
+     */
     private double y;
 }

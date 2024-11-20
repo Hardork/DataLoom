@@ -1,14 +1,15 @@
-package com.hwq.dataloom.model.vo;
+package com.hwq.dataloom.model.vo.chat;
 
 import lombok.Data;
 
 /**
  * @Author:HWQ
  * @DateTime:2023/10/4 2:26
- * @Description:
+ * @Description: 获取用户历史对话
  **/
 @Data
 public class GetUserChatHistoryVO {
+
     /**
      * 对话id
      */

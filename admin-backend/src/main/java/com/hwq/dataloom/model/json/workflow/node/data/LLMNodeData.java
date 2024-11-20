@@ -15,6 +15,10 @@ public class LLMNodeData extends BaseNodeData {
     private Context context;
     private LLMModel llmModel;
     private List<PromptTemplate> promptTemplates;
+    /**
+     * 输出结果
+     */
+    private Output output;
 }
 
 /**
@@ -37,6 +41,9 @@ class LLMModel {
     private Map<String, String> config;
 }
 
+/**
+ * Prompt模版
+ */
 @Data
 class PromptTemplate {
     private String id;

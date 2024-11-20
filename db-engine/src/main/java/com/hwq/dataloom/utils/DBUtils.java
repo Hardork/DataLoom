@@ -1,7 +1,5 @@
 package com.hwq.dataloom.utils;
 
-import java.sql.Connection;
-
 /**
  * @author HWQ
  * @date 2024/8/13 15:37

@@ -1,7 +1,7 @@
 package com.hwq.dataloom.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.hwq.dataloom.model.json.StructDatabaseConfiguration;
+import com.hwq.dataloom.model.json.datasource.StructDatabaseConfiguration;
 import com.hwq.dataloom.model.dto.datasource.PreviewData;
 import com.hwq.dataloom.model.dto.datasource.PreviewDataRequest;
 import com.hwq.dataloom.model.entity.DatasourceMetaInfo;

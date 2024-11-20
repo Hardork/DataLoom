@@ -1,6 +1,7 @@
 package com.hwq.dataloom.model.vo.workflow;
 
 import com.hwq.dataloom.model.json.workflow.Graph;
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.Map;
 /**
  * 工作流草稿返回类
  */
+@Builder
 @Data
 public class GetWorkflowDaftVO {
     /**

@@ -1,22 +1,13 @@
 package com.hwq.dataloom.mq.consumer;
 
-import cn.hutool.json.JSONUtil;
-import com.hwq.dataloom.constant.MqConstant;
 import com.hwq.dataloom.manager.message.update_data.IUpdateDataMessage;
-import com.hwq.dataloom.manager.model.UpdateDataBuildMessage;
-import com.hwq.dataloom.model.vo.UserVO;
-import com.hwq.dataloom.mq.model.UpdateDataMessageEntity;
 import com.hwq.dataloom.service.UserDataPermissionService;
 import com.hwq.dataloom.service.UserService;
-import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.List;
 import java.util.Map;
 
 /**

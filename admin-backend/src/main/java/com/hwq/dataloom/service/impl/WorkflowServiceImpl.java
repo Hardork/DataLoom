@@ -9,7 +9,6 @@ import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.framework.model.entity.User;
-import com.hwq.dataloom.framework.result.ResultUtils;
 import com.hwq.dataloom.model.dto.workflow.AddWorkflowDTO;
 import com.hwq.dataloom.model.dto.workflow.QueryWorkflowDTO;
 import com.hwq.dataloom.model.dto.workflow.SaveWorkflowDTO;
@@ -49,7 +48,7 @@ public class WorkflowServiceImpl extends ServiceImpl<WorkflowMapper, Workflow>
 
 
     @Override
-    public SaveWorkflowDraftVO saveWorkflowDraft(SaveWorkflowDTO saveWorkflowDTO, User loginUser) {
+    public SaveWorkflowDraftVO syncWorkflowDraft(SaveWorkflowDTO saveWorkflowDTO, User loginUser) {
         // valid params
         Graph graph = saveWorkflowDTO.getGraph();
         List<String> envVariables = saveWorkflowDTO.getEnvVariables();
@@ -64,29 +63,39 @@ public class WorkflowServiceImpl extends ServiceImpl<WorkflowMapper, Workflow>
         ThrowUtils.throwIf(workflow == null, ErrorCode.NOT_FOUND_ERROR);
         ThrowUtils.throwIf(!workflow.getUserId().equals(loginUser.getId()), ErrorCode.NO_AUTH_ERROR, "无权限");
         ThrowUtils.throwIf(!workflow.getUniqueHash().equals(hashUnique), ErrorCode.OPERATION_ERROR, "更新失败，请先同步画布");
-        // update workflow
+        // fill workflow field
         workflow.setGraph(JSONUtil.toJsonStr(graph));
         workflow.setFeatures(JSONUtil.toJsonStr(features));
         workflow.setEnvVariables(JSONUtil.toJsonStr(envVariables));
         workflow.setConversationVariables(JSONUtil.toJsonStr(conversationVariables));
-        workflow.setUniqueHash(workflow.uniqueHash());
+        // get workflow new uniqueHash
+        String newUniqueHash = workflow.uniqueHash();
+        // update workflow
+        workflow.setUniqueHash(newUniqueHash);
         boolean update = this.updateById(workflow);
         if (!update) {
             log.error("更新工作流失败，工作流:{}", workflow);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR);
         }
         return SaveWorkflowDraftVO.builder()
-                .uniqueHash(hashUnique)
+                .uniqueHash(newUniqueHash)
                 .status("success").build();
     }
 
     @Override
     public GetWorkflowDaftVO getWorkflowDraft(Long workflowId, User loginUser) {
+        // valid params
         Workflow workflow = this.getById(workflowId);
         ThrowUtils.throwIf(workflow == null, ErrorCode.NOT_FOUND_ERROR);
-        ThrowUtils.throwIf(workflow.getUserId().equals(loginUser.getId()), ErrorCode.NO_AUTH_ERROR);
-        // TODO: 获取工作流草稿
-        return null;
+        ThrowUtils.throwIf(!workflow.getUserId().equals(loginUser.getId()), ErrorCode.NO_AUTH_ERROR);
+        // build workflowDraftVO
+        return GetWorkflowDaftVO.builder()
+                .graph(JSONUtil.toBean(workflow.getGraph(), Graph.class))
+                .envVariables(JSONUtil.toList(workflow.getEnvVariables(), String.class))
+                .features(JSONUtil.toBean(workflow.getFeatures(), Map.class))
+                .conversationVariables(JSONUtil.toList(workflow.getConversationVariables(), String.class))
+                .uniqueHash(workflow.getUniqueHash())
+                .build();
     }
 
     @Override

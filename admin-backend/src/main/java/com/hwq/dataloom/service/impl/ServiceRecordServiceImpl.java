@@ -74,7 +74,6 @@ public class ServiceRecordServiceImpl extends ServiceImpl<ServiceRecordMapper, S
                 .le(ServiceRecord::getCreateTime, endOfMonth)
                 .orderByAsc(ServiceRecord::getCreateTime)
         ;
-
         List<ServiceRecord> records = this.list(queryWrapper);
         LinkedHashMap<String, Long> collect = records.stream().collect(Collectors.groupingBy((serviceRecord) -> {
             Date createTime = serviceRecord.getCreateTime();

@@ -25,7 +25,7 @@ public interface WorkflowService extends IService<Workflow> {
 
     Boolean updateWorkflow(UpdateWorkflowDTO updateWorkflowDTO, User loginUser);
 
-    SaveWorkflowDraftVO saveWorkflowDraft(SaveWorkflowDTO saveWorkflowDTO, User loginUser);
+    SaveWorkflowDraftVO syncWorkflowDraft(SaveWorkflowDTO saveWorkflowDTO, User loginUser);
 
     GetWorkflowDaftVO getWorkflowDraft(Long workflowId, User loginUser);
 }

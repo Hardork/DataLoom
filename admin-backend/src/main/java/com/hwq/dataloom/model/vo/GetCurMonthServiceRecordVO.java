@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * @Author:HWQ
  * @DateTime:2023/9/29 16:16
- * @Description:
+ * @Description: 获取当前月份调用服务记录
  **/
 @Data
 public class GetCurMonthServiceRecordVO {

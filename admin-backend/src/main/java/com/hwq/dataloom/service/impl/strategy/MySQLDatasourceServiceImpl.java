@@ -11,7 +11,7 @@ import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.entity.CoreDatasource;
 import com.hwq.dataloom.model.enums.DataSourceTypeEnum;
 import com.hwq.dataloom.model.enums.DirTypeEnum;
-import com.hwq.dataloom.model.json.StructDatabaseConfiguration;
+import com.hwq.dataloom.model.json.datasource.StructDatabaseConfiguration;
 import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.service.DatasourceDirTreeService;
 import com.hwq.dataloom.service.basic.strategy.DatasourceExecuteStrategy;
