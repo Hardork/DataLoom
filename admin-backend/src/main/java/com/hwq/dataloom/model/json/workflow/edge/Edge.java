@@ -1,4 +1,4 @@
-package com.hwq.dataloom.model.json.workflow;
+package com.hwq.dataloom.model.json.workflow.edge;
 
 import lombok.Data;
 
@@ -15,4 +15,5 @@ public class Edge {
     private String targetHandle;
     private String type;
     private int zIndex;
+    private EdgeData data;
 }

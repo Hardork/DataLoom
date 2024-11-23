@@ -1,6 +1,5 @@
 package com.hwq.dataloom.service.impl;
 
-import cn.hutool.core.map.MapUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -14,8 +13,8 @@ import com.hwq.dataloom.model.dto.workflow.QueryWorkflowDTO;
 import com.hwq.dataloom.model.dto.workflow.SaveWorkflowDTO;
 import com.hwq.dataloom.model.dto.workflow.UpdateWorkflowDTO;
 import com.hwq.dataloom.model.entity.Workflow;
-import com.hwq.dataloom.model.enums.WorkflowTypeEnum;
-import com.hwq.dataloom.model.enums.WorkflowVersionEnum;
+import com.hwq.dataloom.model.enums.workflow.WorkflowTypeEnum;
+import com.hwq.dataloom.model.enums.workflow.WorkflowVersionEnum;
 import com.hwq.dataloom.model.json.workflow.Graph;
 import com.hwq.dataloom.model.vo.workflow.GetWorkflowDaftVO;
 import com.hwq.dataloom.model.vo.workflow.SaveWorkflowDraftVO;
@@ -96,6 +95,16 @@ public class WorkflowServiceImpl extends ServiceImpl<WorkflowMapper, Workflow>
                 .conversationVariables(JSONUtil.toList(workflow.getConversationVariables(), String.class))
                 .uniqueHash(workflow.getUniqueHash())
                 .build();
+    }
+
+    @Override
+    public void runWorkflowDraft(Long workflowId, User loginUser) {
+        // valid params
+        Workflow workflow = this.getById(workflowId);
+        ThrowUtils.throwIf(workflow == null, ErrorCode.PARAMS_ERROR);
+        ThrowUtils.throwIf(!workflow.getUserId().equals(loginUser.getId()), ErrorCode.NO_AUTH_ERROR);
+        // init graph config
+
     }
 
     @Override

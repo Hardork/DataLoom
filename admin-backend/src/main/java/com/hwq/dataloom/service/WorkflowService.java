@@ -28,4 +28,6 @@ public interface WorkflowService extends IService<Workflow> {
     SaveWorkflowDraftVO syncWorkflowDraft(SaveWorkflowDTO saveWorkflowDTO, User loginUser);
 
     GetWorkflowDaftVO getWorkflowDraft(Long workflowId, User loginUser);
+
+    void runWorkflowDraft(Long workflowId, User loginUser);
 }

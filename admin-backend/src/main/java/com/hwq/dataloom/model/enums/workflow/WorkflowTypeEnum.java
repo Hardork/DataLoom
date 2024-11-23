@@ -1,17 +1,16 @@
-package com.hwq.dataloom.model.enums;
+package com.hwq.dataloom.model.enums.workflow;
 
 import org.apache.commons.lang3.ObjectUtils;
 
 /**
- * 工作流版本枚举类
+ * @author HWQ
+ * @date 2024/11/18 22:23
+ * @description 工作流类型枚举类
  */
-public enum WorkflowVersionEnum {
-    // 草稿
-    DRAFT("draft", "draft"),
-    // 已发布
-    PUBLISHED("published", "published");
+public enum WorkflowTypeEnum {
+    WORKFLOW("workflow", "workflow");
 
-    WorkflowVersionEnum(String text, String value){
+    WorkflowTypeEnum(String text, String value){
         this.text = text;
         this.value = value;
     }
@@ -21,11 +20,11 @@ public enum WorkflowVersionEnum {
      * @param value
      * @return
      */
-    public static WorkflowVersionEnum getEnumByValue(String value) {
+    public static WorkflowTypeEnum getEnumByValue(String value) {
         if (ObjectUtils.isEmpty(value)) {
             return null;
         }
-        for (WorkflowVersionEnum anEnum : WorkflowVersionEnum.values()) {
+        for (WorkflowTypeEnum anEnum : WorkflowTypeEnum.values()) {
             if (anEnum.value.equals(value)) {
                 return anEnum;
             }

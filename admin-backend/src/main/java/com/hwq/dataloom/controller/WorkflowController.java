@@ -7,10 +7,7 @@ import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.framework.result.BaseResponse;
 import com.hwq.dataloom.framework.result.ResultUtils;
-import com.hwq.dataloom.model.dto.workflow.AddWorkflowDTO;
-import com.hwq.dataloom.model.dto.workflow.QueryWorkflowDTO;
-import com.hwq.dataloom.model.dto.workflow.SaveWorkflowDTO;
-import com.hwq.dataloom.model.dto.workflow.UpdateWorkflowDTO;
+import com.hwq.dataloom.model.dto.workflow.*;
 import com.hwq.dataloom.model.entity.Workflow;
 import com.hwq.dataloom.model.vo.workflow.GetWorkflowDaftVO;
 import com.hwq.dataloom.model.vo.workflow.SaveWorkflowDraftVO;
@@ -63,6 +60,19 @@ public class WorkflowController {
         User loginUser = userService.getLoginUser(request);
         GetWorkflowDaftVO workflow = workflowService.getWorkflowDraft(workflowId, loginUser);
         return ResultUtils.success(workflow);
+    }
+
+    @PostMapping("/run")
+    public BaseResponse<Boolean> runWorkflowDraft(
+            @RequestBody RunWorkflowDraftDTO runWorkflowDraftDTO,
+            HttpServletRequest request
+    )
+    {
+        Long workflowId = runWorkflowDraftDTO.getWorkflowId();
+        ThrowUtils.throwIf(workflowId == null, ErrorCode.PARAMS_ERROR, "workflowIdb不得为空");
+        User loginUser = userService.getLoginUser(request);
+        workflowService.runWorkflowDraft(workflowId, loginUser);
+        return ResultUtils.success(Boolean.TRUE);
     }
 
     @PostMapping("/add")
