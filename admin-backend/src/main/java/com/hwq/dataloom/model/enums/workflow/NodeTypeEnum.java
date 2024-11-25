@@ -13,7 +13,8 @@ public enum NodeTypeEnum {
     HTTP("http", "http"),
     NOTIFY("notify", "notify"),
     CODE("code", "code"),
-    LLM("llm", "llm");
+    LLM("llm", "llm"),
+    ANSWER("answer", "answer");
 
     NodeTypeEnum(String text, String value){
         this.text = text;

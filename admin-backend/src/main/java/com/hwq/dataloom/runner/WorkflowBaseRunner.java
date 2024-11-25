@@ -104,17 +104,54 @@ public class WorkflowBaseRunner {
         List<String> runNodeList = new ArrayList<>();
         addRunNode2List(runNodeList, sourceEdgeMapping, rootNodeId);
 
-        HashMap<String, Node> runNodeListMap = new HashMap<>();
+        Map<String, Node> runNodeListMap = new HashMap<>();
         runNodeList.forEach(nodeId -> runNodeListMap.put(nodeId, allNodeMap.get(nodeId)));
 
         // init parallel mapping (初始化并行节点)
-        Map<String, GraphParallel> parallelMap = new HashMap<>();
+        Map<String, GraphParallel> parallelMapping = new HashMap<>();
         Map<String, String> nodeParallelMap = new HashMap<>();
-        addParallelsRecursively(sourceEdgeMapping, endEdgeMapping, rootNodeId, parallelMap, nodeParallelMap, null);
+        addParallelsRecursively(sourceEdgeMapping, endEdgeMapping, rootNodeId, parallelMapping, nodeParallelMap, null);
+
+        // Check if it exceeds N layers of parallel
+        for (GraphParallel parallel : parallelMapping.values()) {
+            if (parallel.getParentParallelId() != null) {
+                checkExceedParallelLimit(parallelMapping, 3, parallel.getParentParallelId(), 1);
+            }
+        }
+
+        // init answer stream generate routes (初始化响应流生成节点)
+        AnswerStreamGeneratorRouter answerStreamGeneratorRouter = AnswerStreamGeneratorRouter.init(runNodeListMap, endEdgeMapping);
+
+        // init end stream param
+
+    }
+
+    /**
+     * 校验当前并行层数是否超过了N层
+     * @param parallelMapping 并行映射
+     * @param levelLimit 层数限制
+     * @param parentParallelId 父层Id
+     */
+    private void checkExceedParallelLimit(Map<String, GraphParallel> parallelMapping, int levelLimit, String parentParallelId, int currentLevel) {
+        GraphParallel parentParallel = parallelMapping.get(parentParallelId);
+        if (parentParallel == null) return;
+
+        currentLevel += 1;
+        if (currentLevel > levelLimit) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "并行运行的层数超过了" + levelLimit + "层");
+        }
+
+        if (parentParallel.getParentParallelId() != null) {
+            checkExceedParallelLimit(parallelMapping, levelLimit, parentParallel.getParentParallelId(), currentLevel);
+        }
     }
 
 
-
+    /**
+     * 校验运行路径中是否包含环
+     * @param route 运行路径
+     * @param sourceEdgeMapping 边映射
+     */
     public void checkCircle(List<String> route, Map<String, List<GraphEdge>> sourceEdgeMapping) {
         if (route == null || route.isEmpty()) {
             return;
