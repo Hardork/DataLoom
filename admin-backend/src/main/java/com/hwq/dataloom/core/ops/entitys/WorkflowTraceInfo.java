@@ -57,8 +57,8 @@ public class WorkflowTraceInfo extends BaseTraceInfo {
         metaData.put("fileList", fileList);
         metaData.put("query", query);
 
-        this.setMetadata(metaData);
+        this.setMetaData(metaData);
         this.setStartTime(workflowRun.getCreateTime());
-        this.setEndTime(workflowRun);
+        this.setEndTime(workflowRun.getFinishedTime());
     }
 }
