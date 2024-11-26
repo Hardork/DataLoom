@@ -166,6 +166,25 @@ public class Workflow implements Serializable {
     }
 
     /**
+     * 获取用户输入表单
+     * @return 用户输入表单
+     */
+    public List<Map<String, Object>> userInputForm() {
+        // 从图中获取起始节点，如果graph为空，返回空列表，这里需根据graph实际类型来判断是否为空，暂按此简单逻辑
+        if (graph == null) {
+            return new ArrayList<>();
+        }
+
+        // 查找类型为"start"的起始节点，使用Optional来处理可能不存在的情况
+        List<Map<String, Object>> variables = findStartNodeInputForm();
+        if (variables.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        return variables;
+    }
+
+    /**
      * 根据graph和features计算画布的唯一哈希值
      * @return 画布唯一哈希值
      */

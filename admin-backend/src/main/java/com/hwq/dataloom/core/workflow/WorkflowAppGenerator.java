@@ -18,6 +18,8 @@ public class WorkflowAppGenerator {
     public void generate(Workflow workflow, User user, Map<String, Object> args, boolean stream, int callDepth, String workflowThreadPoolId) throws Exception {
         // TODO: 处理文件相关的参数，暂时不做
 
+        // TODO: 获取工作流的配置
+
         // TODO: 初始化跟踪队列
         Long userId = user.getId();
         TraceQueueManager traceQueueManager = new TraceQueueManager(userId, null);

@@ -14,21 +14,33 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * @Description:
  * @DateTime: 2024/11/26 9:40
  **/
-
+@Data
 public class TraceQueueManager {
+    /**
+     * 用户ID
+     */
     private Long userId;
 
+    /**
+     * 对话ID
+     */
     private Long conversationId;
 
+    /**
+     * 跟踪任务存储队列
+     */
     private Queue<TraceTask> traceManagerQueue = new ConcurrentLinkedQueue<>();
+
     /**
      * 最大批量处理数量
      */
     private int batchSize = 100;
+
     /**
      * 批量任务处理间隔
      */
-    private long interval = 5000; // 模拟间隔时间（单位：毫秒），原Python代码中是5秒，这里转换为毫秒
+    private long interval = 5000;
+
     /**
      * 触发任务线程
      */
@@ -46,7 +58,7 @@ public class TraceQueueManager {
     }
 
     private void startTimer() {
-        if (timerThread == null ||!timerThread.isAlive()) {
+        if (timerThread == null || !timerThread.isAlive()) {
             timerThread = new Thread(() -> {
                 while (true) {
                     try {
@@ -83,37 +95,9 @@ public class TraceQueueManager {
         for (TraceTask task : tasks) {
             BaseTraceInfo traceInfo = task.execute();
             // 这里模拟处理发送到Celery相关的数据，实际需要对接对应Java的任务队列框架等
+            // TODO: 将当前的任务数据发送到消息队列
             System.out.println("模拟发送任务数据到Celery: " + traceInfo.getClass().getSimpleName() + ", " + traceInfo.getMessageData());
         }
     }
 }
 
-@Data
-class TraceTask {
-    private String traceType;
-    private String messageId;
-    private WorkflowRuns workflowRun;
-    private Long userId;
-    private Long conversationId;
-    private Object timer;
-    private Map<String, Object> kwargs = new HashMap<>();
-    private String fileBaseUrl = "http://127.0.0.1:5001";
-
-    private WorkflowTraceInfo workflowTrace(WorkflowRuns workflowRun, Long conversationId, Long userId) {
-        // 模拟构建WorkflowTraceInfo并返回，实际需要根据业务逻辑完善数据填充
-        return new WorkflowTraceInfo(workflowRun, conversationId, userId);
-    }
-
-    public BaseTraceInfo execute() {
-        return preprocess();
-    }
-
-    private BaseTraceInfo preprocess() {
-        switch (traceType) {
-            case TraceTaskConstants.WORKFLOW_TRACE:
-                return workflowTrace(workflowRun, conversationId, userId);
-            default:
-                return null;
-        }
-    }
-}

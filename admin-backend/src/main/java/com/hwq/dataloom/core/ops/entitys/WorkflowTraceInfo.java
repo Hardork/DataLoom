@@ -3,6 +3,7 @@ package com.hwq.dataloom.core.ops.entitys;
 import cn.hutool.json.JSONUtil;
 import com.hwq.dataloom.model.entity.WorkflowRuns;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.Map;
  * @Description: 工作流跟踪信息类
  * @DateTime: 2024/11/26 11:02
  **/
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class WorkflowTraceInfo extends BaseTraceInfo {
     private Object workflowData;
