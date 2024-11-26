@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hwq.dataloom.mapper.WorkflowRunsMapper">
+
+    <resultMap id="BaseResultMap" type="com.hwq.dataloom.model.entity.WorkflowRuns">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="userId" column="userId" jdbcType="BIGINT"/>
+            <result property="sequenceNumber" column="sequenceNumber" jdbcType="INTEGER"/>
+            <result property="workflowId" column="workflowId" jdbcType="BIGINT"/>
+            <result property="type" column="type" jdbcType="VARCHAR"/>
+            <result property="triggeredFrom" column="triggeredFrom" jdbcType="VARCHAR"/>
+            <result property="version" column="version" jdbcType="VARCHAR"/>
+            <result property="graph" column="graph" jdbcType="VARCHAR"/>
+            <result property="inputs" column="inputs" jdbcType="VARCHAR"/>
+            <result property="status" column="status" jdbcType="VARCHAR"/>
+            <result property="outputs" column="outputs" jdbcType="VARCHAR"/>
+            <result property="error" column="error" jdbcType="VARCHAR"/>
+            <result property="elapsedTime" column="elapsedTime" jdbcType="FLOAT"/>
+            <result property="totalTokens" column="totalTokens" jdbcType="INTEGER"/>
+            <result property="totalSteps" column="totalSteps" jdbcType="INTEGER"/>
+            <result property="createRole" column="createRole" jdbcType="VARCHAR"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+            <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,userId,sequenceNumber,
+        workflowId,type,triggeredFrom,
+        version,graph,inputs,
+        status,outputs,error,
+        elapsedTime,totalTokens,totalSteps,
+        createRole, finishedTime,createTime,updateTime,
+        isDelete
+    </sql>
+</mapper>
