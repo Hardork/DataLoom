@@ -1,6 +1,7 @@
 package com.hwq.dataloom.core.workflow;
 
 import com.hwq.dataloom.core.ops.TraceQueueManager;
+import com.hwq.dataloom.core.workflow.config.WorkflowAppConfigManager;
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.entity.Workflow;
 import org.springframework.stereotype.Component;
@@ -19,6 +20,7 @@ public class WorkflowAppGenerator {
         // TODO: 处理文件相关的参数，暂时不做
 
         // TODO: 获取工作流的配置
+        WorkflowAppConfigManager
 
         // TODO: 初始化跟踪队列
         Long userId = user.getId();

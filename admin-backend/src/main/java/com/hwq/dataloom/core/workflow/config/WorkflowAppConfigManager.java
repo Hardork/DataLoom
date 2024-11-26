@@ -1,5 +1,6 @@
 package com.hwq.dataloom.core.workflow.config;
 
+import com.hwq.dataloom.core.workflow.entitys.WorkflowAdditionalFeatures;
 import com.hwq.dataloom.core.workflow.entitys.WorkflowConfig;
 import com.hwq.dataloom.model.entity.Workflow;
 
@@ -9,13 +10,13 @@ import com.hwq.dataloom.model.entity.Workflow;
  * @DateTime: 2024/11/26 16:40
  **/
 public class WorkflowAppConfigManager {
-    public WorkflowConfig getWorkflowConfig(Workflow workflow) {
+    public static WorkflowConfig getWorkflowConfig(Workflow workflow) {
         String features = workflow.getFeatures();
         WorkflowConfig.builder()
                 .userId(workflow.getUserId())
-                .variables()
+                .variables(WorkflowVariablesConfigManager.convert(workflow))
                 .workflowId(workflow.getWorkflowId())
-                .workflowAdditionalFeatures()
+                .workflowAdditionalFeatures(WorkflowAdditionalFeatures)
                 .build();
     }
 }

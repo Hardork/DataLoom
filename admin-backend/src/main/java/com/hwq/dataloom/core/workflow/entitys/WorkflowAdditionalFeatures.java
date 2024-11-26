@@ -1,6 +1,12 @@
 package com.hwq.dataloom.core.workflow.entitys;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+
+import com.hwq.dataloom.core.workflow.config.features.FileUploadConfigManager;
+import com.hwq.dataloom.core.workflow.config.features.RetrievalResourceConfigManager;
+import com.hwq.dataloom.model.entity.Workflow;
 import lombok.Data;
 /**
  * @Author: HWQ
@@ -42,5 +48,29 @@ public class WorkflowAdditionalFeatures {
         this.suggestedQuestionsAfterAnswer = suggestedQuestionsAfterAnswer;
         this.showRetrieveSource = showRetrieveSource;
         this.moreLikeThis = moreLikeThis;
+    }
+
+    /**
+     * 获取工作流中的额外配置
+     * @param workflow 工作流
+     * @return 配置信息
+     */
+    public WorkflowAdditionalFeatures convertFeatures(Workflow workflow) {
+        Map<String, Object> config = workflow.featuresDict();
+        WorkflowAdditionalFeatures additionalFeatures = new WorkflowAdditionalFeatures();
+
+        additionalFeatures.setShowRetrieveSource(RetrievalResourceConfigManager.convert(config));
+
+        additionalFeatures.setFileUpload(FileUploadConfigManager.convert(config, false));
+
+        String[] openingStatementAndSuggestedQuestions = OpeningStatementConfigManager.convert(config);
+        additionalFeatures.setOpeningStatement(openingStatementAndSuggestedQuestions[0]);
+        additionalFeatures.setSuggestedQuestions(Arrays.asList(openingStatementAndSuggestedQuestions));
+
+        additionalFeatures.setSuggestedQuestionsAfterAnswer(SuggestedQuestionsAfterAnswerConfigManager.convert(config));
+
+        additionalFeatures.setMoreLikeThis(MoreLikeThisConfigManager.convert(config));
+
+        return additionalFeatures;
     }
 }

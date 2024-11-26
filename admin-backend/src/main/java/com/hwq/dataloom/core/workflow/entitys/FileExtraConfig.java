@@ -2,6 +2,7 @@ package com.hwq.dataloom.core.workflow.entitys;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import javax.validation.constraints.Min;
 
 import com.hwq.dataloom.core.workflow.enums.FileTransferMethod;
@@ -38,5 +39,11 @@ public class FileExtraConfig {
         this.allowedExtensions = allowedExtensions;
         this.allowedUploadMethods = allowedUploadMethods;
         this.numberLimits = numberLimits;
+    }
+
+    public static FileExtraConfig modelValidate(Map<String, Object> imageConfig) {
+        // TODO: 将JSON转换为FileExtraConfig对象并返回
+        imageConfig.get("nu");
+        return null;
     }
 }
