@@ -4,8 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import com.hwq.dataloom.core.workflow.config.features.FileUploadConfigManager;
-import com.hwq.dataloom.core.workflow.config.features.RetrievalResourceConfigManager;
+import com.hwq.dataloom.core.workflow.config.features.*;
 import com.hwq.dataloom.model.entity.Workflow;
 import lombok.Data;
 /**
@@ -55,17 +54,17 @@ public class WorkflowAdditionalFeatures {
      * @param workflow 工作流
      * @return 配置信息
      */
-    public WorkflowAdditionalFeatures convertFeatures(Workflow workflow) {
+    public static WorkflowAdditionalFeatures convertFeatures(Workflow workflow) {
         Map<String, Object> config = workflow.featuresDict();
         WorkflowAdditionalFeatures additionalFeatures = new WorkflowAdditionalFeatures();
-
+        // 解析是否显示检索来源
         additionalFeatures.setShowRetrieveSource(RetrievalResourceConfigManager.convert(config));
-
+        // 解析文件上传配置
         additionalFeatures.setFileUpload(FileUploadConfigManager.convert(config, false));
-
-        String[] openingStatementAndSuggestedQuestions = OpeningStatementConfigManager.convert(config);
-        additionalFeatures.setOpeningStatement(openingStatementAndSuggestedQuestions[0]);
-        additionalFeatures.setSuggestedQuestions(Arrays.asList(openingStatementAndSuggestedQuestions));
+        // 解析开场白以及建议配置
+        Object[] openingStatementAndSuggestedQuestions = OpeningStatementConfigManager.convert(config);
+        additionalFeatures.setOpeningStatement((String) openingStatementAndSuggestedQuestions[0]);
+        additionalFeatures.setSuggestedQuestions((List<String>) openingStatementAndSuggestedQuestions[1]);
 
         additionalFeatures.setSuggestedQuestionsAfterAnswer(SuggestedQuestionsAfterAnswerConfigManager.convert(config));
 

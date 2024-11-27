@@ -7,10 +7,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @Author: HWQ
+ * @Description: 将配置信息转换为对应的文件上传相关配置对象
+ * @DateTime: 2024/11/26 16:40
+ **/
 public class FileUploadConfigManager {
 
     /**
-     * 模拟Python中convert方法的功能，将配置信息转换为对应的文件上传相关配置对象（假设为FileExtraConfig类型）
+     * 将配置信息转换为对应的文件上传相关配置对象
      *
      * @param config 配置信息的映射结构，对应Python中的字典类型参数
      * @param isVision 布尔值，用于判断是否是视觉相关特性（对应Python中的is_vision参数）
@@ -26,7 +31,6 @@ public class FileUploadConfigManager {
                     transformMethods = new ArrayList<>();
                 }
             }
-
 
             Map<String, Object> imageConfig = MapUtil.<String, Object>builder()
                     .put("numberLimits", fileUploadDict.get("numberLimits"))

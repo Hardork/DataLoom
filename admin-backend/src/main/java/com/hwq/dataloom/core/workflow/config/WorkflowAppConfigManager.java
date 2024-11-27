@@ -10,13 +10,18 @@ import com.hwq.dataloom.model.entity.Workflow;
  * @DateTime: 2024/11/26 16:40
  **/
 public class WorkflowAppConfigManager {
+
+    /**
+     * 获取当前工作流的相关配置信息
+     * @param workflow 工作流
+     * @return 工作流配置
+     */
     public static WorkflowConfig getWorkflowConfig(Workflow workflow) {
-        String features = workflow.getFeatures();
-        WorkflowConfig.builder()
+        return WorkflowConfig.builder()
                 .userId(workflow.getUserId())
                 .variables(WorkflowVariablesConfigManager.convert(workflow))
                 .workflowId(workflow.getWorkflowId())
-                .workflowAdditionalFeatures(WorkflowAdditionalFeatures)
+                .workflowAdditionalFeatures(WorkflowAdditionalFeatures.convertFeatures(workflow))
                 .build();
     }
 }
