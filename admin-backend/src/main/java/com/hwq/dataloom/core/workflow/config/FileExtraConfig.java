@@ -1,10 +1,9 @@
-package com.hwq.dataloom.core.workflow.entitys;
+package com.hwq.dataloom.core.workflow.config;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.validation.constraints.Min;
 
 import com.hwq.dataloom.core.workflow.enums.FileTransferMethod;
 import com.hwq.dataloom.core.workflow.enums.FileType;

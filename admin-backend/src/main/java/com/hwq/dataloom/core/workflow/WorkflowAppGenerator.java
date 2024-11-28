@@ -2,7 +2,7 @@ package com.hwq.dataloom.core.workflow;
 
 import com.hwq.dataloom.core.ops.TraceQueueManager;
 import com.hwq.dataloom.core.workflow.config.WorkflowAppConfigManager;
-import com.hwq.dataloom.core.workflow.entitys.WorkflowConfig;
+import com.hwq.dataloom.core.workflow.config.WorkflowConfig;
 import com.hwq.dataloom.core.workflow.entitys.WorkflowGenerateEntity;
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.entity.Workflow;
@@ -33,7 +33,7 @@ public class WorkflowAppGenerator {
         Map<String, Object> inputs = (Map<String, Object>) args.get("input");
         // TODO: 创建线程池
         String workflowRunId = UUID.randomUUID().toString();
-        WorkflowGenerateEntity.builder()
+        WorkflowGenerateEntity workflowGenerateEntity = WorkflowGenerateEntity.builder()
                 .userId(userId)
                 .workflowRunId(workflowRunId)
                 .workflowConfig(workflowConfig)
@@ -41,6 +41,13 @@ public class WorkflowAppGenerator {
                 .stream(stream)
                 .callDepth(callDepth)
                 .files(new ArrayList<>()) // TODO: 等待后续处理文件完善，预计11/30完成
+                .taskId(UUID.randomUUID().toString())
+                .traceQueueManager(traceQueueManager)
                 .build();
+
+    }
+
+    public void runWorkflow(Workflow workflow, User user, WorkflowGenerateEntity workflowGenerateEntity, boolean stream) {
+
     }
 }

@@ -1,10 +1,7 @@
 package com.hwq.dataloom.core.workflow.config;
 
-import cn.hutool.core.collection.ListUtil;
-import com.hwq.dataloom.core.workflow.entitys.VariableEntity;
 import com.hwq.dataloom.model.entity.Workflow;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;

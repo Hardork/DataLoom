@@ -1,7 +1,7 @@
 package com.hwq.dataloom.core.workflow.config.features;
 
 import cn.hutool.core.map.MapUtil;
-import com.hwq.dataloom.core.workflow.entitys.FileExtraConfig;
+import com.hwq.dataloom.core.workflow.config.FileExtraConfig;
 
 import java.util.ArrayList;
 import java.util.List;

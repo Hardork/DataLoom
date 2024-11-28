@@ -1,7 +1,5 @@
 package com.hwq.dataloom.core.workflow.config;
 
-import com.hwq.dataloom.core.workflow.entitys.WorkflowAdditionalFeatures;
-import com.hwq.dataloom.core.workflow.entitys.WorkflowConfig;
 import com.hwq.dataloom.model.entity.Workflow;
 
 /**

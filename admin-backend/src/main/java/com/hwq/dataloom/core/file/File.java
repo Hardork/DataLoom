@@ -1,7 +1,7 @@
 package com.hwq.dataloom.core.file;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hwq.dataloom.core.workflow.entitys.FileExtraConfig;
+import com.hwq.dataloom.core.workflow.config.FileExtraConfig;
 import com.hwq.dataloom.core.workflow.enums.FileTransferMethod;
 import com.hwq.dataloom.core.workflow.enums.FileType;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package com.hwq.dataloom.core.workflow.entitys;
+package com.hwq.dataloom.core.workflow.config;
 
 /**
  * @Author: HWQ

@@ -2,6 +2,7 @@ package com.hwq.dataloom.core.workflow.entitys;
 
 import com.hwq.dataloom.core.file.File;
 import com.hwq.dataloom.core.ops.TraceQueueManager;
+import com.hwq.dataloom.core.workflow.config.WorkflowConfig;
 import lombok.Builder;
 import lombok.Data;
 
@@ -57,5 +58,8 @@ public class WorkflowGenerateEntity {
      */
     private WorkflowConfig workflowConfig;
 
+    /**
+     * 工作流运行ID
+     */
     private String workflowRunId;
 }
