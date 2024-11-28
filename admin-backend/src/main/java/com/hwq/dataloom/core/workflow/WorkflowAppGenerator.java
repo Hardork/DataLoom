@@ -39,15 +39,16 @@ public class WorkflowAppGenerator {
                 .workflowConfig(workflowConfig)
                 .inputs(inputs)
                 .stream(stream)
+                .traceQueueManager(traceQueueManager)
                 .callDepth(callDepth)
                 .files(new ArrayList<>()) // TODO: 等待后续处理文件完善，预计11/30完成
                 .taskId(UUID.randomUUID().toString())
                 .traceQueueManager(traceQueueManager)
                 .build();
-
+        runByGenerateEntity(workflow, user, workflowGenerateEntity, stream, workflowThreadPoolId);
     }
 
-    public void runWorkflow(Workflow workflow, User user, WorkflowGenerateEntity workflowGenerateEntity, boolean stream) {
+    public void runByGenerateEntity(Workflow workflow, User user, WorkflowGenerateEntity workflowGenerateEntity, boolean stream, String threadPoolId) throws Exception {
 
     }
 }
