@@ -33,14 +33,20 @@ public class WorkflowAppGenerator {
         Map<String, Object> inputs = (Map<String, Object>) args.get("input");
         // TODO: 创建线程池
         String workflowRunId = UUID.randomUUID().toString();
-        WorkflowGenerateEntity.builder()
+        WorkflowGenerateEntity workflowGenerateEntity = WorkflowGenerateEntity.builder()
                 .userId(userId)
                 .workflowRunId(workflowRunId)
                 .workflowConfig(workflowConfig)
                 .inputs(inputs)
                 .stream(stream)
+                .traceQueueManager(traceQueueManager)
                 .callDepth(callDepth)
                 .files(new ArrayList<>()) // TODO: 等待后续处理文件完善，预计11/30完成
                 .build();
+        runByGenerateEntity(workflow, user, workflowGenerateEntity, stream, workflowThreadPoolId);
+    }
+
+    public void runByGenerateEntity(Workflow workflow, User user, WorkflowGenerateEntity workflowGenerateEntity, boolean stream, String threadPoolId) throws Exception {
+
     }
 }
