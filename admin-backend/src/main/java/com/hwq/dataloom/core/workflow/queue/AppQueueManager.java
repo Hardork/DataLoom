@@ -4,7 +4,10 @@ import com.hwq.dataloom.core.workflow.queue.event.BaseQueueEvent;
 import com.hwq.dataloom.core.workflow.queue.event.QueueErrorEvent;
 import com.hwq.dataloom.core.workflow.queue.event.QueuePingEvent;
 import com.hwq.dataloom.core.workflow.queue.event.QueueStopEvent;
+import lombok.Getter;
+import org.springframework.data.redis.core.RedisTemplate;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -19,13 +22,16 @@ public abstract class AppQueueManager {
 
     private final long NAX_EXECUTION_TIMEOUT = 1200;
 
-    public AppQueueManager(String taskId, Long userId) {
+    private RedisTemplate<String, String> redisTemplate;
+
+    public AppQueueManager(String taskId, Long userId, RedisTemplate<String, String> redisTemplate) {
         if (userId == null) {
             throw new IllegalArgumentException("User is required");
         }
         this.taskId = taskId;
         this.userId = userId;
         this.q = new ArrayBlockingQueue<>(100 );
+        this.redisTemplate = redisTemplate;
     }
 
     public List<Object> listen() throws InterruptedException {
@@ -91,9 +97,8 @@ public abstract class AppQueueManager {
 
     private boolean isStopped() {
         String stoppedCacheKey = generateStoppedCacheKey(taskId);
-//        String result = RedisClient.get(stoppedCacheKey);
-//        return result!= null;
-        return false;
+        String result = redisTemplate.opsForValue().get(stoppedCacheKey);
+        return result != null;
     }
 
     private static String generateTaskBelongCacheKey(String taskId) {
@@ -122,19 +127,5 @@ public abstract class AppQueueManager {
     }
 }
 
-enum PublishFrom {
-    TASK_PIPELINE(1),
-    APPLICATION_MANAGER(2);
 
-    private final int value;
-
-    PublishFrom(int value) {
-        this.value = value;
-    }
-
-    public int getValue() {
-        return value;
-    }
-
-}
 
