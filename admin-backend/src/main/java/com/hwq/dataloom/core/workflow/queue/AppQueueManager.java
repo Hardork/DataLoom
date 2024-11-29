@@ -1,9 +1,13 @@
 package com.hwq.dataloom.core.workflow.queue;
 
+import com.hwq.dataloom.core.workflow.enums.PublishFrom;
 import com.hwq.dataloom.core.workflow.queue.event.BaseQueueEvent;
 import com.hwq.dataloom.core.workflow.queue.event.QueueErrorEvent;
 import com.hwq.dataloom.core.workflow.queue.event.QueuePingEvent;
 import com.hwq.dataloom.core.workflow.queue.event.QueueStopEvent;
+import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,20 +16,28 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 工作流监听队列基类
+ */
+@Data
 public abstract class AppQueueManager {
     private final String taskId;
     private final Long userId;
-    private final BlockingQueue<Object> q;
+    private final BlockingQueue<Object> queue;
 
     private final long NAX_EXECUTION_TIMEOUT = 1200;
 
-    public AppQueueManager(String taskId, Long userId) {
+    private final RedisTemplate<String, String> redisTemplate;
+
+    public AppQueueManager(String taskId, Long userId, RedisTemplate<String, String> redisTemplate) {
         if (userId == null) {
             throw new IllegalArgumentException("User is required");
         }
+        redisTemplate.opsForValue().set(generateTaskBelongCacheKey(taskId), "end-user-" + userId, 1800);
         this.taskId = taskId;
         this.userId = userId;
-        this.q = new ArrayBlockingQueue<>(100 );
+        this.queue = new ArrayBlockingQueue<>(100);
+        this.redisTemplate = redisTemplate;
     }
 
     public List<Object> listen() throws InterruptedException {
@@ -34,7 +46,7 @@ public abstract class AppQueueManager {
         List<Object> resultList = new ArrayList<>();
         while (true) {
             try {
-                Object message = q.poll(1, TimeUnit.SECONDS);
+                Object message = queue.poll(1, TimeUnit.SECONDS);
                 if (message == null) {
                     break;
                 }
@@ -60,46 +72,59 @@ public abstract class AppQueueManager {
 
     public void stopListen() {
         try {
-            q.put(null);
+            queue.put(null);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
     }
 
-    public void publishError(Exception e, PublishFrom pubFrom) {
+    public void publishError(Exception e, PublishFrom pubFrom) throws InterruptedException {
         publish(new QueueErrorEvent(e), pubFrom);
     }
 
-    public void publish(BaseQueueEvent event, PublishFrom pubFrom) {
+    public void publish(BaseQueueEvent event, PublishFrom pubFrom) throws InterruptedException {
         _publish(event, pubFrom);
     }
 
-    protected abstract void _publish(BaseQueueEvent event, PublishFrom pubFrom);
+    protected abstract void _publish(BaseQueueEvent event, PublishFrom pubFrom) throws InterruptedException;
 
-//    public static void setStopFlag(String taskId, InvokeFrom invokeFrom, String userId) {
-////        String result = RedisClient.get(generateTaskBelongCacheKey(taskId));
-////        if (result == null) {
-////            return;
-////        }
-//////        String userPrefix = (invokeFrom == InvokeFrom.EXPLORE || invokeFrom == InvokeFrom.DEBUGGER)? "account" : "endUser";
-////        if (!result.equals(userPrefix + "-" + userId)) {
-////            return;
-////        }
-//        String stoppedCacheKey = generateStoppedCacheKey(taskId);
-////        RedisClient.setex(stoppedCacheKey, 600, "1");
-//    }
-
-    private boolean isStopped() {
+    public void setStopFlag(String taskId, String userId) {
+        String result = redisTemplate.opsForValue().get(generateTaskBelongCacheKey(taskId));
+        if (result == null) {
+            return;
+        }
+        String userPrefix = "endUser";
+        if (!result.equals(userPrefix + "-" + userId)) {
+            return;
+        }
         String stoppedCacheKey = generateStoppedCacheKey(taskId);
-//        String result = RedisClient.get(stoppedCacheKey);
-//        return result!= null;
-        return false;
+        redisTemplate.opsForValue().set(stoppedCacheKey,  "1", 600, TimeUnit.SECONDS);
     }
 
+    /**
+     * 判断任务是否被停止了
+     * @return 结果
+     */
+    public boolean isStopped() {
+        String stoppedCacheKey = generateStoppedCacheKey(taskId);
+        String result = redisTemplate.opsForValue().get(stoppedCacheKey);
+        return StringUtils.isEmpty(result);
+    }
+
+    /**
+     * 生成存储任务归属的key标识
+     * @param taskId 任务ID
+     * @return key标识
+     */
     private static String generateTaskBelongCacheKey(String taskId) {
         return "generate_task_belong:" + taskId;
     }
 
+    /**
+     * 生成停止任务的key标识
+     * @param taskId 任务ID
+     * @return key标识
+     */
     private static String generateStoppedCacheKey(String taskId) {
         return "generate_task_stopped:" + taskId;
     }
@@ -122,19 +147,5 @@ public abstract class AppQueueManager {
     }
 }
 
-enum PublishFrom {
-    TASK_PIPELINE(1),
-    APPLICATION_MANAGER(2);
 
-    private final int value;
-
-    PublishFrom(int value) {
-        this.value = value;
-    }
-
-    public int getValue() {
-        return value;
-    }
-
-}
 
