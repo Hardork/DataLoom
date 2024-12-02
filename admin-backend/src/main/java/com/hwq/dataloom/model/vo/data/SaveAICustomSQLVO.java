@@ -32,9 +32,7 @@ public class SaveAICustomSQLVO {
     private String sql;
 
     /**
-     * 保存方式
+     * 数据条数 【数据分页时展示】
      */
-
-    private Integer saveType;
-
+    private Long total;
 }

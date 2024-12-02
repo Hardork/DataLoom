@@ -14,6 +14,7 @@ import com.hwq.dataloom.model.entity.*;
 import com.hwq.dataloom.model.enums.ChatHistoryRoleEnum;
 import com.hwq.dataloom.model.enums.ChatHistoryStatusEnum;
 import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
+import com.hwq.dataloom.model.vo.data.SaveAICustomSQLVO;
 import com.hwq.dataloom.service.*;
 import com.hwq.dataloom.utils.datasource.DatasourceEngine;
 import com.hwq.dataloom.websocket.AskSQLWebSocket;
@@ -27,6 +28,8 @@ import javax.annotation.Resource;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.hwq.dataloom.constant.PromptConstants.AI_GEN_CHART;
 import static com.hwq.dataloom.constant.PromptConstants.SQL_ANALYSIS_PROMPT;
@@ -78,7 +81,7 @@ public class AIServiceImpl implements AIService {
         Long datasourceId = chat.getDatasourceId();
         List<AskAIWithDataTablesAndFieldsRequest> dataTablesAndFieldsRequests = getAskAIWithDataTablesAndFieldsRequests(loginUser, datasourceId);
         // 4. 构造请求AI的输入
-        // TODO: 修改parameter（数据过多时使用分页查询，分页标识【true、false】，总条数）
+
         String input = buildAskAISQLInput(dataTablesAndFieldsRequests, question);
         log.info("智能问数 消息ID： {}  AI输入: {}", chatHistory.getId(), input);
         // 5. 利用webSocket发送消息通知开始
@@ -88,21 +91,36 @@ public class AIServiceImpl implements AIService {
         // 6. 询问AI，获取返回的SQL
         String prompt = String.format(SQL_ANALYSIS_PROMPT, 200);
         // TODO：发送提取关联表完毕（显示出关联的表（点击可跳转））
+        // TODO: 生成2条sql，一条获取数据总数，一条查询数据
         String sql = aiManager.doChatWithKimi32K(input, prompt);
         try {
             // 7. 执行SQL，并得到返回的结果
             QueryAICustomSQLVO queryAICustomSQLVO = getQueryAICustomSQLVO(loginUser, datasourceId, sql, chatId, chat);
 
+            List<Map<String, Object>> res = queryAICustomSQLVO.getRes();
+            String sql1 = queryAICustomSQLVO.getSql();
+            // 数据量过多，采取分页
+            if(res.size() > 20){
+                sql1 += " LIMIT 1,20";
+                res = res.stream()
+                        .limit(20)
+                        .collect(Collectors.toList());
+            }
+            SaveAICustomSQLVO saveAICustomSQLVO = SaveAICustomSQLVO.builder()
+                    .sql(sql1)
+                    .columns(queryAICustomSQLVO.getColumns())
+                    .res(res)
+                    .build();
             // 8. 将查询的结果存放在数据库中
-            saveChatHistory(ChatHistoryRoleEnum.MODEL, chatId, chat, JSONUtil.toJsonStr(queryAICustomSQLVO));
+            saveChatHistory(ChatHistoryRoleEnum.MODEL, chatId, chat, JSONUtil.toJsonStr(saveAICustomSQLVO));
             // 9. 利用webSocket发送消息通知
-            AskSQLWebSocketMsgVO res = AskSQLWebSocketMsgVO.builder()
-                    .res(queryAICustomSQLVO.getRes())
+            AskSQLWebSocketMsgVO data = AskSQLWebSocketMsgVO.builder()
+                    .res(res)
                     .columns(queryAICustomSQLVO.getColumns())
                     .type(MessageStatusEnum.RUNNING.getStatus())
                     .sql(sql)
                     .build();
-            askSQLWebSocket.sendOneMessage(loginUser.getId(), res);
+            askSQLWebSocket.sendOneMessage(loginUser.getId(), data);
         } catch (Exception e) {
             if (e instanceof SQLException) { // 记录异常
                 QueryAICustomSQLVO queryAICustomSQLVO = new QueryAICustomSQLVO();
