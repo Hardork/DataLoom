@@ -9,6 +9,7 @@ import com.hwq.dataloom.model.vo.dashboard.GetChartDataVO;
 import com.hwq.dataloom.model.vo.dashboard.SeriesData;
 import com.hwq.dataloom.model.vo.dashboard.XArrayData;
 import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
+import com.hwq.dataloom.model.vo.data.SaveTypeEnum;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
