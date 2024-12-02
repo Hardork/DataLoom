@@ -8,6 +8,7 @@ import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @Author: HWQ
@@ -62,4 +63,9 @@ public class WorkflowGenerateEntity {
      * 工作流运行ID
      */
     private String workflowRunId;
+
+    /**
+     * 是否指定节点运行
+     */
+    private SingleIterationRunEntity singleIterationRunEntity;
 }

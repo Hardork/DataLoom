@@ -1,4 +1,4 @@
-package com.hwq.dataloom.core.workflow.config;
+package com.hwq.dataloom.core.workflow.entitys.variable;
 
 /**
  * @Author: HWQ

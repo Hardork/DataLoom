@@ -52,6 +52,12 @@ public class Graph {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 初始化Graph对象
+     * @param graphConfig graph配置
+     * @param rootNodeId 起始节点
+     * @return Graph对象
+     */
     public static Graph init(String graphConfig, String rootNodeId) {
         // 1. parse str to bean
         Graph graph = JSONUtil.toBean(graphConfig, Graph.class);
