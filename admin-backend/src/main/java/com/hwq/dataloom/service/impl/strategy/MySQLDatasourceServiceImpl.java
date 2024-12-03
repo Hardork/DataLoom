@@ -12,6 +12,7 @@ import com.hwq.dataloom.model.entity.CoreDatasource;
 import com.hwq.dataloom.model.enums.DataSourceTypeEnum;
 import com.hwq.dataloom.model.enums.DirTypeEnum;
 import com.hwq.dataloom.model.json.datasource.StructDatabaseConfiguration;
+import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
 import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.service.DatasourceDirTreeService;
 import com.hwq.dataloom.service.basic.strategy.DatasourceExecuteStrategy;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -116,5 +118,15 @@ public class MySQLDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
             tableFieldList.add(field);
         }
         return tableFieldList;
+    }
+
+    @Override
+    public QueryAICustomSQLVO getDataFromDatasourceBySql(CoreDatasource datasource, String sql) throws SQLException {
+        // 从第三方数据中获取数据
+        String configuration = datasource.getConfiguration();
+        // 将JSON转换为对象
+        StructDatabaseConfiguration structDatabaseConfiguration = JSONUtil.toBean(configuration, StructDatabaseConfiguration.class);
+        // 获取对应数据源所有的表名
+        return MySQLUtil.execSelectSqlToQueryAICustomSQLVO(structDatabaseConfiguration, sql);
     }
 }

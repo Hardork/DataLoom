@@ -1,4 +1,5 @@
 package com.hwq.dataloom.service.impl;
+import java.sql.SQLException;
 import java.util.List;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -25,7 +26,7 @@ public class DatasourceMetaInfoServiceImpl extends ServiceImpl<DatasourceMetaInf
     implements DatasourceMetaInfoService{
 
     @Override
-    public PreviewData PreviewData(PreviewDataRequest previewDataRequest, DatasourceMetaInfo datasourceMetaInfo) {
+    public PreviewData PreviewData(PreviewDataRequest previewDataRequest, DatasourceMetaInfo datasourceMetaInfo) throws SQLException {
         // check
         String dataName = previewDataRequest.getDataName();
         StructDatabaseConfiguration structDatabaseConfiguration = new StructDatabaseConfiguration();

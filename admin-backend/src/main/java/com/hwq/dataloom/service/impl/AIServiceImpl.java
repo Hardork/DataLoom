@@ -14,6 +14,8 @@ import com.hwq.dataloom.model.enums.ChatHistoryRoleEnum;
 import com.hwq.dataloom.model.enums.ChatHistoryStatusEnum;
 import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
 import com.hwq.dataloom.service.*;
+import com.hwq.dataloom.service.basic.strategy.DatasourceExecuteStrategy;
+import com.hwq.dataloom.service.basic.strategy.DatasourceStrategyChoose;
 import com.hwq.dataloom.utils.datasource.DatasourceEngine;
 import com.hwq.dataloom.websocket.AskSQLWebSocket;
 import com.hwq.dataloom.websocket.constants.MessageStatusEnum;
@@ -68,6 +70,9 @@ public class AIServiceImpl implements AIService {
     @Resource
     private AskSQLWebSocket askSQLWebSocket;
 
+    @Resource
+    private DatasourceStrategyChoose datasourceStrategyChoose;
+
 
     @Override
     public void userChatForSQL(ChatForSQLRequest chatForSQLRequest, User loginUser) {
@@ -95,7 +100,7 @@ public class AIServiceImpl implements AIService {
         String sql = aiManager.doChatWithKimi32K(input, prompt);
         try {
             // 7. 执行SQL，并得到返回的结果
-            QueryAICustomSQLVO queryAICustomSQLVO = getQueryAICustomSQLVO(loginUser, datasourceId, sql, chatId, chat);
+            QueryAICustomSQLVO queryAICustomSQLVO = getQueryAICustomSQLVO(datasourceId, sql);
             // TODO: 判断当前的数据大小，如果太大只存SQL，不将结果存入数据库
             boolean isOverSize = false;
             List<Map<String, Object>> dataList = queryAICustomSQLVO.getRes();
@@ -159,15 +164,11 @@ public class AIServiceImpl implements AIService {
 
     /**
      * 根据sql获取对应的查询结果
-     * @param loginUser 用户
      * @param datasourceId 数据源id
      * @param sql 查询sql
-     * @param chatId 对话id
-     * @param chat 聊天记录
      * @return 查询结果
      */
-    @Nullable
-    private QueryAICustomSQLVO getQueryAICustomSQLVO(User loginUser, Long datasourceId, String sql, Long chatId, Chat chat) throws SQLException {
+    private QueryAICustomSQLVO getQueryAICustomSQLVO(Long datasourceId, String sql) throws SQLException {
         return buildUserChatForSqlVO(datasourceId, sql);
     }
 
@@ -217,7 +218,10 @@ public class AIServiceImpl implements AIService {
      * @return 智能问数返回类
      */
     public QueryAICustomSQLVO buildUserChatForSqlVO(Long datasourceId, String sql) throws SQLException {
-        return datasourceEngine.execSelectSqlToQueryAICustomSQLVO(datasourceId, sql);
+        // 判断数据源的归属，决定从哪获取数据
+        CoreDatasource coreDatasource = coreDatasourceService.getById(datasourceId);
+        DatasourceExecuteStrategy executeStrategy = datasourceStrategyChoose.choose(coreDatasource.getType());
+        return executeStrategy.getDataFromDatasourceBySql(coreDatasource, sql);
     }
 
     /**

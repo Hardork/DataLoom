@@ -104,7 +104,7 @@ public class MySQLUtil {
         return tables;
     }
 
-    public static PreviewData getPreviewData(StructDatabaseConfiguration structDatabaseConfiguration, String tableName) {
+    public static PreviewData getPreviewData(StructDatabaseConfiguration structDatabaseConfiguration, String tableName) throws SQLException {
         Connection conn = getConByConfig(structDatabaseConfiguration);
         List<SchemaStructure> schemaStructuresList = new ArrayList<>();
         List<Map<String, String>> data = new ArrayList<>();
@@ -147,88 +147,49 @@ public class MySQLUtil {
             previewData.setData(data);
             // 关闭结果集和连接
             columns.close();
-            conn.close();
         } catch (SQLException e) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        } finally {
+            conn.close();
         }
         return previewData;
     }
 
     /**
-     * 获取自定义SQL的结果
-     * @param structDatabaseConfiguration
+     * 第三方MySQL执行指定SQL，返回查询数据
+     * @param structDatabaseConfiguration 第三方数据库的配置信息
+     * @param sql 查询语句
+     * @return 查询结果类
+     * @throws SQLException 可能出现的SQL异常
      */
-    public static QueryAICustomSQLVO queryCustomSQL(StructDatabaseConfiguration structDatabaseConfiguration, String customSQL) {
-        Connection conn = getConByConfig(structDatabaseConfiguration, false);
+    public static QueryAICustomSQLVO execSelectSqlToQueryAICustomSQLVO(StructDatabaseConfiguration structDatabaseConfiguration, String sql) throws SQLException {
+        Connection connection = getConByConfig(structDatabaseConfiguration);
         QueryAICustomSQLVO queryAICustomSQLVO = new QueryAICustomSQLVO();
+        // 所有列
         List<String> columns = new ArrayList<>();
+        // 所有结果
         List<Map<String, Object>> res = new ArrayList<>();
-        try {
-            // 获取数据库连接
-            try (
-                    Statement stmt = conn.createStatement();
-                    ResultSet rs = stmt.executeQuery(customSQL)
-            ) {
-                // 处理查询结果
-                ResultSetMetaData rsmd = rs.getMetaData();
-                int columnCount = rsmd.getColumnCount();
-                for (int i = 1; i <= columnCount; i++) {
-                    columns.add(rsmd.getColumnName(i));
-                }
-                while (rs.next()) {
-                    Map<String, Object> resMap = new HashMap<>();
-                    for (int i = 1; i <= columnCount; i++) {
-                        resMap.put(rsmd.getColumnName(i), rs.getString(i));
-                    }
-                    res.add(resMap);
-                }
-                conn.close();
-            }
-        } catch (SQLException e) {
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        ResultSet rs = preparedStatement.executeQuery();
+        // Execute the query or update
+        // 处理查询结果
+        ResultSetMetaData rsmd = rs.getMetaData();
+        int columnCount = rsmd.getColumnCount();
+        for (int i = 1; i <= columnCount; i++) {
+            columns.add(rsmd.getColumnName(i));
         }
+        while (rs.next()) {
+            Map<String, Object> resMap = new HashMap<>();
+            for (int i = 1; i <= columnCount; i++) {
+                resMap.put(rsmd.getColumnName(i), rs.getString(i));
+            }
+            res.add(resMap);
+        }
+        queryAICustomSQLVO.setSql(sql);
         queryAICustomSQLVO.setColumns(columns);
         queryAICustomSQLVO.setRes(res);
+        connection.close();
         return queryAICustomSQLVO;
-    }
-
-    public static QueryAICustomSQLVO queryCustomSqlWithDefaultCon(String customSQL) {
-        StructDatabaseConfiguration structDatabaseConfiguration = new StructDatabaseConfiguration();
-        structDatabaseConfiguration.setName("null");
-        structDatabaseConfiguration.setDescription("");
-        structDatabaseConfiguration.setType("MySQL");
-        structDatabaseConfiguration.setHost("localhost");
-        structDatabaseConfiguration.setPort("3306");
-        structDatabaseConfiguration.setDataBaseName("bi");
-        structDatabaseConfiguration.setUserName("root");
-        structDatabaseConfiguration.setPassword("hwq2003121");
-        return queryCustomSQL(structDatabaseConfiguration, customSQL);
-    }
-
-    public static Connection getConByConfig(StructDatabaseConfiguration structDatabaseConfiguration, boolean encrypt) {
-        if (structDatabaseConfiguration == null) {
-            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "dataSourceConfig不存在");
-        }
-        String host = structDatabaseConfiguration.getHost();
-        String port = structDatabaseConfiguration.getPort();
-        String dataBaseName = structDatabaseConfiguration.getDataBaseName();
-        String userName = structDatabaseConfiguration.getUserName();
-        String password = structDatabaseConfiguration.getPassword();
-        // 构造URL
-        StringBuilder url = new StringBuilder();
-        url.append("jdbc:mysql://" )
-                .append(host)
-                .append(":")
-                .append(port)
-                .append("/")
-                .append(dataBaseName);
-        Connection conn = null;
-        try {
-            conn = DriverManager.getConnection(url.toString(), userName, password);
-        } catch (SQLException e) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "连接失败");
-        }
-        return conn;
     }
 
     public static Connection getConByConfig(StructDatabaseConfiguration structDatabaseConfiguration) {

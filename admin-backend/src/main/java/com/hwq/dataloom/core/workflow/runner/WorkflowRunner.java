@@ -71,12 +71,13 @@ public class WorkflowRunner {
         List<Edge> matchEdges = edges.stream()
                 .filter(
                         edge -> (edge.getSource() == null || nodeIds.contains(edge.getSource()))
-                                && (edge.getTarget() == null || nodeIds.contains(edge.getTarget()))
+                    && (edge.getTarget() == null || nodeIds.contains(edge.getTarget()))
                 ).collect(Collectors.toList());
         graphDict.put("edges", matchEdges);
         String matchGraphDict = JSONUtil.toJsonStr(graphDict);
         // 初始化graph
         Graph graph = Graph.init(matchGraphDict, nodeId);
+        ThrowUtils.throwIf(graph == null, ErrorCode.OPERATION_ERROR, "工作流初始化失败,请检查配置");
 
         return null;
     }

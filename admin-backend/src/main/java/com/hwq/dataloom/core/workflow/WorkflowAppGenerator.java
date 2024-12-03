@@ -5,7 +5,7 @@ import com.hwq.dataloom.core.workflow.config.WorkflowAppConfigManager;
 import com.hwq.dataloom.core.workflow.config.WorkflowConfig;
 import com.hwq.dataloom.core.workflow.entitys.WorkflowGenerateEntity;
 import com.hwq.dataloom.core.workflow.queue.WorkflowQueueManager;
-import com.hwq.dataloom.core.workflow.runner.WorkflowBaseRunner;
+import com.hwq.dataloom.core.workflow.runner.WorkflowRunner;
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.entity.Workflow;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -28,7 +28,7 @@ public class WorkflowAppGenerator {
     private RedisTemplate<String, String> redisTemplate;
 
     @Resource
-    private WorkflowBaseRunner workflowBaseRunner;
+    private WorkflowRunner workflowBaseRunner;
 
     public void generate(Workflow workflow, User user, Map<String, Object> args, boolean stream, int callDepth, String workflowThreadPoolId) throws Exception {
         // TODO: 处理文件相关的参数，暂时不做

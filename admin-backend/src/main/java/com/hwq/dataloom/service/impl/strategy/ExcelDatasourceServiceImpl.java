@@ -16,19 +16,23 @@ import com.hwq.dataloom.model.entity.CoreDatasource;
 import com.hwq.dataloom.model.enums.DataSourceTypeEnum;
 import com.hwq.dataloom.model.enums.DirTypeEnum;
 import com.hwq.dataloom.model.json.datasource.ExcelSheetData;
+import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
 import com.hwq.dataloom.service.CoreDatasetTableFieldService;
 import com.hwq.dataloom.service.CoreDatasetTableService;
 import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.service.DatasourceDirTreeService;
 import com.hwq.dataloom.service.basic.strategy.DatasourceExecuteStrategy;
+import com.hwq.dataloom.utils.datasource.DatasourceEngine;
 import com.hwq.dataloom.utils.datasource.ExcelUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -56,6 +60,8 @@ public class ExcelDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
 
     @Resource
     private ExcelUtils excelUtils;
+    @Autowired
+    private DatasourceEngine datasourceEngine;
 
     @Override
     public String mark() {
@@ -160,6 +166,11 @@ public class ExcelDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
                 .eq(CoreDatasetTableField::getDatasourceId, datasourceId)
                 .eq(CoreDatasetTableField::getDatasetTableId, coreDatasetTable.getId());
         return coreDatasetTableFieldService.list(lambdaQueryWrapper);
+    }
+
+    @Override
+    public QueryAICustomSQLVO getDataFromDatasourceBySql(CoreDatasource datasource, String sql) throws SQLException {
+        return datasourceEngine.execSelectSqlToQueryAICustomSQLVO(datasource.getId(), sql);
     }
 
     /**

@@ -17,6 +17,7 @@ import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.entity.CoreDatasource;
 import com.hwq.dataloom.model.enums.DataSourceTypeEnum;
 
+import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
 import com.hwq.dataloom.service.CoreDatasetTableFieldService;
 import com.hwq.dataloom.service.CoreDatasetTableService;
 import com.hwq.dataloom.service.CoreDatasourceService;
@@ -34,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -215,5 +217,10 @@ public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<Datas
         List<CoreDatasetTableField> coreDatasetTableFields = coreDatasetTableFieldService.list(coreDatasetTableFieldQueryWrapper);
         ThrowUtils.throwIf(ObjectUtils.isEmpty(coreDatasetTableFields),ErrorCode.NOT_FOUND_ERROR);
         return coreDatasetTableFields;
+    }
+
+    @Override
+    public QueryAICustomSQLVO getDataFromDatasourceBySql(CoreDatasource datasource, String sql) throws SQLException {
+        return datasourceEngine.execSelectSqlToQueryAICustomSQLVO(datasource.getId(), sql);
     }
 }

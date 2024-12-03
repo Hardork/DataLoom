@@ -55,11 +55,11 @@ public class DatasourceEngine {
     }
 
     /**
-     * 执行SQL语句并将列集合和记录犯规
+     * 执行SQL语句并将列集合和记录返回
      * @param datasourceId 数据源id
      * @param sql sql语句
      * @param parameters 参数
-     * @return
+     * @return 列集合和记录返回
      */
     public QueryAICustomSQLVO execSelectSqlToQueryAICustomSQLVO(Long datasourceId, String sql, Object... parameters) throws SQLException {
         int dsIndex = (int) (datasourceId % (dataSourceMap.size()));
