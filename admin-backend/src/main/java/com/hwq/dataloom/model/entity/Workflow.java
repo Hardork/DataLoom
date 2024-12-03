@@ -9,6 +9,7 @@ import java.util.*;
 
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
+import com.hwq.dataloom.model.json.workflow.Graph;
 import lombok.Data;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -124,6 +125,17 @@ public class Workflow implements Serializable {
             return JSONUtil.toBean(graph, new TypeReference<Map<String, Object>>() {}, false);
         }
         return new HashMap<>();
+    }
+
+    /**
+     * 反序列化获取Graph对象
+     * @return Graph对象
+     */
+    public Graph getGraphFromStr() {
+        if (StringUtils.isNotEmpty(graph)) {
+            return JSONUtil.toBean(graph, new TypeReference<Graph>() {}, false);
+        }
+        return null;
     }
 
     /**
