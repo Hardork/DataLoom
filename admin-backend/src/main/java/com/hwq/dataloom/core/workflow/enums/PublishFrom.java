@@ -3,10 +3,10 @@ package com.hwq.dataloom.core.workflow.enums;
 import lombok.Getter;
 
 /**
- * 消息推送来源枚举
+ * 发布来源枚举类
  */
 @Getter
-enum PublishFrom {
+public enum PublishFrom {
     TASK_PIPELINE(1),
     APPLICATION_MANAGER(2);
 

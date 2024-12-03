@@ -1,5 +1,6 @@
 package com.hwq.dataloom.core.workflow.config;
 
+import com.hwq.dataloom.core.workflow.entitys.variable.VariableEntity;
 import lombok.Builder;
 import lombok.Data;
 

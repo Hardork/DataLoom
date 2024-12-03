@@ -43,4 +43,14 @@ public class File {
         // TODO: 返回文件对应的url逻辑，这里简单返回空字符串示例，实际要完善
         return "";
     }
+
+    public String getMarkdown() {
+        String url = generateUrl();
+        FileType fileType = getType();
+        if (fileType == FileType.IMAGE) {
+            return String.format("![%s](%s)", getFileName() != null? getFileName() : "", url);
+        } else {
+            return String.format("[%s](%s)", getFileName()!= null? getFileName() : url, url);
+        }
+    }
 }
