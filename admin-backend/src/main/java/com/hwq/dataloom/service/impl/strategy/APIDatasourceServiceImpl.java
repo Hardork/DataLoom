@@ -2,12 +2,14 @@ package com.hwq.dataloom.service.impl.strategy;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.hwq.dataloom.constant.DatasourceConstant;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.framework.model.entity.User;
+import com.hwq.dataloom.model.dto.ai.AskAIWithDataTablesAndFieldsRequest;
 import com.hwq.dataloom.model.dto.newdatasource.ApiDefinition;
 import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
 import com.hwq.dataloom.model.dto.newdatasource.TableField;
@@ -17,6 +19,7 @@ import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.entity.CoreDatasource;
 import com.hwq.dataloom.model.enums.DataSourceTypeEnum;
 
+import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
 import com.hwq.dataloom.service.CoreDatasetTableFieldService;
 import com.hwq.dataloom.service.CoreDatasetTableService;
 import com.hwq.dataloom.service.CoreDatasourceService;
@@ -34,7 +37,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -215,5 +220,32 @@ public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<Datas
         List<CoreDatasetTableField> coreDatasetTableFields = coreDatasetTableFieldService.list(coreDatasetTableFieldQueryWrapper);
         ThrowUtils.throwIf(ObjectUtils.isEmpty(coreDatasetTableFields),ErrorCode.NOT_FOUND_ERROR);
         return coreDatasetTableFields;
+    }
+
+    @Override
+    public QueryAICustomSQLVO getDataFromDatasourceBySql(CoreDatasource datasource, String sql) throws SQLException {
+        return datasourceEngine.execSelectSqlToQueryAICustomSQLVO(datasource.getId(), sql);
+    }
+
+    @Override
+    public List<AskAIWithDataTablesAndFieldsRequest> getAskAIWithDataTablesAndFieldsRequests(CoreDatasource coreDatasource, User loginUser) {
+        // 获取对应数据源所有表信息
+        List<CoreDatasetTable> tables = coreDatasourceService.getTablesByDatasourceId(coreDatasource.getId(), loginUser);
+        ThrowUtils.throwIf(tables.isEmpty(), ErrorCode.PARAMS_ERROR, "数据源暂无数据");
+        List<AskAIWithDataTablesAndFieldsRequest> dataTablesAndFieldsRequests = new ArrayList<>();
+        tables.forEach(table -> {
+            // 查询所有字段
+            LambdaQueryWrapper<CoreDatasetTableField> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(CoreDatasetTableField::getDatasetTableId, table.getId());
+            List<CoreDatasetTableField> tableFields = coreDatasetTableFieldService.list(wrapper);
+            AskAIWithDataTablesAndFieldsRequest askAIWithDataTablesAndFieldsRequest = AskAIWithDataTablesAndFieldsRequest.builder()
+                    .tableId(table.getId())
+                    .tableComment(table.getName())
+                    .tableName(table.getTableName())
+                    .coreDatasetTableFieldList(tableFields)
+                    .build();
+            dataTablesAndFieldsRequests.add(askAIWithDataTablesAndFieldsRequest);
+        });
+        return dataTablesAndFieldsRequests;
     }
 }

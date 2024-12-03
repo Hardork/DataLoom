@@ -3,6 +3,7 @@ import cn.hutool.json.JSONUtil;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.framework.model.entity.User;
+import com.hwq.dataloom.model.dto.ai.AskAIWithDataTablesAndFieldsRequest;
 import com.hwq.dataloom.model.dto.datasource.SchemaStructure;
 import com.hwq.dataloom.model.dto.datasource_tree.AddDatasourceDirRequest;
 import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
@@ -12,6 +13,7 @@ import com.hwq.dataloom.model.entity.CoreDatasource;
 import com.hwq.dataloom.model.enums.DataSourceTypeEnum;
 import com.hwq.dataloom.model.enums.DirTypeEnum;
 import com.hwq.dataloom.model.json.StructDatabaseConfiguration;
+import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
 import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.service.DatasourceDirTreeService;
 import com.hwq.dataloom.service.basic.strategy.DatasourceExecuteStrategy;
@@ -20,7 +22,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -103,8 +107,7 @@ public class MySQLDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
 
     @Override
     public List<CoreDatasetTableField> getTableFields(CoreDatasource coreDatasource, String tableName) {
-        String configuration = coreDatasource.getConfiguration();
-        StructDatabaseConfiguration structDatabaseConfiguration = JSONUtil.toBean(configuration, StructDatabaseConfiguration.class);
+        StructDatabaseConfiguration structDatabaseConfiguration = getStructDatabaseConfiguration(coreDatasource);
         List<SchemaStructure> structure = MySQLUtil.structure(structDatabaseConfiguration, tableName);
         List<CoreDatasetTableField> tableFieldList = new ArrayList<>();
         for (SchemaStructure schemaStructure : structure) {
@@ -116,5 +119,25 @@ public class MySQLDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
             tableFieldList.add(field);
         }
         return tableFieldList;
+    }
+
+    @Override
+    public QueryAICustomSQLVO getDataFromDatasourceBySql(CoreDatasource datasource, String sql) throws SQLException {
+        StructDatabaseConfiguration structDatabaseConfiguration = getStructDatabaseConfiguration(datasource);
+        // 获取对应数据源所有的表名
+        return MySQLUtil.execSelectSqlToQueryAICustomSQLVO(structDatabaseConfiguration, sql);
+    }
+
+    @Override
+    public List<AskAIWithDataTablesAndFieldsRequest> getAskAIWithDataTablesAndFieldsRequests(CoreDatasource coreDatasource, User loginUser) throws SQLException {
+        StructDatabaseConfiguration structDatabaseConfiguration = getStructDatabaseConfiguration(coreDatasource);
+        return MySQLUtil.getAskAIWithDataTablesAndFieldsRequests(structDatabaseConfiguration);
+    }
+
+    public StructDatabaseConfiguration getStructDatabaseConfiguration(CoreDatasource datasource) {
+        // 从第三方数据中获取数据
+        String configuration = datasource.getConfiguration();
+        // 将JSON转换为对象
+        return JSONUtil.toBean(configuration, StructDatabaseConfiguration.class);
     }
 }

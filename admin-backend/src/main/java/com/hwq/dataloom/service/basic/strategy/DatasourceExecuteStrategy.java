@@ -1,10 +1,17 @@
 package com.hwq.dataloom.service.basic.strategy;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.hwq.dataloom.framework.errorcode.ErrorCode;
+import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.framework.model.entity.User;
+import com.hwq.dataloom.model.dto.ai.AskAIWithDataTablesAndFieldsRequest;
 import com.hwq.dataloom.model.entity.CoreDatasetTable;
 import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.entity.CoreDatasource;
+import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
 
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,7 +40,7 @@ public interface DatasourceExecuteStrategy<REQ> {
     /**
      * 校验数据
      * @param req 数据源
-     * @return
+     * @return 是否通过校验
      */
     Boolean validDatasource(REQ req);
 
@@ -41,15 +48,30 @@ public interface DatasourceExecuteStrategy<REQ> {
     /**
      * 获取数据源所有表信息
      * @param coreDatasource 数据源信息
-     * @return
+     * @return 表信息
      */
     List<CoreDatasetTable> getTables(CoreDatasource coreDatasource);
 
     /**
      * 获取数据源指定表的所有字段信息
-     * @param coreDatasource
-     * @param tableName
-     * @return
+     * @param coreDatasource 数据源
+     * @param tableName 表名
+     * @return 所有字段信息
      */
     List<CoreDatasetTableField> getTableFields(CoreDatasource coreDatasource, String tableName);
+
+    /**
+     * 根据sql从数据源中获取数据
+     * @param datasourceId 数据源ID
+     * @param sql 执行SQL
+     * @return 数据封装类
+     */
+    QueryAICustomSQLVO getDataFromDatasourceBySql(CoreDatasource datasourceId, String sql) throws SQLException;
+
+    /**
+     * 获取表和字段信息
+     * @param coreDatasource 数据源
+     * @return 表和字段信息
+     */
+    List<AskAIWithDataTablesAndFieldsRequest> getAskAIWithDataTablesAndFieldsRequests(CoreDatasource coreDatasource, User loginUser) throws SQLException;
 }

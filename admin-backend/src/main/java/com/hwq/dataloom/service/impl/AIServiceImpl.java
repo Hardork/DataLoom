@@ -14,6 +14,8 @@ import com.hwq.dataloom.model.enums.ChatHistoryRoleEnum;
 import com.hwq.dataloom.model.enums.ChatHistoryStatusEnum;
 import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
 import com.hwq.dataloom.service.*;
+import com.hwq.dataloom.service.basic.strategy.DatasourceExecuteStrategy;
+import com.hwq.dataloom.service.basic.strategy.DatasourceStrategyChoose;
 import com.hwq.dataloom.utils.datasource.DatasourceEngine;
 import com.hwq.dataloom.websocket.AskSQLWebSocket;
 import com.hwq.dataloom.websocket.constants.MessageStatusEnum;
@@ -68,6 +70,9 @@ public class AIServiceImpl implements AIService {
     @Resource
     private AskSQLWebSocket askSQLWebSocket;
 
+    @Resource
+    private DatasourceStrategyChoose datasourceStrategyChoose;
+
 
     @Override
     public void userChatForSQL(ChatForSQLRequest chatForSQLRequest, User loginUser) {
@@ -81,21 +86,28 @@ public class AIServiceImpl implements AIService {
         // 3. 获取数据源所有的元数据
         // TODO: 发送分析数据源完毕
         Long datasourceId = chat.getDatasourceId();
-        List<AskAIWithDataTablesAndFieldsRequest> dataTablesAndFieldsRequests = getAskAIWithDataTablesAndFieldsRequests(loginUser, datasourceId);
+        List<AskAIWithDataTablesAndFieldsRequest> dataTablesAndFieldsRequests;
+        try {
+            dataTablesAndFieldsRequests = getAskAIWithDataTablesAndFieldsRequests(loginUser, datasourceId);
+        } catch (SQLException e) {
+            log.error("获取数据源表和字段信息失败");
+            log.error(e.getMessage());
+            notifyMessageEnd(loginUser.getId(), MessageStatusEnum.ERROR);
+            return;
+        }
         // 4. 构造请求AI的输入
         String input = buildAskAISQLInput(dataTablesAndFieldsRequests, question);
-        log.info("智能问数 消息ID： {}  AI输入: {}", chatHistory.getId(), input);
+        log.info("智能问数 消息ID: {}  AI输入: {}", chatHistory.getId(), input);
         // 5. 利用webSocket发送消息通知开始
-        AskSQLWebSocketMsgVO askSQLWebSocketMsgVO = new AskSQLWebSocketMsgVO();
-        askSQLWebSocketMsgVO.setType(MessageStatusEnum.START.getStatus());
-        askSQLWebSocket.sendOneMessage(loginUser.getId(), askSQLWebSocketMsgVO);
+        notify(MessageStatusEnum.START, loginUser.getId());
         // 6. 询问AI，获取返回的SQL
         String prompt = String.format(SQL_ANALYSIS_PROMPT, 200);
         // TODO：发送提取关联表完毕（显示出关联的表（点击可跳转））
         String sql = aiManager.doChatWithKimi32K(input, prompt);
         try {
             // 7. 执行SQL，并得到返回的结果
-            QueryAICustomSQLVO queryAICustomSQLVO = getQueryAICustomSQLVO(loginUser, datasourceId, sql, chatId, chat);
+            QueryAICustomSQLVO queryAICustomSQLVO = getQueryAICustomSQLVO(datasourceId, sql);
+            log.info("消息ID:{}, 智能问数查询结果: {}", chatHistory.getId(), queryAICustomSQLVO);
             // TODO: 判断当前的数据大小，如果太大只存SQL，不将结果存入数据库
             boolean isOverSize = false;
             List<Map<String, Object>> dataList = queryAICustomSQLVO.getRes();
@@ -141,6 +153,15 @@ public class AIServiceImpl implements AIService {
     }
 
     /**
+     * 通知前端智能问数开始
+     */
+    private void notify(MessageStatusEnum start, Long loginUser) {
+        AskSQLWebSocketMsgVO askSQLWebSocketMsgVO = new AskSQLWebSocketMsgVO();
+        askSQLWebSocketMsgVO.setType(start.getStatus());
+        askSQLWebSocket.sendOneMessage(loginUser, askSQLWebSocketMsgVO);
+    }
+
+    /**
      * 保存聊天记录
      * @param model 对话人类型
      * @param chatId 对话id
@@ -159,15 +180,11 @@ public class AIServiceImpl implements AIService {
 
     /**
      * 根据sql获取对应的查询结果
-     * @param loginUser 用户
      * @param datasourceId 数据源id
      * @param sql 查询sql
-     * @param chatId 对话id
-     * @param chat 聊天记录
      * @return 查询结果
      */
-    @Nullable
-    private QueryAICustomSQLVO getQueryAICustomSQLVO(User loginUser, Long datasourceId, String sql, Long chatId, Chat chat) throws SQLException {
+    private QueryAICustomSQLVO getQueryAICustomSQLVO(Long datasourceId, String sql) throws SQLException {
         return buildUserChatForSqlVO(datasourceId, sql);
     }
 
@@ -177,25 +194,11 @@ public class AIServiceImpl implements AIService {
      * @param datasourceId 数据源id
      * @return 数据源元信息
      */
-    public List<AskAIWithDataTablesAndFieldsRequest> getAskAIWithDataTablesAndFieldsRequests(User loginUser, Long datasourceId) {
-        // 获取对应数据源所有表信息
-        List<CoreDatasetTable> tables = coreDatasourceService.getTablesByDatasourceId(datasourceId, loginUser);
-        ThrowUtils.throwIf(tables.isEmpty(), ErrorCode.PARAMS_ERROR, "数据源暂无数据");
-        List<AskAIWithDataTablesAndFieldsRequest> dataTablesAndFieldsRequests = new ArrayList<>();
-        tables.forEach(table -> {
-            // 查询所有字段
-            LambdaQueryWrapper<CoreDatasetTableField> wrapper = new LambdaQueryWrapper<>();
-            wrapper.eq(CoreDatasetTableField::getDatasetTableId, table.getId());
-            List<CoreDatasetTableField> tableFields = coreDatasetTableFieldService.list(wrapper);
-            AskAIWithDataTablesAndFieldsRequest askAIWithDataTablesAndFieldsRequest = AskAIWithDataTablesAndFieldsRequest.builder()
-                    .tableId(table.getId())
-                    .tableComment(table.getName())
-                    .tableName(table.getTableName())
-                    .coreDatasetTableFieldList(tableFields)
-                    .build();
-            dataTablesAndFieldsRequests.add(askAIWithDataTablesAndFieldsRequest);
-        });
-        return dataTablesAndFieldsRequests;
+    public List<AskAIWithDataTablesAndFieldsRequest> getAskAIWithDataTablesAndFieldsRequests(User loginUser, Long datasourceId) throws SQLException {
+        // 判断数据源的归属，决定从哪获取数据
+        CoreDatasource coreDatasource = coreDatasourceService.getById(datasourceId);
+        DatasourceExecuteStrategy executeStrategy = datasourceStrategyChoose.choose(coreDatasource.getType());
+        return executeStrategy.getAskAIWithDataTablesAndFieldsRequests(coreDatasource, loginUser);
     }
 
 
@@ -205,9 +208,7 @@ public class AIServiceImpl implements AIService {
      * @param messageStatusEnum 消息状态枚举
      */
     public void notifyMessageEnd(Long userId, MessageStatusEnum messageStatusEnum) {
-        AskSQLWebSocketMsgVO end = new AskSQLWebSocketMsgVO();
-        end.setType(messageStatusEnum.getStatus());
-        askSQLWebSocket.sendOneMessage(userId, end);
+        notify(messageStatusEnum, userId);
     }
 
     /**
@@ -217,7 +218,10 @@ public class AIServiceImpl implements AIService {
      * @return 智能问数返回类
      */
     public QueryAICustomSQLVO buildUserChatForSqlVO(Long datasourceId, String sql) throws SQLException {
-        return datasourceEngine.execSelectSqlToQueryAICustomSQLVO(datasourceId, sql);
+        // 判断数据源的归属，决定从哪获取数据
+        CoreDatasource coreDatasource = coreDatasourceService.getById(datasourceId);
+        DatasourceExecuteStrategy executeStrategy = datasourceStrategyChoose.choose(coreDatasource.getType());
+        return executeStrategy.getDataFromDatasourceBySql(coreDatasource, sql);
     }
 
     /**
@@ -225,7 +229,7 @@ public class AIServiceImpl implements AIService {
      * @param datasourceId 数据源id
      * @param loginUser 登录用户
      */
-    public String genChartByAi(Long datasourceId, User loginUser) {
+    public String genChartByAi(Long datasourceId, User loginUser) throws SQLException {
         List<AskAIWithDataTablesAndFieldsRequest> askAIWithDataTablesAndFieldsRequests = this.getAskAIWithDataTablesAndFieldsRequests(loginUser, datasourceId);
         String input = String.format(
                 "数据源元数据：%s\n",

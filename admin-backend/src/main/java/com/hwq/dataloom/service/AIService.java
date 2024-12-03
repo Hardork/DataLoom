@@ -5,6 +5,7 @@ import com.hwq.dataloom.model.dto.ai.AskAIWithDataTablesAndFieldsRequest;
 import com.hwq.dataloom.model.dto.ai.ChatForSQLRequest;
 import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
 
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -26,7 +27,7 @@ public interface AIService {
      * @param datasourceId 数据源id
      * @return 数据源所有表与字段信息
      */
-    List<AskAIWithDataTablesAndFieldsRequest> getAskAIWithDataTablesAndFieldsRequests(User loginUser, Long datasourceId);
+    List<AskAIWithDataTablesAndFieldsRequest> getAskAIWithDataTablesAndFieldsRequests(User loginUser, Long datasourceId) throws SQLException;
 
 
     /**
