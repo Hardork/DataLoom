@@ -108,7 +108,7 @@ public class AIServiceImpl implements AIService {
             return;
         }
         // 发送分析关联表完毕
-        notify(ChatHistoryStatusEnum.ANALYSIS_RELATE_TABLE_COMPLETE, loginUser.getId(), JSONUtil.toJsonStr(userChatForSQLRes));
+        notifyAndUpdateStatus(chatHistory, ChatHistoryStatusEnum.ANALYSIS_RELATE_TABLE_COMPLETE, loginUser.getId(), JSONUtil.toJsonStr(userChatForSQLRes));
         try {
             // 执行SQL，并得到返回的结果
             CustomPage<Map<String, Object>> dataPage = getQueryAICustomSQLVO(datasourceId, userChatForSQLRes);
@@ -135,10 +135,10 @@ public class AIServiceImpl implements AIService {
                         .build();
                 chatHistoryService.save(chatHistory);
             }
-            notifyMessageEnd(loginUser.getId(), ChatHistoryStatusEnum.ERROR, "查询数据源异常");
+            notifyAndUpdateStatus(chatHistory, ChatHistoryStatusEnum.ERROR, loginUser.getId(),"查询数据源异常");
             return;
         }
-        notifyMessageEnd(loginUser.getId(), ChatHistoryStatusEnum.END, "对话结束");
+        notifyAndUpdateStatus(chatHistory, ChatHistoryStatusEnum.END, loginUser.getId(), "对话结束");
     }
 
     /**
