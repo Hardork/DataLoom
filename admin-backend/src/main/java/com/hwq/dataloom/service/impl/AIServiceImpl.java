@@ -280,31 +280,31 @@ public class AIServiceImpl implements AIService {
 
     @Override
     public void queryUserChatForSQL(ChatForSQLPageRequest chatForSQLPageRequest, User loginUser) {
-        Long chatId = chatForSQLPageRequest.getChatId();
-        Chat chat = chatService.getById(chatId);
-        Long datasourceId = chat.getDatasourceId();
-        String sql = chatForSQLPageRequest.getSql();
-        int index = sql.indexOf("LIMIT");
-        if(index == -1) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR);
-        }
-        Integer page = chatForSQLPageRequest.getPage();
-        Integer size = chatForSQLPageRequest.getSize();
-        String pageStringFormat = " LIMIT %s,%s";
-        // 查询语句 + LIMIT分页
-        String newSql = sql.substring(0,index) + String.format(pageStringFormat, (page - 1) * size, size);
-        try {
-            QueryAICustomSQLVO queryAICustomSQLVO = datasourceEngine.execSelectSqlToQueryAICustomSQLVO(datasourceId, newSql);
-            AskSQLWebSocketMsgVO res = AskSQLWebSocketMsgVO.builder()
-                    .res(queryAICustomSQLVO.getRes())
-                    .columns(queryAICustomSQLVO.getColumns())
-                    .type(MessageStatusEnum.RUNNING.getStatus())
-                    .sql(sql)
-                    .build();
-            askSQLWebSocket.sendOneMessage(loginUser.getId(), res);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+//        Long chatId = chatForSQLPageRequest.getChatId();
+//        Chat chat = chatService.getById(chatId);
+//        Long datasourceId = chat.getDatasourceId();
+//        String sql = chatForSQLPageRequest.getSql();
+//        int index = sql.indexOf("LIMIT");
+//        if(index == -1) {
+//            throw new BusinessException(ErrorCode.OPERATION_ERROR);
+//        }
+//        Integer page = chatForSQLPageRequest.getPage();
+//        Integer size = chatForSQLPageRequest.getSize();
+//        String pageStringFormat = " LIMIT %s,%s";
+//        // 查询语句 + LIMIT分页
+//        String newSql = sql.substring(0,index) + String.format(pageStringFormat, (page - 1) * size, size);
+//        try {
+//            QueryAICustomSQLVO queryAICustomSQLVO = datasourceEngine.execSelectSqlToQueryAICustomSQLVO(datasourceId, newSql);
+//            AskSQLWebSocketMsgVO res = AskSQLWebSocketMsgVO.builder()
+//                    .res(queryAICustomSQLVO.getRes())
+//                    .columns(queryAICustomSQLVO.getColumns())
+//                    .type(MessageStatusEnum.RUNNING.getStatus())
+//                    .sql(sql)
+//                    .build();
+//            askSQLWebSocket.sendOneMessage(loginUser.getId(), res);
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e);
+//        }
     }
 
 
