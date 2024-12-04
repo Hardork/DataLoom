@@ -1,8 +1,8 @@
 package com.hwq.dataloom.controller;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.hwq.dataloom.annotation.AiService;
 import com.hwq.dataloom.annotation.CheckPoint;
@@ -13,7 +13,6 @@ import com.hwq.dataloom.framework.result.BaseResponse;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.result.ResultUtils;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
-import com.hwq.dataloom.manager.AiManager;
 import com.hwq.dataloom.manager.SparkAiManager;
 import com.hwq.dataloom.model.dto.ai.*;
 import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
@@ -22,6 +21,7 @@ import com.hwq.dataloom.model.enums.ChatHistoryRoleEnum;
 import com.hwq.dataloom.model.vo.GetUserChatHistoryVO;
 import com.hwq.dataloom.model.vo.ai.GetUserSQLChatRecordVO;
 import com.hwq.dataloom.service.*;
+import com.hwq.dataloom.utils.datasource.CustomPage;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -202,6 +202,26 @@ public class AiController {
         return ResultUtils.success(true);
     }
 
+    @Operation(summary = "智能问数分页查询")
+    @ReduceRewardPoint
+    @CheckPoint
+    @AiService
+    @PostMapping("/chat/sql/page")
+    public BaseResponse<Boolean> queryUserChatForSQL(@RequestBody ChatForSQLPageRequest chatForSQLPageRequest, HttpServletRequest request) {
+        // 数据校验
+        ThrowUtils.throwIf(chatForSQLPageRequest == null, ErrorCode.PARAMS_ERROR);
+        String sql = chatForSQLPageRequest.getSql();
+        Integer page = chatForSQLPageRequest.getPage();
+        Integer size = chatForSQLPageRequest.getSize();
+        ThrowUtils.throwIf(StringUtils.isEmpty(sql), ErrorCode.PARAMS_ERROR);
+        ThrowUtils.throwIf(page == null, ErrorCode.PARAMS_ERROR);
+        ThrowUtils.throwIf(size == null, ErrorCode.PARAMS_ERROR);
+        // 限流
+        User loginUser = userService.getLoginUser(request);
+        aiService.queryUserChatForSQL(chatForSQLPageRequest, loginUser);
+        return ResultUtils.success(true);
+    }
+
     @Operation(summary = "查询用户选择对话的信息")
     @PostMapping("/get/chat")
     public BaseResponse<GetUserChatHistoryVO> getChatById(@RequestBody GetChatRequest getChatRequest, HttpServletRequest request) {
@@ -301,6 +321,16 @@ public class AiController {
         return ResultUtils.success(res);
     }
 
+    @Operation(summary = "智能问数单条对话分页查询")
+    @GetMapping("/get/singleHistory/pageData/{chatHistoryId}/{pageNo}")
+    public BaseResponse<CustomPage<Map<String, Object>>> getSingleHistoryPageData(@PathVariable Long chatHistoryId, @PathVariable Integer pageNo, HttpServletRequest request) {
+        ThrowUtils.throwIf(chatHistoryId == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        if (pageNo == null) pageNo = 1;
+        CustomPage<Map<String, Object>> res = chatService.getSingleHistoryPageData(chatHistoryId, pageNo, loginUser);
+        return ResultUtils.success(res);
+    }
+
     @Operation(summary = "用户创建智能问数对话")
     @PostMapping("/add/askSql/history")
     public BaseResponse<Boolean> addUserAskSqlHistory(@RequestBody AddUserAskSqlHistoryRequest addUserAskSqlHistory, HttpServletRequest request) {
@@ -318,11 +348,16 @@ public class AiController {
     public BaseResponse<Boolean> deleteUserAskSqlHistory(@PathVariable("chatId") Long chatId, HttpServletRequest request) {
         // 数据校验
         QueryWrapper<Chat> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("chatId", chatId);
-        Chat deleteChat = chatService.getOne(queryWrapper);
-        if (deleteChat == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        queryWrapper.eq("id", chatId);
+        List<Chat> deleteChatList = chatService.list(queryWrapper);
+
+        if (deleteChatList.isEmpty()) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "删除数据不存在");
         }
+        if (deleteChatList.size() > 1) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "存在多个同一chatId的记录");
+        }
+        Chat deleteChat = deleteChatList.get(0);
         User loginUser = userService.getLoginUser(request);
         if (!Objects.equals(deleteChat.getUserId(), loginUser.getId())) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);

@@ -1,28 +1,26 @@
-package com.hwq.dataloom.model.enums;
+package com.hwq.dataloom.model.vo.data;
 
-import org.apache.commons.lang3.ObjectUtils;
+import com.hwq.dataloom.framework.model.enums.WebSocketMsgTypeEnum;
+import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * @Author:HWQ
- * @DateTime:2023/10/4 15:32
+ * @Author: HCJ
+ * @DateTime: 2024/11/29
  * @Description:
  **/
-public enum ChatHistoryStatusEnum {
-    START("start", 0),
-    ANALYSIS_COMPLETE("analysis_complete", 1),
-    ANALYSIS_RELATE_TABLE_COMPLETE("analysis_relate_table_complete", 2),
-    END("end", 3),
-    ERROR("error", 4);
+public enum SaveTypeEnum {
+    sql("sql", 0),
+    data("data", 1);
 
     private final String text;
 
     private final Integer value;
 
-    ChatHistoryStatusEnum(String text, Integer value) {
+    SaveTypeEnum(String text, Integer value) {
         this.text = text;
         this.value = value;
     }
@@ -42,11 +40,11 @@ public enum ChatHistoryStatusEnum {
      * @param value
      * @return
      */
-    public static ChatHistoryStatusEnum getEnumByValue(Integer value) {
-        if (ObjectUtils.isEmpty(value)) {
+    public static SaveTypeEnum getEnumByValue(Integer value) {
+        if (value == null) {
             return null;
         }
-        for (ChatHistoryStatusEnum anEnum : ChatHistoryStatusEnum.values()) {
+        for (SaveTypeEnum anEnum : SaveTypeEnum.values()) {
             if (anEnum.value.equals(value)) {
                 return anEnum;
             }
@@ -61,4 +59,5 @@ public enum ChatHistoryStatusEnum {
     public String getText() {
         return text;
     }
+
 }

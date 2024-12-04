@@ -12,6 +12,7 @@
             <result property="content" column="content" jdbcType="VARCHAR"/>
             <result property="execMessage" column="execMessage" jdbcType="VARCHAR"/>
             <result property="status" column="status" jdbcType="TINYINT"/>
+            <result property="isOverSize" column="isOverSize" jdbcType="BOOLEAN"/>
             <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
             <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
             <result property="isDelete" column="isDelete" jdbcType="TINYINT"/>
@@ -19,7 +20,7 @@
 
     <sql id="Base_Column_List">
         id,chatRole,chatId,
-        modelId,content,execMessage,
+        modelId,content,execMessage,isOverSize,
         status,createTime,updateTime,
         isDelete
     </sql>

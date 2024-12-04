@@ -1,12 +1,13 @@
 package com.hwq.dataloom.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.hwq.dataloom.model.json.StructDatabaseConfiguration;
+import com.hwq.dataloom.model.json.datasource.StructDatabaseConfiguration;
 import com.hwq.dataloom.model.dto.datasource.PreviewData;
 import com.hwq.dataloom.model.dto.datasource.PreviewDataRequest;
 import com.hwq.dataloom.model.entity.DatasourceMetaInfo;
 import com.hwq.dataloom.framework.model.entity.User;
 
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -23,7 +24,7 @@ public interface DatasourceMetaInfoService extends IService<DatasourceMetaInfo> 
      * @param datasourceMetaInfo
      * @return
      */
-    PreviewData PreviewData(PreviewDataRequest previewDataRequest, DatasourceMetaInfo datasourceMetaInfo);
+    PreviewData PreviewData(PreviewDataRequest previewDataRequest, DatasourceMetaInfo datasourceMetaInfo) throws SQLException;
 
     /**
      * 存储数据源元数据

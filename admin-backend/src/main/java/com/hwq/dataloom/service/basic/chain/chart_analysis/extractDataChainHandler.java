@@ -44,10 +44,10 @@ public class extractDataChainHandler implements AITaskAbstractChainHandler<Analy
         // 根据需求查询SQL
         String resSql = aiManager.doChatWithKimi32K(requestParam.getQuestion(), String.format(prompt(), 200));
         try {
-            // 执行sql，获取到对应的数据
-            QueryAICustomSQLVO queryAICustomSQLVO = datasourceEngine.execSelectSqlToQueryAICustomSQLVO(requestParam.getDatasourceId(), resSql);
-            List<String> columns = queryAICustomSQLVO.getColumns();
-            List<Map<String, Object>> res = queryAICustomSQLVO.getRes();
+//            // 执行sql，获取到对应的数据
+//            QueryAICustomSQLVO queryAICustomSQLVO = datasourceEngine.execSelectSqlToQueryAICustomSQLVO(requestParam.getDatasourceId(), resSql);
+//            List<String> columns = queryAICustomSQLVO.getColumns();
+//            List<Map<String, Object>> res = queryAICustomSQLVO.getRes();
 
         } catch (Exception e) {
         }

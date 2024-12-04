@@ -1,4 +1,4 @@
-package com.hwq.dataloom.model.json;
+package com.hwq.dataloom.model.json.datasource;
 import com.hwq.dataloom.model.dto.datasource.TableFieldInfo;
 import lombok.Data;
 import java.util.List;
