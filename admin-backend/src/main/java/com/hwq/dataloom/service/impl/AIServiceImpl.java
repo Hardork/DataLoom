@@ -118,7 +118,7 @@ public class AIServiceImpl implements AIService {
             // 发送消息通知结果
             AskSQLWebSocketMsgVO res = AskSQLWebSocketMsgVO.builder()
                     .data(dataPage)
-                    .type(MessageStatusEnum.END.getValue())
+                    .type(MessageStatusEnum.ALL_COMPLETE.getValue())
                     .build();
             askSQLWebSocket.sendOneMessage(loginUser.getId(), res);
         } catch (Exception e) { // 异常处理
