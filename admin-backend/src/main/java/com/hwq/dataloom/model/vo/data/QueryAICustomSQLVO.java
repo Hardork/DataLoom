@@ -30,4 +30,9 @@ public class QueryAICustomSQLVO {
      * 对应的查询SQL
      */
     private String sql;
+
+    /**
+     * 记录对应的行数
+     */
+    private int count;
 }

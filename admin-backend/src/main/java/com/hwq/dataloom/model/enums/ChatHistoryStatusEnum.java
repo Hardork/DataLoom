@@ -12,8 +12,11 @@ import java.util.stream.Collectors;
  * @Description:
  **/
 public enum ChatHistoryStatusEnum {
-    SUCCESS("成功", 0),
-    FAIL("失败", 1);
+    START("start", 0),
+    ANALYSIS_COMPLETE("analysis_complete", 1),
+    ANALYSIS_RELATE_TABLE_COMPLETE("analysis_relate_table_complete", 2),
+    END("end", 3),
+    ERROR("error", 4);
 
     private final String text;
 
