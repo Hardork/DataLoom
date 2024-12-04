@@ -22,4 +22,5 @@ public class AskSQLWebSocketMsgVO {
     private List<Map<String, Object>> res;
     private String sql;
     private String type;
+    private Long total;
 }

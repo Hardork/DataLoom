@@ -14,6 +14,7 @@ import com.hwq.dataloom.model.entity.*;
 import com.hwq.dataloom.model.enums.ChatHistoryRoleEnum;
 import com.hwq.dataloom.model.enums.ChatHistoryStatusEnum;
 import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
+import com.hwq.dataloom.model.vo.data.SaveAICustomSQLVO;
 import com.hwq.dataloom.service.*;
 import com.hwq.dataloom.service.basic.strategy.DatasourceExecuteStrategy;
 import com.hwq.dataloom.service.basic.strategy.DatasourceStrategyChoose;
@@ -102,35 +103,30 @@ public class AIServiceImpl implements AIService {
         // 5. 利用webSocket发送消息通知开始
         notify(MessageStatusEnum.START, loginUser.getId());
         // 6. 询问AI，获取返回的SQL
+        // TODO: 修改prompt，获取2条SQL，一条查询数据总数，一条查询数据（ps： 使用'\n'分割）
         String prompt = String.format(SQL_ANALYSIS_PROMPT, 200);
         // TODO：发送提取关联表完毕（显示出关联的表（点击可跳转））
         String sql = aiManager.doChatWithKimi32K(input, prompt);
         try {
+            // TODO: 根据查询总数判断是否需要进行分页查询
             // 7. 执行SQL，并得到返回的结果
             QueryAICustomSQLVO queryAICustomSQLVO = getQueryAICustomSQLVO(datasourceId, sql);
             log.info("消息ID:{}, 智能问数查询结果: {}", chatHistory.getId(), queryAICustomSQLVO);
-            // TODO: 判断当前的数据大小，如果太大只存SQL，不将结果存入数据库
-            boolean isOverSize = false;
-            List<Map<String, Object>> dataList = queryAICustomSQLVO.getRes();
-            if (dataList.size() < 15) {
-                // 8. 将查询的结果存放在数据库中
-                saveChatHistory(ChatHistoryRoleEnum.MODEL, chatId, chat, JSONUtil.toJsonStr(queryAICustomSQLVO));
-            } else {
-                isOverSize = true;
-                // TODO：只存储SQL，后续查询通过SQL进行查询
-                QueryAICustomSQLVO saveSqlAnswer = new QueryAICustomSQLVO();
-                saveSqlAnswer.setSql(sql);
-                saveSqlAnswer.setRes(new ArrayList<>());
-                saveSqlAnswer.setColumns(new ArrayList<>());
-                saveChatHistory(ChatHistoryRoleEnum.MODEL, chatId, chat, JSONUtil.toJsonStr(saveSqlAnswer));
-            }
-            // TODO: 如果 isOverSize == true 说明超过了限定的数据，我们需要进行分页返回
+
+            SaveAICustomSQLVO saveAICustomSQLVO = SaveAICustomSQLVO.builder()
+                    .columns(queryAICustomSQLVO.getColumns())
+                    .res(queryAICustomSQLVO.getRes())
+                    .sql(queryAICustomSQLVO.getSql())
+//                    .total(queryAICustomSQLVO.)
+                    .build();
+            saveChatHistory(ChatHistoryRoleEnum.MODEL, chatId, chat, JSONUtil.toJsonStr(saveAICustomSQLVO));
             // 9. 利用webSocket发送消息通知
             AskSQLWebSocketMsgVO res = AskSQLWebSocketMsgVO.builder()
                     .res(queryAICustomSQLVO.getRes())
                     .columns(queryAICustomSQLVO.getColumns())
                     .type(MessageStatusEnum.RUNNING.getStatus())
                     .sql(sql)
+//                    .total()
                     .build();
             askSQLWebSocket.sendOneMessage(loginUser.getId(), res);
         } catch (Exception e) {
@@ -164,9 +160,10 @@ public class AIServiceImpl implements AIService {
 
     /**
      * 保存聊天记录
-     * @param model 对话人类型
-     * @param chatId 对话id
-     * @param chat 模型
+     *
+     * @param model   对话人类型
+     * @param chatId  对话id
+     * @param chat    模型
      * @param content 查询结果
      */
     private ChatHistory saveChatHistory(ChatHistoryRoleEnum model, Long chatId, Chat chat, String content) {
@@ -181,8 +178,9 @@ public class AIServiceImpl implements AIService {
 
     /**
      * 根据sql获取对应的查询结果
+     *
      * @param datasourceId 数据源id
-     * @param sql 查询sql
+     * @param sql          查询sql
      * @return 查询结果
      */
     private QueryAICustomSQLVO getQueryAICustomSQLVO(Long datasourceId, String sql) throws SQLException {
@@ -191,7 +189,8 @@ public class AIServiceImpl implements AIService {
 
     /**
      * 查询对应数据源所有元数据（表信息、表字段）
-     * @param loginUser 用户
+     *
+     * @param loginUser    用户
      * @param datasourceId 数据源id
      * @return 数据源元信息
      */
@@ -205,7 +204,8 @@ public class AIServiceImpl implements AIService {
 
     /**
      * 通知用户结束OR异常
-     * @param userId 用户ID
+     *
+     * @param userId            用户ID
      * @param messageStatusEnum 消息状态枚举
      */
     public void notifyMessageEnd(Long userId, MessageStatusEnum messageStatusEnum) {
@@ -214,8 +214,9 @@ public class AIServiceImpl implements AIService {
 
     /**
      * 执行SQL并封装智能问数返回类
+     *
      * @param datasourceId 数据源id
-     * @param sql 执行sql
+     * @param sql          执行sql
      * @return 智能问数返回类
      */
     public QueryAICustomSQLVO buildUserChatForSqlVO(Long datasourceId, String sql) throws SQLException {
@@ -227,8 +228,9 @@ public class AIServiceImpl implements AIService {
 
     /**
      * 根据数据源一键生成AI图表
+     *
      * @param datasourceId 数据源id
-     * @param loginUser 登录用户
+     * @param loginUser    登录用户
      */
     public String genChartByAi(Long datasourceId, User loginUser) throws SQLException {
         List<AskAIWithDataTablesAndFieldsRequest> askAIWithDataTablesAndFieldsRequests = this.getAskAIWithDataTablesAndFieldsRequests(loginUser, datasourceId);
@@ -241,10 +243,10 @@ public class AIServiceImpl implements AIService {
 
     /**
      * 构造智能问数的问题
+     *
      * @param dataTablesAndFieldsRequests 数据源元数据
-     * @param question 问题
-     * @return
-     * 示例：
+     * @param question                    问题
+     * @return 示例：
      * 分析需求：%s,
      * [
      * {表名: %s, 表注释： %s, 字段列表:[{%s}、{%s}]}
@@ -252,6 +254,7 @@ public class AIServiceImpl implements AIService {
      * ]
      */
     public String buildAskAISQLInput(List<AskAIWithDataTablesAndFieldsRequest> dataTablesAndFieldsRequests, String question) {
+        // TODO: 将信息缓存
         StringBuilder res = new StringBuilder();
         // 1. 构造需求
         res.append(String.format(ANALYSIS_QUESTION, question));
@@ -282,14 +285,14 @@ public class AIServiceImpl implements AIService {
         Long datasourceId = chat.getDatasourceId();
         String sql = chatForSQLPageRequest.getSql();
         int index = sql.indexOf("LIMIT");
-        if(index == -1) {
+        if (index == -1) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR);
         }
         Integer page = chatForSQLPageRequest.getPage();
         Integer size = chatForSQLPageRequest.getSize();
         String pageStringFormat = " LIMIT %s,%s";
         // 查询语句 + LIMIT分页
-        String newSql = sql.substring(0,index) + String.format(pageStringFormat, (page - 1) * size, size);
+        String newSql = sql.substring(0, index) + String.format(pageStringFormat, (page - 1) * size, size);
         try {
             QueryAICustomSQLVO queryAICustomSQLVO = datasourceEngine.execSelectSqlToQueryAICustomSQLVO(datasourceId, newSql);
             AskSQLWebSocketMsgVO res = AskSQLWebSocketMsgVO.builder()
@@ -307,6 +310,7 @@ public class AIServiceImpl implements AIService {
 
     /**
      * 构造生成图表输入
+     *
      * @param dataTablesAndFieldsRequests 表和字段元信息
      * @return 图表输入
      */
