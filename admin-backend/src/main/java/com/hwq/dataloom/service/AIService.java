@@ -2,8 +2,8 @@ package com.hwq.dataloom.service;
 
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.dto.ai.AskAIWithDataTablesAndFieldsRequest;
+import com.hwq.dataloom.model.dto.ai.ChatForSQLPageRequest;
 import com.hwq.dataloom.model.dto.ai.ChatForSQLRequest;
-import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -38,4 +38,10 @@ public interface AIService {
      */
     String buildAskAISQLInput(List<AskAIWithDataTablesAndFieldsRequest> dataTablesAndFieldsRequests, String question);
 
+    /**
+     * 智能问数分页查询
+     * @param chatForSQLPageRequest
+     * @param loginUser
+     */
+    void queryUserChatForSQL(ChatForSQLPageRequest chatForSQLPageRequest, User loginUser);
 }

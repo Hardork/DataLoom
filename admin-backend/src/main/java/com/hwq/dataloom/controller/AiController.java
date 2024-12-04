@@ -3,7 +3,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.hwq.dataloom.annotation.AiService;
 import com.hwq.dataloom.annotation.CheckPoint;
@@ -14,7 +13,6 @@ import com.hwq.dataloom.framework.result.BaseResponse;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.result.ResultUtils;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
-import com.hwq.dataloom.manager.AiManager;
 import com.hwq.dataloom.manager.SparkAiManager;
 import com.hwq.dataloom.model.dto.ai.*;
 import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
@@ -201,6 +199,26 @@ public class AiController {
         User loginUser = userService.getLoginUser(request);
         ThrowUtils.throwIf(loginUser == null, ErrorCode.NOT_LOGIN_ERROR);
         aiService.userChatForSQL(chatForSQLRequest, loginUser);
+        return ResultUtils.success(true);
+    }
+
+    @Operation(summary = "智能问数分页查询")
+    @ReduceRewardPoint
+    @CheckPoint
+    @AiService
+    @PostMapping("/chat/sql/page")
+    public BaseResponse<Boolean> queryUserChatForSQL(@RequestBody ChatForSQLPageRequest chatForSQLPageRequest, HttpServletRequest request) {
+        // 数据校验
+        ThrowUtils.throwIf(chatForSQLPageRequest == null, ErrorCode.PARAMS_ERROR);
+        String sql = chatForSQLPageRequest.getSql();
+        Integer page = chatForSQLPageRequest.getPage();
+        Integer size = chatForSQLPageRequest.getSize();
+        ThrowUtils.throwIf(StringUtils.isEmpty(sql), ErrorCode.PARAMS_ERROR);
+        ThrowUtils.throwIf(page == null, ErrorCode.PARAMS_ERROR);
+        ThrowUtils.throwIf(size == null, ErrorCode.PARAMS_ERROR);
+        // 限流
+        User loginUser = userService.getLoginUser(request);
+        aiService.queryUserChatForSQL(chatForSQLPageRequest, loginUser);
         return ResultUtils.success(true);
     }
 

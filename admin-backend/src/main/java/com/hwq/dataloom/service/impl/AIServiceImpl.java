@@ -8,6 +8,7 @@ import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.manager.AiManager;
 import com.hwq.dataloom.model.dto.ai.AskAIWithDataTablesAndFieldsRequest;
+import com.hwq.dataloom.model.dto.ai.ChatForSQLPageRequest;
 import com.hwq.dataloom.model.dto.ai.ChatForSQLRequest;
 import com.hwq.dataloom.model.entity.*;
 import com.hwq.dataloom.model.enums.ChatHistoryRoleEnum;
@@ -275,6 +276,35 @@ public class AIServiceImpl implements AIService {
         });
         res.append(String.format(TABLES_AND_FIELDS_PART, tablesAndFields));
         return res.toString();
+    }
+
+    @Override
+    public void queryUserChatForSQL(ChatForSQLPageRequest chatForSQLPageRequest, User loginUser) {
+        Long chatId = chatForSQLPageRequest.getChatId();
+        Chat chat = chatService.getById(chatId);
+        Long datasourceId = chat.getDatasourceId();
+        String sql = chatForSQLPageRequest.getSql();
+        int index = sql.indexOf("LIMIT");
+        if(index == -1) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR);
+        }
+        Integer page = chatForSQLPageRequest.getPage();
+        Integer size = chatForSQLPageRequest.getSize();
+        String pageStringFormat = " LIMIT %s,%s";
+        // 查询语句 + LIMIT分页
+        String newSql = sql.substring(0,index) + String.format(pageStringFormat, (page - 1) * size, size);
+        try {
+            QueryAICustomSQLVO queryAICustomSQLVO = datasourceEngine.execSelectSqlToQueryAICustomSQLVO(datasourceId, newSql);
+            AskSQLWebSocketMsgVO res = AskSQLWebSocketMsgVO.builder()
+                    .res(queryAICustomSQLVO.getRes())
+                    .columns(queryAICustomSQLVO.getColumns())
+                    .type(MessageStatusEnum.RUNNING.getStatus())
+                    .sql(sql)
+                    .build();
+            askSQLWebSocket.sendOneMessage(loginUser.getId(), res);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
