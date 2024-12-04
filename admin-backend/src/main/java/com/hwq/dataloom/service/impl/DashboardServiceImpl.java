@@ -43,6 +43,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -353,7 +354,12 @@ public class DashboardServiceImpl extends ServiceImpl<DashboardMapper, Dashboard
 //                    log.error("异步任务执行失败");
 //                    return null;
 //                });
-        String dataOptionsJsonStr = aiService.genChartByAi(dashboard.getDatasourceId(), loginUser);
+        String dataOptionsJsonStr = null;
+        try {
+            dataOptionsJsonStr = aiService.genChartByAi(dashboard.getDatasourceId(), loginUser);
+        } catch (SQLException e) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "数据源异常，无法访问");
+        }
         // 3. 反序列JSON
         List<AiGenChartDataOptions> aiGenChartDataOptions = JSON.parseObject(dataOptionsJsonStr, new TypeReference<List<AiGenChartDataOptions>>() {
         });
