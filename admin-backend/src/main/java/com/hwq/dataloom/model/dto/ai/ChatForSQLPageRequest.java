@@ -10,14 +10,13 @@ import lombok.Data;
 @Data
 public class ChatForSQLPageRequest {
 
+
     /**
-     * 模型Id
+     * 当前对话Id
      */
-    private Long chatId;
+    private Long chatHistoryId;
 
-    private String sql;
-
-    private Integer page;
+    private Integer pageNo;
 
     private Integer size;
 

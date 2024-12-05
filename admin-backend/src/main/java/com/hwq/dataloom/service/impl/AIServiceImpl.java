@@ -1,7 +1,9 @@
 package com.hwq.dataloom.service.impl;
 
 import cn.hutool.json.JSONUtil;
+import com.alibaba.cloud.dubbo.util.JSONUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
@@ -280,32 +282,28 @@ public class AIServiceImpl implements AIService {
     }
 
     @Override
-    public void queryUserChatForSQL(ChatForSQLPageRequest chatForSQLPageRequest, User loginUser) {
-//        Long chatId = chatForSQLPageRequest.getChatId();
-//        Chat chat = chatService.getById(chatId);
-//        Long datasourceId = chat.getDatasourceId();
-//        String sql = chatForSQLPageRequest.getSql();
-//        int index = sql.indexOf("LIMIT");
-//        if(index == -1) {
-//            throw new BusinessException(ErrorCode.OPERATION_ERROR);
-//        }
-//        Integer page = chatForSQLPageRequest.getPage();
-//        Integer size = chatForSQLPageRequest.getSize();
-//        String pageStringFormat = " LIMIT %s,%s";
-//        // 查询语句 + LIMIT分页
-//        String newSql = sql.substring(0,index) + String.format(pageStringFormat, (page - 1) * size, size);
-//        try {
-//            QueryAICustomSQLVO queryAICustomSQLVO = datasourceEngine.execSelectSqlToQueryAICustomSQLVO(datasourceId, newSql);
-//            AskSQLWebSocketMsgVO res = AskSQLWebSocketMsgVO.builder()
-//                    .res(queryAICustomSQLVO.getRes())
-//                    .columns(queryAICustomSQLVO.getColumns())
-//                    .type(MessageStatusEnum.RUNNING.getStatus())
-//                    .sql(sql)
-//                    .build();
-//            askSQLWebSocket.sendOneMessage(loginUser.getId(), res);
-//        } catch (SQLException e) {
-//            throw new RuntimeException(e);
-//        }
+    public CustomPage<Map<String, Object>> queryUserChatForSQL(ChatForSQLPageRequest chatForSQLPageRequest, User loginUser) {
+        Long chatHistoryId = chatForSQLPageRequest.getChatHistoryId();
+        ChatHistory chatHistory = chatHistoryService.getById(chatHistoryId);
+        ThrowUtils.throwIf(chatHistory == null, ErrorCode.NOT_FOUND_ERROR);
+        ThrowUtils.throwIf(!chatHistory.getChatRole().equals(ChatHistoryRoleEnum.MODEL.getValue()), ErrorCode.PARAMS_ERROR);
+        ThrowUtils.throwIf(!chatHistory.getStatus().equals(ChatHistoryStatusEnum.END.getValue()), ErrorCode.OPERATION_ERROR, "数据状态异常");
+        // TODO: 后续建议将datasourceID直接冗余存储在chatHistory中
+        Long chatId = chatHistory.getChatId();
+        Chat chat = chatService.getById(chatId);
+        ThrowUtils.throwIf(chat == null, ErrorCode.NOT_FOUND_ERROR);
+        Long datasourceId = chat.getDatasourceId();
+        // 序列化
+        CustomPage<Map<String, Object>> dataPage = JSONUtil.toBean(chatHistory.getContent(), CustomPage.class);
+        Integer pageNo = chatForSQLPageRequest.getPageNo();
+        Integer size = chatForSQLPageRequest.getSize();
+        String sql = dataPage.getSql();
+        long total = dataPage.getTotal();
+        CoreDatasource coreDatasource = coreDatasourceService.getById(datasourceId);
+        DatasourceExecuteStrategy executeStrategy = datasourceStrategyChoose.choose(coreDatasource.getType());
+        // TODO: ChatHistory新增一个获取统计行数的SQL字段，以及一个SQL字段
+//        executeStrategy.queryPageDataBySql(coreDatasource, loginUser, sql, pageNo, size);
+        return null;
     }
 
 

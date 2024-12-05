@@ -4,9 +4,11 @@ import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.dto.ai.AskAIWithDataTablesAndFieldsRequest;
 import com.hwq.dataloom.model.dto.ai.ChatForSQLPageRequest;
 import com.hwq.dataloom.model.dto.ai.ChatForSQLRequest;
+import com.hwq.dataloom.utils.datasource.CustomPage;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author HWQ
@@ -43,5 +45,5 @@ public interface AIService {
      * @param chatForSQLPageRequest
      * @param loginUser
      */
-    void queryUserChatForSQL(ChatForSQLPageRequest chatForSQLPageRequest, User loginUser);
+    CustomPage<Map<String, Object>> queryUserChatForSQL(ChatForSQLPageRequest chatForSQLPageRequest, User loginUser);
 }
