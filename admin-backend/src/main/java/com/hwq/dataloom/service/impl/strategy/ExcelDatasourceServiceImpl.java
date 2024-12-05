@@ -16,13 +16,15 @@ import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.entity.CoreDatasource;
 import com.hwq.dataloom.model.enums.DataSourceTypeEnum;
 import com.hwq.dataloom.model.enums.DirTypeEnum;
-import com.hwq.dataloom.model.json.ExcelSheetData;
+import com.hwq.dataloom.model.json.ai.UserChatForSQLRes;
+import com.hwq.dataloom.model.json.datasource.ExcelSheetData;
 import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
 import com.hwq.dataloom.service.CoreDatasetTableFieldService;
 import com.hwq.dataloom.service.CoreDatasetTableService;
 import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.service.DatasourceDirTreeService;
 import com.hwq.dataloom.service.basic.strategy.DatasourceExecuteStrategy;
+import com.hwq.dataloom.utils.datasource.CustomPage;
 import com.hwq.dataloom.utils.datasource.DatasourceEngine;
 import com.hwq.dataloom.utils.datasource.ExcelUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -36,8 +38,8 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -172,8 +174,8 @@ public class ExcelDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
     }
 
     @Override
-    public QueryAICustomSQLVO getDataFromDatasourceBySql(CoreDatasource datasource, String sql) throws SQLException {
-        return datasourceEngine.execSelectSqlToQueryAICustomSQLVO(datasource.getId(), sql);
+    public CustomPage<Map<String, Object>> getDataFromDatasourceBySql(CoreDatasource datasource, UserChatForSQLRes userChatForSQLRes) throws SQLException {
+        return datasourceEngine.execSelectSqlToQueryAICustomSQLVO(datasource.getId(), userChatForSQLRes);
     }
 
     @Override

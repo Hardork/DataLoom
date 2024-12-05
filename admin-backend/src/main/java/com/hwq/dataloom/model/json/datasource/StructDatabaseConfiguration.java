@@ -1,4 +1,4 @@
-package com.hwq.dataloom.model.json;
+package com.hwq.dataloom.model.json.datasource;
 
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;

@@ -19,6 +19,7 @@ import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.entity.CoreDatasource;
 import com.hwq.dataloom.model.enums.DataSourceTypeEnum;
 
+import com.hwq.dataloom.model.json.ai.UserChatForSQLRes;
 import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
 import com.hwq.dataloom.service.CoreDatasetTableFieldService;
 import com.hwq.dataloom.service.CoreDatasetTableService;
@@ -26,6 +27,7 @@ import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.service.CoreDatasourceTaskService;
 import com.hwq.dataloom.service.basic.strategy.DatasourceExecuteStrategy;
 import com.hwq.dataloom.utils.ApiUtils;
+import com.hwq.dataloom.utils.datasource.CustomPage;
 import com.hwq.dataloom.utils.datasource.DatasourceEngine;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -41,6 +43,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author HWQ
@@ -223,8 +226,8 @@ public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<Datas
     }
 
     @Override
-    public QueryAICustomSQLVO getDataFromDatasourceBySql(CoreDatasource datasource, String sql) throws SQLException {
-        return datasourceEngine.execSelectSqlToQueryAICustomSQLVO(datasource.getId(), sql);
+    public CustomPage<Map<String, Object>> getDataFromDatasourceBySql(CoreDatasource datasource, UserChatForSQLRes userChatForSQLRes) throws SQLException {
+        return datasourceEngine.execSelectSqlToQueryAICustomSQLVO(datasource.getId(), userChatForSQLRes);
     }
 
     @Override

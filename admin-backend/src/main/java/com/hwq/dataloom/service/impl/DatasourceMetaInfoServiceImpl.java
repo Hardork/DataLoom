@@ -6,13 +6,13 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.mapper.DatasourceMetaInfoMapper;
-import com.hwq.dataloom.model.json.StructDatabaseConfiguration;
+import com.hwq.dataloom.model.json.datasource.StructDatabaseConfiguration;
 import com.hwq.dataloom.model.dto.datasource.PreviewData;
 import com.hwq.dataloom.model.dto.datasource.PreviewDataRequest;
 import com.hwq.dataloom.model.entity.DatasourceMetaInfo;
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.service.DatasourceMetaInfoService;
-import com.hwq.dataloom.utils.datasource.MySQLUtil;
+import com.hwq.dataloom.utils.datasource.RemoteMySQLEngine;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +32,7 @@ public class DatasourceMetaInfoServiceImpl extends ServiceImpl<DatasourceMetaInf
         StructDatabaseConfiguration structDatabaseConfiguration = new StructDatabaseConfiguration();
         BeanUtils.copyProperties(datasourceMetaInfo, structDatabaseConfiguration);
         structDatabaseConfiguration.setType("");
-        return MySQLUtil.getPreviewData(structDatabaseConfiguration, dataName);
+        return RemoteMySQLEngine.getPreviewData(structDatabaseConfiguration, dataName);
     }
 
     @Override
@@ -52,7 +52,7 @@ public class DatasourceMetaInfoServiceImpl extends ServiceImpl<DatasourceMetaInf
     public List<String> getSchemas(DatasourceMetaInfo datasourceMetaInfo) {
         StructDatabaseConfiguration structDatabaseConfiguration = new StructDatabaseConfiguration();
         BeanUtils.copyProperties(datasourceMetaInfo, structDatabaseConfiguration);
-        return MySQLUtil.getSchemas(structDatabaseConfiguration);
+        return RemoteMySQLEngine.getSchemas(structDatabaseConfiguration);
     }
 }
 

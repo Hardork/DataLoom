@@ -5,14 +5,14 @@ import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.model.dto.newdatasource.TableField;
 import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.enums.TableFieldTypeEnum;
+import com.hwq.dataloom.model.json.ai.UserChatForSQLRes;
 import com.hwq.dataloom.model.vo.dashboard.GetChartDataVO;
 import com.hwq.dataloom.model.vo.dashboard.SeriesData;
 import com.hwq.dataloom.model.vo.dashboard.XArrayData;
-import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
-import com.hwq.dataloom.model.vo.data.SaveTypeEnum;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.sql.DataSource;
@@ -30,6 +30,9 @@ public class DatasourceEngine {
 
     @Resource
     private Map<Integer, DataSource> dataSourceMap;
+
+    @Value("${datasource.page.size:10}")
+    private int pageSize; // 查询一页的记录数量
 
     /**
      * 执行查询数据源SQL
@@ -57,44 +60,96 @@ public class DatasourceEngine {
     /**
      * 执行SQL语句并将列集合和记录犯规
      * @param datasourceId 数据源id
-     * @param sql sql语句
+     * @param userChatForSQLRes AI返回的结果包含(sql、countSql)
      * @param parameters 参数
-     * @return
+     * @return 查询结果
      */
-    public QueryAICustomSQLVO execSelectSqlToQueryAICustomSQLVO(Long datasourceId, String sql, Object... parameters) throws SQLException {
+    public CustomPage<Map<String, Object>> execSelectSqlToQueryAICustomSQLVO(Long datasourceId, UserChatForSQLRes userChatForSQLRes, Object... parameters) throws SQLException {
+        String sql = userChatForSQLRes.getSql();
+        String countSql = userChatForSQLRes.getCountSql();
         int dsIndex = (int) (datasourceId % (dataSourceMap.size()));
         // 获取对应连接池
         DataSource dataSource = dataSourceMap.get(dsIndex);
-        QueryAICustomSQLVO queryAICustomSQLVO = new QueryAICustomSQLVO();
-        // 所有列
-        List<String> columns = new ArrayList<>();
-        // 所有结果
-        List<Map<String, Object>> res = new ArrayList<>();
-        Connection connection = dataSource.getConnection();
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        // Set parameters to prevent SQL injection
-        for (int i = 0; i < parameters.length; i++) {
-            preparedStatement.setObject(i + 1, parameters[i]);
+        try (Connection connection = dataSource.getConnection()) {
+            // 分页查询数据
+            return pageQuery(sql, countSql, 1, connection);
+        } catch (SQLException e) {
+            log.error(e.getMessage(), e);
+            throw e;
         }
+    }
+
+    /**
+     * 分页查询数据
+     * @param originalSql 原始查询数据
+     * @param countSql 统计记录数sql
+     * @param pageNo 页下标
+     * @param connection 数据库连接
+     * @return 分页数据
+     * @throws SQLException SQL异常
+     */
+    public CustomPage<Map<String, Object>> pageQuery(String originalSql, String countSql, int pageNo, Connection connection) throws SQLException {
+        int count = getSelectCount(countSql, connection);
+        String pageQuerySql = getPageQuerySql(originalSql, pageNo);
+        PreparedStatement preparedStatement = connection.prepareStatement(pageQuerySql);
+        List<Map<String, Object>> res = new ArrayList<>();
+        List<String> columns = new ArrayList<>();
         ResultSet rs = preparedStatement.executeQuery();
         // Execute the query or update
         // 处理查询结果
-        ResultSetMetaData rsmd = rs.getMetaData();
-        int columnCount = rsmd.getColumnCount();
+        ResultSetMetaData metaData = rs.getMetaData();
+        int columnCount = metaData.getColumnCount();
         for (int i = 1; i <= columnCount; i++) {
-            columns.add(rsmd.getColumnName(i));
+            columns.add(metaData.getColumnName(i));
         }
         while (rs.next()) {
             Map<String, Object> resMap = new HashMap<>();
             for (int i = 1; i <= columnCount; i++) {
-                resMap.put(rsmd.getColumnName(i), rs.getString(i));
+                resMap.put(metaData.getColumnName(i), rs.getString(i));
             }
             res.add(resMap);
         }
-        queryAICustomSQLVO.setSql(sql);
-        queryAICustomSQLVO.setColumns(columns);
-        queryAICustomSQLVO.setRes(res);
-        return queryAICustomSQLVO;
+        return CustomPage.<Map<String, Object>>builder()
+                .total(count)
+                .current(pageNo)
+                .size(pageSize)
+                .records(res)
+                .sql(originalSql)
+                .columns(columns)
+                .build();
+    }
+
+    /**
+     * 获取查询记录数
+     * @param countSql 统计查询记录数的sql
+     * @param connection 数据库连接
+     * @return 查询记录数
+     * @throws SQLException SQL异常
+     */
+    public int getSelectCount(String countSql, Connection connection) throws SQLException {
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(countSql);
+            ResultSet rs = preparedStatement.executeQuery();
+            if (rs.next()) { // 先调用next()移动游标到第一行
+                return rs.getInt("COUNT(*)");
+            }
+            return 0;
+        } catch (SQLException e) {
+            log.error("获取查询记录数失败, 执行sql:{}, 失败原因:{}", countSql, e.getMessage());
+            throw e;
+        }
+    }
+
+
+    /**
+     * 获取分页查询 Sql
+     * @param originalSql 查询sql
+     * @param pageNo 查询的页下标
+     * @return 获取分页查询的sql
+     */
+    public String getPageQuerySql(String originalSql, int pageNo) {
+        pageNo = (pageNo - 1) * pageSize;
+        return "select tmp.* from (" + originalSql + ") as tmp LIMIT " + pageNo + "," + pageSize;
     }
 
 
@@ -203,7 +258,7 @@ public class DatasourceEngine {
 
     /**
      * 执行增量更新insert语句
-     * @param datasourceId
+     * @param datasourceId 数据源ID
      * @param name
      * @param dataList
      * @param page

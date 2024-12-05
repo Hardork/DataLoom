@@ -12,20 +12,21 @@ import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.entity.CoreDatasource;
 import com.hwq.dataloom.model.enums.DataSourceTypeEnum;
 import com.hwq.dataloom.model.enums.DirTypeEnum;
-import com.hwq.dataloom.model.json.StructDatabaseConfiguration;
-import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
+import com.hwq.dataloom.model.json.ai.UserChatForSQLRes;
+import com.hwq.dataloom.model.json.datasource.StructDatabaseConfiguration;
 import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.service.DatasourceDirTreeService;
 import com.hwq.dataloom.service.basic.strategy.DatasourceExecuteStrategy;
-import com.hwq.dataloom.utils.datasource.MySQLUtil;
+import com.hwq.dataloom.utils.datasource.CustomPage;
+import com.hwq.dataloom.utils.datasource.RemoteMySQLEngine;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author HWQ
@@ -41,6 +42,9 @@ public class MySQLDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
 
     @Resource
     private DatasourceDirTreeService datasourceDirTreeService;
+
+    @Resource
+    private RemoteMySQLEngine remoteMySQLEngine;
 
     @Override
     public String mark() {
@@ -59,7 +63,7 @@ public class MySQLDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
         // 将JSON转换为对象
         StructDatabaseConfiguration structDatabaseConfiguration = JSONUtil.toBean(configuration, StructDatabaseConfiguration.class);
         // 重新进行一次数据源校验
-        MySQLUtil.checkConnectValid(structDatabaseConfiguration);
+        RemoteMySQLEngine.checkConnectValid(structDatabaseConfiguration);
         // 根据pid存储到数据源文件树中
         AddDatasourceDirRequest addDatasourceDirRequest = AddDatasourceDirRequest
                 .builder()
@@ -84,7 +88,7 @@ public class MySQLDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
         String configuration = datasourceDTO.getConfiguration();
         // 将JSON转换为对象
         StructDatabaseConfiguration structDatabaseConfiguration = JSONUtil.toBean(configuration, StructDatabaseConfiguration.class);
-        return MySQLUtil.checkConnectValid(structDatabaseConfiguration);
+        return RemoteMySQLEngine.checkConnectValid(structDatabaseConfiguration);
     }
 
     @Override
@@ -93,7 +97,7 @@ public class MySQLDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
         // 将JSON转换为对象
         StructDatabaseConfiguration structDatabaseConfiguration = JSONUtil.toBean(configuration, StructDatabaseConfiguration.class);
         // 获取对应数据源所有的表名
-        List<String> tableNames = MySQLUtil.getSchemas(structDatabaseConfiguration);
+        List<String> tableNames = RemoteMySQLEngine.getSchemas(structDatabaseConfiguration);
         // 封装返回类
         List<CoreDatasetTable> coreDatasetTables = new ArrayList<>();
         for (String tableName : tableNames) {
@@ -109,7 +113,7 @@ public class MySQLDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
     @Override
     public List<CoreDatasetTableField> getTableFields(CoreDatasource coreDatasource, String tableName) {
         StructDatabaseConfiguration structDatabaseConfiguration = getStructDatabaseConfiguration(coreDatasource);
-        List<SchemaStructure> structure = MySQLUtil.structure(structDatabaseConfiguration, tableName);
+        List<SchemaStructure> structure = RemoteMySQLEngine.structure(structDatabaseConfiguration, tableName);
         List<CoreDatasetTableField> tableFieldList = new ArrayList<>();
         for (SchemaStructure schemaStructure : structure) {
             CoreDatasetTableField field = new CoreDatasetTableField();
@@ -123,16 +127,16 @@ public class MySQLDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
     }
 
     @Override
-    public QueryAICustomSQLVO getDataFromDatasourceBySql(CoreDatasource datasource, String sql) throws SQLException {
+    public CustomPage<Map<String, Object>> getDataFromDatasourceBySql(CoreDatasource datasource, UserChatForSQLRes userChatForSQLRes) throws SQLException {
         StructDatabaseConfiguration structDatabaseConfiguration = getStructDatabaseConfiguration(datasource);
         // 获取对应数据源所有的表名
-        return MySQLUtil.execSelectSqlToQueryAICustomSQLVO(structDatabaseConfiguration, sql);
+        return remoteMySQLEngine.execSelectSqlToQueryAICustomSQLVO(structDatabaseConfiguration, userChatForSQLRes);
     }
 
     @Override
     public List<AskAIWithDataTablesAndFieldsRequest> getAskAIWithDataTablesAndFieldsRequests(CoreDatasource coreDatasource, User loginUser) throws SQLException {
         StructDatabaseConfiguration structDatabaseConfiguration = getStructDatabaseConfiguration(coreDatasource);
-        return MySQLUtil.getAskAIWithDataTablesAndFieldsRequests(structDatabaseConfiguration);
+        return RemoteMySQLEngine.getAskAIWithDataTablesAndFieldsRequests(structDatabaseConfiguration);
     }
 
     public StructDatabaseConfiguration getStructDatabaseConfiguration(CoreDatasource datasource) {

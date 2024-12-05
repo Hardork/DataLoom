@@ -8,11 +8,14 @@ import com.hwq.dataloom.model.dto.ai.AskAIWithDataTablesAndFieldsRequest;
 import com.hwq.dataloom.model.entity.CoreDatasetTable;
 import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.entity.CoreDatasource;
+import com.hwq.dataloom.model.json.ai.UserChatForSQLRes;
 import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
+import com.hwq.dataloom.utils.datasource.CustomPage;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author HWQ
@@ -63,10 +66,10 @@ public interface DatasourceExecuteStrategy<REQ> {
     /**
      * 根据sql从数据源中获取数据
      * @param datasourceId 数据源ID
-     * @param sql 执行SQL
+     * @param userChatForSQLRes AI返回的结果
      * @return 数据封装类
      */
-    QueryAICustomSQLVO getDataFromDatasourceBySql(CoreDatasource datasourceId, String sql) throws SQLException;
+    CustomPage<Map<String, Object>> getDataFromDatasourceBySql(CoreDatasource datasourceId, UserChatForSQLRes userChatForSQLRes) throws SQLException;
 
     /**
      * 获取表和字段信息

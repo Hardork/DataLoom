@@ -11,11 +11,13 @@ import com.hwq.dataloom.model.vo.ai.GetUserSQLChatRecordVO;
 import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
 import com.hwq.dataloom.service.ChatHistoryService;
 import com.hwq.dataloom.mapper.ChatHistoryMapper;
+import com.hwq.dataloom.utils.datasource.CustomPage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -49,13 +51,13 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
         return list.stream().map(item -> {
             String content = item.getContent();
             GetUserSQLChatRecordVO getUserSQLChatRecordVO = new GetUserSQLChatRecordVO();
-            if (ChatHistoryStatusEnum.FAIL.getValue().equals(item.getStatus())) { // 失败状态
-                getUserSQLChatRecordVO.setStatus(ChatHistoryStatusEnum.FAIL.getValue());
+            if (ChatHistoryStatusEnum.ERROR.getValue().equals(item.getStatus())) { // 失败状态
+                getUserSQLChatRecordVO.setStatus(ChatHistoryStatusEnum.ERROR.getValue());
                 getUserSQLChatRecordVO.setSql("");
                 getUserSQLChatRecordVO.setRes(new ArrayList<>());
                 return getUserSQLChatRecordVO;
             }
-            // TODO: 根据状态判断是否要转字段
+            // 根据状态判断是否要转字段
             if (item.getChatRole().equals(ChatHistoryRoleEnum.USER.getValue())) { // 用户
                 getUserSQLChatRecordVO.setId(item.getId());
                 getUserSQLChatRecordVO.setContent(content);
@@ -64,7 +66,7 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
                 getUserSQLChatRecordVO.setChatId(item.getChatId());
                 return getUserSQLChatRecordVO;
             }
-            QueryAICustomSQLVO aiCustomSQLVO = JSONUtil.toBean(content, QueryAICustomSQLVO.class);
+            CustomPage<Map<String, Object>> aiCustomSQLVO = JSONUtil.toBean(content, CustomPage.class);
             List<ColumnsVO> columns = aiCustomSQLVO.getColumns().stream().map(column -> {
                 ColumnsVO columnsVO = new ColumnsVO();
                 columnsVO.setDataIndex(column);
@@ -76,7 +78,9 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
             getUserSQLChatRecordVO.setChatId(item.getChatId());
             getUserSQLChatRecordVO.setChatRole(item.getChatRole());
             getUserSQLChatRecordVO.setColumns(columns);
-            getUserSQLChatRecordVO.setRes(aiCustomSQLVO.getRes());
+            getUserSQLChatRecordVO.setStatus(item.getStatus());
+            getUserSQLChatRecordVO.setTotal(aiCustomSQLVO.getTotal());
+            getUserSQLChatRecordVO.setRes(aiCustomSQLVO.getRecords());
             getUserSQLChatRecordVO.setSql(aiCustomSQLVO.getSql());
             return getUserSQLChatRecordVO;
         }).collect(Collectors.toList());

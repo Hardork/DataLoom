@@ -1,5 +1,6 @@
 package com.hwq.dataloom.controller;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -20,6 +21,7 @@ import com.hwq.dataloom.model.enums.ChatHistoryRoleEnum;
 import com.hwq.dataloom.model.vo.GetUserChatHistoryVO;
 import com.hwq.dataloom.model.vo.ai.GetUserSQLChatRecordVO;
 import com.hwq.dataloom.service.*;
+import com.hwq.dataloom.utils.datasource.CustomPage;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -316,6 +318,16 @@ public class AiController {
         ThrowUtils.throwIf(modelId == null, ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(request);
         Boolean res = chatService.addUserChatHistory(modelId, loginUser);
+        return ResultUtils.success(res);
+    }
+
+    @Operation(summary = "智能问数单条对话分页查询")
+    @GetMapping("/get/singleHistory/pageData/{chatHistoryId}/{pageNo}")
+    public BaseResponse<CustomPage<Map<String, Object>>> getSingleHistoryPageData(@PathVariable Long chatHistoryId, @PathVariable Integer pageNo, HttpServletRequest request) {
+        ThrowUtils.throwIf(chatHistoryId == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        if (pageNo == null) pageNo = 1;
+        CustomPage<Map<String, Object>> res = chatService.getSingleHistoryPageData(chatHistoryId, pageNo, loginUser);
         return ResultUtils.success(res);
     }
 
