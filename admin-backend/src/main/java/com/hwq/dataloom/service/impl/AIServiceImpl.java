@@ -10,6 +10,7 @@ import com.hwq.dataloom.manager.AiManager;
 import com.hwq.dataloom.model.dto.ai.AskAIWithDataTablesAndFieldsRequest;
 import com.hwq.dataloom.model.dto.ai.ChatForSQLPageRequest;
 import com.hwq.dataloom.model.dto.ai.ChatForSQLRequest;
+import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
 import com.hwq.dataloom.model.entity.*;
 import com.hwq.dataloom.model.enums.ChatHistoryRoleEnum;
 import com.hwq.dataloom.model.enums.ChatHistoryStatusEnum;
@@ -80,6 +81,8 @@ public class AIServiceImpl implements AIService {
         ThrowUtils.throwIf(chat == null, ErrorCode.PARAMS_ERROR, "不存在该助手");
         // 持久化用户消息
         ChatHistory chatHistory = saveChatHistory(ChatHistoryRoleEnum.USER, chatId, chat, question, false);
+        ChatHistory systemChatHistory = saveChatHistory(ChatHistoryRoleEnum.MODEL, chatId, chat, "{}", false);
+
         // 发送消息通知开始
         notify(ChatHistoryStatusEnum.START, loginUser.getId(), "开始对话");
         // 分析数据源
@@ -89,11 +92,11 @@ public class AIServiceImpl implements AIService {
             dataTablesAndFieldsRequests = getAskAIWithDataTablesAndFieldsRequests(loginUser, datasourceId);
         } catch (SQLException e) {
             log.error("智能问数 消息ID: {} 数据源ID:{} 获取数据源表和字段信息失败\n 失败原因:{}",  chatHistory.getId(), datasourceId, e.getMessage());
-            notifyMessageEnd(loginUser.getId(), ChatHistoryStatusEnum.ERROR, "数据源异常");
+            notifyAndUpdateStatus(systemChatHistory, ChatHistoryStatusEnum.ERROR, loginUser.getId(), "数据源异常");
             return;
         }
         // 发送分析数据源完毕
-        notifyAndUpdateStatus(chatHistory, ChatHistoryStatusEnum.ANALYSIS_COMPLETE, loginUser.getId(), "分析数据源完毕");
+        notifyAndUpdateStatus(systemChatHistory, ChatHistoryStatusEnum.ANALYSIS_COMPLETE, loginUser.getId(), "分析数据源完毕");
         // 结合Prompt构造查询 (关联表、统计查询记录数sql、查询sql)
         String input = buildAskAISQLInput(dataTablesAndFieldsRequests, question);
         log.info("智能问数 消息ID: {}  AI输入: {}", chatHistory.getId(), input);
@@ -104,17 +107,17 @@ public class AIServiceImpl implements AIService {
             userChatForSQLRes = JSONUtil.toBean(answer, UserChatForSQLRes.class, false);
         } catch (Exception e) {
             log.error("智能问数 消息ID: {} 序列化失败 返回answer: {}", chatHistory.getId(), answer);
-            notifyMessageEnd(loginUser.getId(), ChatHistoryStatusEnum.ERROR, "数据源异常");
+            notifyAndUpdateStatus(systemChatHistory, ChatHistoryStatusEnum.ERROR, loginUser.getId(), "序列化异常");
             return;
         }
         // 发送分析关联表完毕
-        notifyAndUpdateStatus(chatHistory, ChatHistoryStatusEnum.ANALYSIS_RELATE_TABLE_COMPLETE, loginUser.getId(), JSONUtil.toJsonStr(userChatForSQLRes));
+        notifyAndUpdateStatus(systemChatHistory, ChatHistoryStatusEnum.ANALYSIS_RELATE_TABLE_COMPLETE, loginUser.getId(), JSONUtil.toJsonStr(userChatForSQLRes));
         try {
             // 执行SQL，并得到返回的结果
             CustomPage<Map<String, Object>> dataPage = getQueryAICustomSQLVO(datasourceId, userChatForSQLRes);
             log.info("消息ID:{}, 智能问数查询结果: {}", chatHistory.getId(), dataPage);
             // 将查询的结果存放在数据库中
-            saveChatHistory(ChatHistoryRoleEnum.MODEL, chatId, chat, JSONUtil.toJsonStr(dataPage), dataPage.getTotal() > 10);
+            updateSystemChatHistory(systemChatHistory, ChatHistoryStatusEnum.ALL_COMPLETE, JSONUtil.toJsonStr(dataPage), "对话结束", dataPage.getTotal() > 10);
             // 发送消息通知结果
             AskSQLWebSocketMsgVO res = AskSQLWebSocketMsgVO.builder()
                     .data(dataPage)
@@ -123,22 +126,20 @@ public class AIServiceImpl implements AIService {
             askSQLWebSocket.sendOneMessage(loginUser.getId(), res);
         } catch (Exception e) { // 异常处理
             if (e instanceof SQLException) {
-                QueryAICustomSQLVO queryAICustomSQLVO = new QueryAICustomSQLVO();
-                queryAICustomSQLVO.setSql(queryAICustomSQLVO.getSql());
-                chatHistory = ChatHistory.builder()
-                        .chatRole(ChatHistoryRoleEnum.MODEL.getValue())
-                        .chatId(chatId)
-                        .modelId(chat.getModelId())
-                        .status(ChatHistoryStatusEnum.ERROR.getValue())
-                        .execMessage("数据源异常")
-                        .content(JSONUtil.toJsonStr(queryAICustomSQLVO))
-                        .build();
-                chatHistoryService.save(chatHistory);
+                notifyAndUpdateStatus(systemChatHistory, ChatHistoryStatusEnum.ERROR, loginUser.getId(),"查询数据源异常");
             }
-            notifyAndUpdateStatus(chatHistory, ChatHistoryStatusEnum.ERROR, loginUser.getId(),"查询数据源异常");
             return;
         }
-        notifyAndUpdateStatus(chatHistory, ChatHistoryStatusEnum.END, loginUser.getId(), "对话结束");
+        notifyAndUpdateStatus(systemChatHistory, ChatHistoryStatusEnum.END, loginUser.getId(), "对话结束");
+    }
+
+
+    private void updateSystemChatHistory(ChatHistory chatHistory, ChatHistoryStatusEnum chatHistoryRoleEnum, String jsonStr, String message, boolean isOverSize) {
+        chatHistory.setStatus(chatHistoryRoleEnum.getValue());
+        chatHistory.setContent(jsonStr);
+        chatHistory.setExecMessage(message);
+        chatHistory.setIsOverSize(isOverSize);
+        chatHistoryService.updateById(chatHistory);
     }
 
     /**

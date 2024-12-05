@@ -15,8 +15,9 @@ public enum ChatHistoryStatusEnum {
     START("start", 0),
     ANALYSIS_COMPLETE("analysis_complete", 1),
     ANALYSIS_RELATE_TABLE_COMPLETE("analysis_relate_table_complete", 2),
-    END("end", 3),
-    ERROR("error", 4);
+    ALL_COMPLETE("all_complete", 3),
+    END("end", 4),
+    ERROR("error", 5);
 
     private final String text;
 

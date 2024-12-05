@@ -52,6 +52,7 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
             String content = item.getContent();
             GetUserSQLChatRecordVO getUserSQLChatRecordVO = new GetUserSQLChatRecordVO();
             if (ChatHistoryStatusEnum.ERROR.getValue().equals(item.getStatus())) { // 失败状态
+                getUserSQLChatRecordVO.setChatRole(item.getChatRole());
                 getUserSQLChatRecordVO.setStatus(ChatHistoryStatusEnum.ERROR.getValue());
                 getUserSQLChatRecordVO.setSql("");
                 getUserSQLChatRecordVO.setRes(new ArrayList<>());
@@ -66,22 +67,24 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
                 getUserSQLChatRecordVO.setChatId(item.getChatId());
                 return getUserSQLChatRecordVO;
             }
-            CustomPage<Map<String, Object>> aiCustomSQLVO = JSONUtil.toBean(content, CustomPage.class);
-            List<ColumnsVO> columns = aiCustomSQLVO.getColumns().stream().map(column -> {
-                ColumnsVO columnsVO = new ColumnsVO();
-                columnsVO.setDataIndex(column);
-                columnsVO.setTitle(column);
-                return columnsVO;
-            }).collect(Collectors.toList());
+            if (item.getStatus().equals(ChatHistoryStatusEnum.END.getValue())) { // 正常结束的才会有值
+                CustomPage<Map<String, Object>> aiCustomSQLVO = JSONUtil.toBean(content, CustomPage.class);
+                List<ColumnsVO> columns = aiCustomSQLVO.getColumns().stream().map(column -> {
+                    ColumnsVO columnsVO = new ColumnsVO();
+                    columnsVO.setDataIndex(column);
+                    columnsVO.setTitle(column);
+                    return columnsVO;
+                }).collect(Collectors.toList());
+                getUserSQLChatRecordVO.setColumns(columns);
+                getUserSQLChatRecordVO.setTotal(aiCustomSQLVO.getTotal());
+                getUserSQLChatRecordVO.setRes(aiCustomSQLVO.getRecords());
+                getUserSQLChatRecordVO.setSql(aiCustomSQLVO.getSql());
+            }
             getUserSQLChatRecordVO.setId(item.getId());
             getUserSQLChatRecordVO.setModelId(item.getModelId());
-            getUserSQLChatRecordVO.setChatId(item.getChatId());
             getUserSQLChatRecordVO.setChatRole(item.getChatRole());
-            getUserSQLChatRecordVO.setColumns(columns);
+            getUserSQLChatRecordVO.setChatId(item.getChatId());
             getUserSQLChatRecordVO.setStatus(item.getStatus());
-            getUserSQLChatRecordVO.setTotal(aiCustomSQLVO.getTotal());
-            getUserSQLChatRecordVO.setRes(aiCustomSQLVO.getRecords());
-            getUserSQLChatRecordVO.setSql(aiCustomSQLVO.getSql());
             return getUserSQLChatRecordVO;
         }).collect(Collectors.toList());
     }
