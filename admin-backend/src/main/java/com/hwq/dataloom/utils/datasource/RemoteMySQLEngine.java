@@ -219,30 +219,26 @@ public class RemoteMySQLEngine {
     /**
      * 第三方MySQL执行指定SQL，返回查询数据
      * @param structDatabaseConfiguration 第三方数据库的配置信息
-     * @param userChatForSQLRes AI返回的结果
      * @return 查询结果类
      * @throws SQLException 可能出现的SQL异常
      */
-    public CustomPage<Map<String, Object>> execSelectSqlToQueryAICustomSQLVO(StructDatabaseConfiguration structDatabaseConfiguration, UserChatForSQLRes userChatForSQLRes) throws SQLException {
-        String sql = userChatForSQLRes.getSql();
-        String countSql = userChatForSQLRes.getCountSql();
+    public CustomPage<Map<String, Object>> execSelectSqlToQueryAICustomSQLVO(StructDatabaseConfiguration structDatabaseConfiguration, String sql, Integer pageNo) throws SQLException {
         try (Connection connection = getConByConfig(structDatabaseConfiguration)) {
             // 分页查询数据
-            return pageQuery(sql, countSql, 1, connection);
+            return pageQuery(sql, pageNo, connection);
         }
     }
 
     /**
      * 分页查询数据
      * @param originalSql 原始查询数据
-     * @param countSql 统计记录数sql
      * @param pageNo 页下标
      * @param connection 数据库连接
      * @return 分页数据
      * @throws SQLException SQL异常
      */
-    public CustomPage<Map<String, Object>> pageQuery(String originalSql, String countSql, int pageNo, Connection connection) throws SQLException {
-        int count = getSelectCount(countSql, connection);
+    public CustomPage<Map<String, Object>> pageQuery(String originalSql, int pageNo, Connection connection) throws SQLException {
+        int count = getSelectCount(originalSql, connection);
         String pageQuerySql = getPageQuerySql(originalSql, pageNo);
         PreparedStatement preparedStatement = connection.prepareStatement(pageQuerySql);
         List<Map<String, Object>> res = new ArrayList<>();
@@ -274,13 +270,15 @@ public class RemoteMySQLEngine {
 
     /**
      * 获取查询记录数
-     * @param countSql 统计查询记录数的sql
+     * @param originalSql 查询sql
      * @param connection 数据库连接
      * @return 查询记录数
      * @throws SQLException SQL异常
      */
-    public int getSelectCount(String countSql, Connection connection) throws SQLException {
+    public int getSelectCount(String originalSql, Connection connection) throws SQLException {
         try {
+            // 获取查询总数的sql
+            String countSql = getCountSqlFromOriginalSql(originalSql);
             PreparedStatement preparedStatement = connection.prepareStatement(countSql);
             ResultSet rs = preparedStatement.executeQuery();
             if (rs.next()) { // 先调用next()移动游标到第一行
@@ -288,9 +286,18 @@ public class RemoteMySQLEngine {
             }
             return 0;
         } catch (SQLException e) {
-            log.error("获取查询记录数失败, 执行sql:{}, 失败原因:{}", countSql, e.getMessage());
+            log.error("获取查询记录数失败, 执行sql:{}, 失败原因:{}", originalSql, e.getMessage());
             throw e;
         }
+    }
+
+    /**
+     * 获取统计记录sql
+     * @param originalSql 原始sql
+     * @return 统计记录sql
+     */
+    public String getCountSqlFromOriginalSql(String originalSql) {
+        return "SELECT COUNT(*) FROM(" + originalSql + ") tmp";
     }
 
 

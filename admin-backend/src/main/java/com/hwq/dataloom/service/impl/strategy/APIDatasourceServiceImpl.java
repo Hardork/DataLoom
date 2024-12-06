@@ -226,8 +226,8 @@ public class APIDatasourceServiceImpl implements DatasourceExecuteStrategy<Datas
     }
 
     @Override
-    public CustomPage<Map<String, Object>> getDataFromDatasourceBySql(CoreDatasource datasource, UserChatForSQLRes userChatForSQLRes) throws SQLException {
-        return datasourceEngine.execSelectSqlToQueryAICustomSQLVO(datasource.getId(), userChatForSQLRes);
+     public CustomPage<Map<String, Object>> getDataFromDatasourceBySql(CoreDatasource datasource, String sql, Integer pageNo) throws SQLException {
+        return datasourceEngine.execSelectSqlToQueryAICustomSQLVO(datasource.getId(), sql, pageNo);
     }
 
     @Override

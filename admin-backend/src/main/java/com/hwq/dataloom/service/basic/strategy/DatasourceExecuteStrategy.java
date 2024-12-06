@@ -66,10 +66,9 @@ public interface DatasourceExecuteStrategy<REQ> {
     /**
      * 根据sql从数据源中获取数据
      * @param datasourceId 数据源ID
-     * @param userChatForSQLRes AI返回的结果
      * @return 数据封装类
      */
-    CustomPage<Map<String, Object>> getDataFromDatasourceBySql(CoreDatasource datasourceId, UserChatForSQLRes userChatForSQLRes) throws SQLException;
+    CustomPage<Map<String, Object>> getDataFromDatasourceBySql(CoreDatasource datasourceId, String sql, Integer pageNo) throws SQLException;
 
     /**
      * 获取表和字段信息

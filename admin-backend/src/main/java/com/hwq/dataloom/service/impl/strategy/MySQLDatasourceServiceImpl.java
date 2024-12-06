@@ -127,10 +127,10 @@ public class MySQLDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
     }
 
     @Override
-    public CustomPage<Map<String, Object>> getDataFromDatasourceBySql(CoreDatasource datasource, UserChatForSQLRes userChatForSQLRes) throws SQLException {
+    public CustomPage<Map<String, Object>> getDataFromDatasourceBySql(CoreDatasource datasource, String sql, Integer pageNo) throws SQLException {
         StructDatabaseConfiguration structDatabaseConfiguration = getStructDatabaseConfiguration(datasource);
         // 获取对应数据源所有的表名
-        return remoteMySQLEngine.execSelectSqlToQueryAICustomSQLVO(structDatabaseConfiguration, userChatForSQLRes);
+        return remoteMySQLEngine.execSelectSqlToQueryAICustomSQLVO(structDatabaseConfiguration, sql, pageNo);
     }
 
     @Override

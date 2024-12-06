@@ -62,4 +62,6 @@ public class GetUserSQLChatRecordVO {
      * 消息状态  0-正常 1-异常
      */
     private Integer status;
+
+    private boolean loading = false;
 }

@@ -127,9 +127,8 @@ public class AIServiceImpl implements AIService {
                     .build();
             askSQLWebSocket.sendOneMessage(loginUser.getId(), res);
         } catch (Exception e) { // 异常处理
-            if (e instanceof SQLException) {
-                notifyAndUpdateStatus(systemChatHistory, ChatHistoryStatusEnum.ERROR, loginUser.getId(),"查询数据源异常");
-            }
+            log.error("消息ID:{}, 错误原因:{}", systemChatHistory.getId(), e.getMessage());
+            notifyAndUpdateStatus(systemChatHistory, ChatHistoryStatusEnum.ERROR, loginUser.getId(),"查询数据源异常");
             return;
         }
         notifyAndUpdateStatus(systemChatHistory, ChatHistoryStatusEnum.END, loginUser.getId(), "对话结束");
@@ -228,7 +227,8 @@ public class AIServiceImpl implements AIService {
         // 判断数据源的归属，决定从哪获取数据
         CoreDatasource coreDatasource = coreDatasourceService.getById(datasourceId);
         DatasourceExecuteStrategy executeStrategy = datasourceStrategyChoose.choose(coreDatasource.getType());
-        return executeStrategy.getDataFromDatasourceBySql(coreDatasource, userChatForSQLRes);
+        // 默认获取第一页的数据
+        return executeStrategy.getDataFromDatasourceBySql(coreDatasource, userChatForSQLRes.getSql(), 1);
     }
 
     /**
@@ -296,14 +296,15 @@ public class AIServiceImpl implements AIService {
         // 序列化
         CustomPage<Map<String, Object>> dataPage = JSONUtil.toBean(chatHistory.getContent(), CustomPage.class);
         Integer pageNo = chatForSQLPageRequest.getPageNo();
-        Integer size = chatForSQLPageRequest.getSize();
         String sql = dataPage.getSql();
-        long total = dataPage.getTotal();
         CoreDatasource coreDatasource = coreDatasourceService.getById(datasourceId);
         DatasourceExecuteStrategy executeStrategy = datasourceStrategyChoose.choose(coreDatasource.getType());
-        // TODO: ChatHistory新增一个获取统计行数的SQL字段，以及一个SQL字段
-//        executeStrategy.queryPageDataBySql(coreDatasource, loginUser, sql, pageNo, size);
-        return null;
+        try {
+            return executeStrategy.getDataFromDatasourceBySql(coreDatasource,  sql, pageNo);
+        } catch (SQLException e) {
+            log.error("智能问数 分页查询数据库失败, 查询sql:{}", sql);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "查询错误");
+        }
     }
 
 

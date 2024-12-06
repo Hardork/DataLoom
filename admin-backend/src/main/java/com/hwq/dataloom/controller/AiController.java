@@ -207,19 +207,14 @@ public class AiController {
     @CheckPoint
     @AiService
     @PostMapping("/chat/sql/page")
-    public BaseResponse<Boolean> queryUserChatForSQL(@RequestBody ChatForSQLPageRequest chatForSQLPageRequest, HttpServletRequest request) {
+    public BaseResponse<CustomPage<Map<String, Object>>> queryUserChatForSQL(@RequestBody ChatForSQLPageRequest chatForSQLPageRequest, HttpServletRequest request) {
         // 数据校验
         ThrowUtils.throwIf(chatForSQLPageRequest == null, ErrorCode.PARAMS_ERROR);
-        String sql = chatForSQLPageRequest.getSql();
-        Integer page = chatForSQLPageRequest.getPage();
-        Integer size = chatForSQLPageRequest.getSize();
-        ThrowUtils.throwIf(StringUtils.isEmpty(sql), ErrorCode.PARAMS_ERROR);
-        ThrowUtils.throwIf(page == null, ErrorCode.PARAMS_ERROR);
-        ThrowUtils.throwIf(size == null, ErrorCode.PARAMS_ERROR);
-        // 限流
+        Long chatHistoryId = chatForSQLPageRequest.getChatHistoryId();
+        ThrowUtils.throwIf(chatHistoryId == null, ErrorCode.PARAMS_ERROR, "id不得为空");
         User loginUser = userService.getLoginUser(request);
-        aiService.queryUserChatForSQL(chatForSQLPageRequest, loginUser);
-        return ResultUtils.success(true);
+        CustomPage<Map<String, Object>> page = aiService.queryUserChatForSQL(chatForSQLPageRequest, loginUser);
+        return ResultUtils.success(page);
     }
 
     @Operation(summary = "查询用户选择对话的信息")
