@@ -1,7 +1,6 @@
 package com.hwq.dataloom.model.dto.workflow;
 
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.hwq.dataloom.model.json.workflow.Graph;
+import com.hwq.dataloom.core.workflow.entitys.graph.Graph;
 import lombok.Data;
 
 import java.util.List;

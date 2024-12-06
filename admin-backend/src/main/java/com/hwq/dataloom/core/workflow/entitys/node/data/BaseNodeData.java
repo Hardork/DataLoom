@@ -1,14 +1,15 @@
-package com.hwq.dataloom.model.json.workflow.node.data;
+package com.hwq.dataloom.core.workflow.entitys.node.data;
 
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 节点数据基类
  */
 @Data
-public class BaseNodeData {
+public abstract class BaseNodeData {
     private String desc;
     private String title;
     private Boolean selected;

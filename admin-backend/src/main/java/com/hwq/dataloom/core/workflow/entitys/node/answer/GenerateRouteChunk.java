@@ -1,4 +1,4 @@
-package com.hwq.dataloom.model.json.workflow.node.answer;
+package com.hwq.dataloom.core.workflow.entitys.node.answer;
 
 import lombok.Builder;
 import lombok.Data;

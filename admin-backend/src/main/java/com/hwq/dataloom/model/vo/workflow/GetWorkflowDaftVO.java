@@ -1,6 +1,6 @@
 package com.hwq.dataloom.model.vo.workflow;
 
-import com.hwq.dataloom.model.json.workflow.Graph;
+import com.hwq.dataloom.core.workflow.entitys.graph.Graph;
 import lombok.Builder;
 import lombok.Data;
 

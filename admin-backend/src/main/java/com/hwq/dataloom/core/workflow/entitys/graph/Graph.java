@@ -1,4 +1,4 @@
-package com.hwq.dataloom.model.json.workflow;
+package com.hwq.dataloom.core.workflow.entitys.graph;
 
 import cn.hutool.json.JSONUtil;
 import com.hwq.dataloom.core.workflow.runner.AnswerStreamGeneratorRouter;
@@ -7,10 +7,10 @@ import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.model.enums.workflow.NodeTypeEnum;
 import com.hwq.dataloom.model.enums.workflow.RunConditionTypeEnum;
-import com.hwq.dataloom.model.json.workflow.edge.Edge;
-import com.hwq.dataloom.model.json.workflow.edge.GraphEdge;
-import com.hwq.dataloom.model.json.workflow.edge.RunCondition;
-import com.hwq.dataloom.model.json.workflow.node.Node;
+import com.hwq.dataloom.core.workflow.entitys.edge.Edge;
+import com.hwq.dataloom.core.workflow.entitys.edge.GraphEdge;
+import com.hwq.dataloom.core.workflow.entitys.edge.RunCondition;
+import com.hwq.dataloom.core.workflow.entitys.node.Node;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 

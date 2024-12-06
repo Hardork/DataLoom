@@ -15,7 +15,7 @@ import com.hwq.dataloom.model.dto.workflow.UpdateWorkflowDTO;
 import com.hwq.dataloom.model.entity.Workflow;
 import com.hwq.dataloom.model.enums.workflow.WorkflowTypeEnum;
 import com.hwq.dataloom.model.enums.workflow.WorkflowVersionEnum;
-import com.hwq.dataloom.model.json.workflow.Graph;
+import com.hwq.dataloom.core.workflow.entitys.graph.Graph;
 import com.hwq.dataloom.model.vo.workflow.GetWorkflowDaftVO;
 import com.hwq.dataloom.model.vo.workflow.SaveWorkflowDraftVO;
 import com.hwq.dataloom.model.vo.workflow.WorkflowVO;

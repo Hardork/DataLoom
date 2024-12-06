@@ -1,6 +1,6 @@
-package com.hwq.dataloom.model.json.workflow.node;
+package com.hwq.dataloom.core.workflow.entitys.node;
 
-import com.hwq.dataloom.model.json.workflow.Position;
+import com.hwq.dataloom.core.workflow.entitys.graph.Position;
 import lombok.Data;
 
 import java.util.Map;

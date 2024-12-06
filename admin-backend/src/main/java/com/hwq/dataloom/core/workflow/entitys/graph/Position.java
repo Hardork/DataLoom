@@ -1,4 +1,4 @@
-package com.hwq.dataloom.model.json.workflow;
+package com.hwq.dataloom.core.workflow.entitys.graph;
 
 import lombok.Data;
 

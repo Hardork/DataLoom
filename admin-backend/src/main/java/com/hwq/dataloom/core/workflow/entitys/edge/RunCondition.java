@@ -1,4 +1,4 @@
-package com.hwq.dataloom.model.json.workflow.edge;
+package com.hwq.dataloom.core.workflow.entitys.edge;
 
 import cn.hutool.crypto.digest.DigestUtil;
 import lombok.AllArgsConstructor;

@@ -1,5 +1,8 @@
 package com.hwq.dataloom.model.enums.workflow;
 
+import com.hwq.dataloom.core.workflow.entitys.node.answer.AnswerNodeData;
+import com.hwq.dataloom.core.workflow.entitys.node.data.*;
+import com.thoughtworks.xstream.io.binary.Token;
 import org.apache.commons.lang3.ObjectUtils;
 
 /**
@@ -8,17 +11,18 @@ import org.apache.commons.lang3.ObjectUtils;
  * @description 工作流节点类型枚举类
  */
 public enum NodeTypeEnum {
-    START("start", "start"),
-    DATA_EXTRACT("data_extract", "data_extract"),
-    HTTP("http", "http"),
-    NOTIFY("notify", "notify"),
-    CODE("code", "code"),
-    LLM("llm", "llm"),
-    ANSWER("answer", "answer");
+    START("start", "start", BaseNodeData.class),
+    DATA_EXTRACT("data_extract", "data_extract", DataExtractionNodeData.class),
+    HTTP("http", "http", HttpNodeData.class),
+    NOTIFY("notify", "notify", NotifyNodeData.class),
+    CODE("code", "code", CodeNodeData.class),
+    LLM("llm", "llm", LLMNodeData.class),
+    ANSWER("answer", "answer", AnswerNodeData.class);
 
-    NodeTypeEnum(String text, String value){
+    NodeTypeEnum(String text, String value, Class<? extends BaseNodeData> clazz) {
         this.text = text;
         this.value = value;
+        this.nodeClass = clazz;
     }
 
     /**
@@ -41,6 +45,8 @@ public enum NodeTypeEnum {
     private final String text;
     private final String value;
 
+    private final Class<? extends BaseNodeData> nodeClass;
+
     public String getText() {
         return text;
     }
@@ -48,4 +54,6 @@ public enum NodeTypeEnum {
     public String getValue() {
         return value;
     }
+
+    public Class<? extends BaseNodeData> getNodeClass() {return nodeClass;}
 }

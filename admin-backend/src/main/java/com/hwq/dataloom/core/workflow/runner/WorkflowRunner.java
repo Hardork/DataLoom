@@ -5,17 +5,18 @@ import java.util.stream.Collectors;
 import cn.hutool.core.lang.Pair;
 import cn.hutool.json.JSONUtil;
 import com.hwq.dataloom.core.workflow.entitys.SingleIterationRunEntity;
+import com.hwq.dataloom.core.workflow.entitys.node.data.BaseNodeData;
 import com.hwq.dataloom.core.workflow.entitys.variable.VariablePool;
 import com.hwq.dataloom.core.workflow.entitys.WorkflowGenerateEntity;
 import com.hwq.dataloom.core.workflow.queue.WorkflowQueueManager;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
-import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.model.entity.Workflow;
 
-import com.hwq.dataloom.model.json.workflow.Graph;
-import com.hwq.dataloom.model.json.workflow.edge.Edge;
-import com.hwq.dataloom.model.json.workflow.node.Node;
+import com.hwq.dataloom.model.enums.workflow.NodeTypeEnum;
+import com.hwq.dataloom.core.workflow.entitys.graph.Graph;
+import com.hwq.dataloom.core.workflow.entitys.edge.Edge;
+import com.hwq.dataloom.core.workflow.entitys.node.Node;
 import org.springframework.stereotype.Component;
 
 /**
@@ -66,6 +67,7 @@ public class WorkflowRunner {
                 .collect(Collectors.toList());
         graphDict.put("nodes", matchNodes);
         List<String> nodeIds = matchNodes.stream().map(Node::getId).collect(Collectors.toList());
+
         // 过滤出符合迭代条件的边
         List<Edge> edges = originalGraph.getEdges();
         List<Edge> matchEdges = edges.stream()
@@ -75,9 +77,21 @@ public class WorkflowRunner {
                 ).collect(Collectors.toList());
         graphDict.put("edges", matchEdges);
         String matchGraphDict = JSONUtil.toJsonStr(graphDict);
+
         // 初始化graph
         Graph graph = Graph.init(matchGraphDict, nodeId);
         ThrowUtils.throwIf(graph == null, ErrorCode.OPERATION_ERROR, "工作流初始化失败,请检查配置");
+
+        // 寻找任务的头节点
+        Optional<Node> iterationNode = nodes.stream()
+                .filter(node -> nodeId.equals(node.getId()))
+                .findFirst();
+        ThrowUtils.throwIf(!iterationNode.isPresent(), ErrorCode.OPERATION_ERROR, "任务头节点未找到");
+
+        // 获取节点类型
+        Node node = iterationNode.get();
+        NodeTypeEnum type = NodeTypeEnum.getEnumByValue(node.getData().get("type").toString());
+        // TODO:
 
         return null;
     }
