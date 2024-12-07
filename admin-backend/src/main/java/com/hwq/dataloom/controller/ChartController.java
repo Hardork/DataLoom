@@ -208,7 +208,6 @@ public class ChartController {
         if (chart == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
         }
-        // TODO: 从MySQL中获取图表数据
 //        String chartData = mongoEngineUtils.mongoToCSV(chart.getUserDataId());
         chart.setChartData(null);
 
