@@ -91,7 +91,7 @@ public class WorkflowRunner {
         // 获取节点类型
         Node node = iterationNode.get();
         NodeTypeEnum type = NodeTypeEnum.getEnumByValue(node.getData().get("type").toString());
-        // TODO:
+        // TODO: 根据不同类型的Node提取入参
 
         return null;
     }
