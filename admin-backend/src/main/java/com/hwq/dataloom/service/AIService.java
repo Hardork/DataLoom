@@ -2,10 +2,12 @@ package com.hwq.dataloom.service;
 
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.dto.ai.AskAIWithDataTablesAndFieldsRequest;
+import com.hwq.dataloom.model.dto.ai.ChatExportExcelRequest;
 import com.hwq.dataloom.model.dto.ai.ChatForSQLPageRequest;
 import com.hwq.dataloom.model.dto.ai.ChatForSQLRequest;
 import com.hwq.dataloom.utils.datasource.CustomPage;
 
+import javax.servlet.http.HttpServletResponse;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
@@ -46,4 +48,6 @@ public interface AIService {
      * @param loginUser
      */
     CustomPage<Map<String, Object>> queryUserChatForSQL(ChatForSQLPageRequest chatForSQLPageRequest, User loginUser);
+
+    void exportExcel(ChatExportExcelRequest chatExportExcelRequest, HttpServletResponse response);
 }

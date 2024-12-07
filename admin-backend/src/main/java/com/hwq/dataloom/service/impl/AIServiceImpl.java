@@ -2,6 +2,7 @@ package com.hwq.dataloom.service.impl;
 
 import cn.hutool.json.JSONUtil;
 import com.alibaba.cloud.dubbo.util.JSONUtils;
+import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
@@ -10,6 +11,7 @@ import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.manager.AiManager;
 import com.hwq.dataloom.model.dto.ai.AskAIWithDataTablesAndFieldsRequest;
+import com.hwq.dataloom.model.dto.ai.ChatExportExcelRequest;
 import com.hwq.dataloom.model.dto.ai.ChatForSQLPageRequest;
 import com.hwq.dataloom.model.dto.ai.ChatForSQLRequest;
 import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
@@ -18,6 +20,7 @@ import com.hwq.dataloom.model.enums.ChatHistoryRoleEnum;
 import com.hwq.dataloom.model.enums.ChatHistoryStatusEnum;
 import com.hwq.dataloom.model.json.ai.UserChatForSQLRes;
 import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
+import com.hwq.dataloom.model.vo.data.SaveTypeEnum;
 import com.hwq.dataloom.service.*;
 import com.hwq.dataloom.service.basic.strategy.DatasourceExecuteStrategy;
 import com.hwq.dataloom.service.basic.strategy.DatasourceStrategyChoose;
@@ -33,6 +36,9 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.net.URLEncoder;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -43,6 +49,7 @@ import java.util.Map;
 
 import static com.hwq.dataloom.constant.PromptConstants.*;
 import static com.hwq.dataloom.constant.UserChatForSQLConstant.*;
+import static com.hwq.dataloom.model.vo.data.SaveTypeEnum.sql;
 
 /**
  * @author HWQ
@@ -200,6 +207,7 @@ public class AIServiceImpl implements AIService {
      * @param datasourceId 数据源id
      * @return 数据源元信息
      */
+    @Override
     public List<AskAIWithDataTablesAndFieldsRequest> getAskAIWithDataTablesAndFieldsRequests(User loginUser, Long datasourceId) throws SQLException {
         // 判断数据源的归属，决定从哪获取数据
         CoreDatasource coreDatasource = coreDatasourceService.getById(datasourceId);
@@ -228,7 +236,7 @@ public class AIServiceImpl implements AIService {
         CoreDatasource coreDatasource = coreDatasourceService.getById(datasourceId);
         DatasourceExecuteStrategy executeStrategy = datasourceStrategyChoose.choose(coreDatasource.getType());
         // 默认获取第一页的数据
-        return executeStrategy.getDataFromDatasourceBySql(coreDatasource, userChatForSQLRes.getSql(), 1);
+        return executeStrategy.getDataFromDatasourceBySql(coreDatasource, userChatForSQLRes.getSql(), 1,10);
     }
 
     /**
@@ -284,27 +292,89 @@ public class AIServiceImpl implements AIService {
     @Override
     public CustomPage<Map<String, Object>> queryUserChatForSQL(ChatForSQLPageRequest chatForSQLPageRequest, User loginUser) {
         Long chatHistoryId = chatForSQLPageRequest.getChatHistoryId();
-        ChatHistory chatHistory = chatHistoryService.getById(chatHistoryId);
-        ThrowUtils.throwIf(chatHistory == null, ErrorCode.NOT_FOUND_ERROR);
-        ThrowUtils.throwIf(!chatHistory.getChatRole().equals(ChatHistoryRoleEnum.MODEL.getValue()), ErrorCode.PARAMS_ERROR);
-        ThrowUtils.throwIf(!chatHistory.getStatus().equals(ChatHistoryStatusEnum.END.getValue()), ErrorCode.OPERATION_ERROR, "数据状态异常");
-        // TODO: 后续建议将datasourceID直接冗余存储在chatHistory中
+        ChatHistory chatHistory = getCoreDatasourceByChatHistoryId(chatHistoryId);
         Long chatId = chatHistory.getChatId();
-        Chat chat = chatService.getById(chatId);
-        ThrowUtils.throwIf(chat == null, ErrorCode.NOT_FOUND_ERROR);
-        Long datasourceId = chat.getDatasourceId();
+        CoreDatasource coreDatasource = getCoreDatasourceByChatId(chatId);
         // 序列化
         CustomPage<Map<String, Object>> dataPage = JSONUtil.toBean(chatHistory.getContent(), CustomPage.class);
         Integer pageNo = chatForSQLPageRequest.getPageNo();
         String sql = dataPage.getSql();
-        CoreDatasource coreDatasource = coreDatasourceService.getById(datasourceId);
         DatasourceExecuteStrategy executeStrategy = datasourceStrategyChoose.choose(coreDatasource.getType());
         try {
-            return executeStrategy.getDataFromDatasourceBySql(coreDatasource,  sql, pageNo);
+            return executeStrategy.getDataFromDatasourceBySql(coreDatasource,  sql, pageNo,10);
         } catch (SQLException e) {
             log.error("智能问数 分页查询数据库失败, 查询sql:{}", sql);
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "查询错误");
         }
+    }
+
+    @Override
+    public void exportExcel(ChatExportExcelRequest chatExportExcelRequest, HttpServletResponse response) {
+        // 1. 获取导出数据
+        Long chatHistoryId = chatExportExcelRequest.getChatHistoryId();
+        ChatHistory chatHistory = getCoreDatasourceByChatHistoryId(chatHistoryId);
+        Long chatId = chatHistory.getChatId();
+        CoreDatasource coreDatasource = getCoreDatasourceByChatId(chatId);
+        // 序列化
+        CustomPage<Map<String, Object>> dataPage = JSONUtil.toBean(chatHistory.getContent(), CustomPage.class);
+        DatasourceExecuteStrategy executeStrategy = datasourceStrategyChoose.choose(coreDatasource.getType());
+        CustomPage<Map<String, Object>> dataFromDatasourceBySql;
+        try {
+            dataFromDatasourceBySql = executeStrategy.getDataFromDatasourceBySql(coreDatasource, dataPage.getSql(), 1, chatExportExcelRequest.getExportCount());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        // 2. 设置导出参数
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setCharacterEncoding("utf-8");
+        //
+
+
+        // TODO: 获取表名
+        String fileName = URLEncoder.encode("用户信息表");
+        response.setHeader("Content-Disposition", "attachment;filename=" + fileName + ".xlsx");
+        // 3. 导出
+
+        // TODO: 指定列导出
+        // 表头
+        List<String> columns = dataFromDatasourceBySql.getColumns();
+        List<List<String>> head = new ArrayList<>();
+        for (String header : columns) {
+            List<String> headerRow = new ArrayList<>();
+            headerRow.add(header);
+            head.add(headerRow);
+        }
+        // 数据
+        List<Map<String, Object>> dataList = dataFromDatasourceBySql.getRecords();
+
+        // 使用EasyExcel进行Excel文件生成并写入响应流
+        try {
+            EasyExcel.write(response.getOutputStream(), Map.class)
+                    .head(head)
+                    .sheet("动态表头数据")
+                    .doWrite(dataList);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
+    }
+
+    private ChatHistory getCoreDatasourceByChatHistoryId(Long chatHistoryId) {
+        ChatHistory chatHistory = chatHistoryService.getById(chatHistoryId);
+        ThrowUtils.throwIf(chatHistory == null, ErrorCode.NOT_FOUND_ERROR);
+        ThrowUtils.throwIf(!chatHistory.getChatRole().equals(ChatHistoryRoleEnum.MODEL.getValue()), ErrorCode.PARAMS_ERROR);
+        ThrowUtils.throwIf(!chatHistory.getStatus().equals(ChatHistoryStatusEnum.END.getValue()), ErrorCode.OPERATION_ERROR, "数据状态异常");
+        return chatHistory;
+    }
+
+    private CoreDatasource getCoreDatasourceByChatId(Long chatId) {
+        // TODO: 后续建议将datasourceID直接冗余存储在chatHistory中
+        Chat chat = chatService.getById(chatId);
+        ThrowUtils.throwIf(chat == null, ErrorCode.NOT_FOUND_ERROR);
+        Long datasourceId = chat.getDatasourceId();
+        CoreDatasource coreDatasource = coreDatasourceService.getById(datasourceId);
+        return coreDatasource;
     }
 
 

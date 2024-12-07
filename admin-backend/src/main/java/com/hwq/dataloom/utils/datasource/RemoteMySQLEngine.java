@@ -41,6 +41,7 @@ public class RemoteMySQLEngine {
 
     /**
      * 校验连接
+     *
      * @param structDatabaseConfiguration
      * @return
      * @throws SQLException
@@ -59,8 +60,9 @@ public class RemoteMySQLEngine {
 
     /**
      * 获取数据库
+     *
      * @param structDatabaseConfiguration 第三方数据库配置
-     * @param tableName 表名
+     * @param tableName                   表名
      * @return 获取数据库对应表的结构信息
      */
     public static List<SchemaStructure> structure(StructDatabaseConfiguration structDatabaseConfiguration, String tableName) {
@@ -93,6 +95,7 @@ public class RemoteMySQLEngine {
 
     /**
      * 获取数据库的表名
+     *
      * @param structDatabaseConfiguration 数据库配置
      * @return 当前数据库所有的表名
      */
@@ -170,6 +173,7 @@ public class RemoteMySQLEngine {
 
     /**
      * 获取表和字段信息
+     *
      * @param structDatabaseConfiguration 数据库配置
      * @return 表和字段信息
      * @throws SQLException SQL异常
@@ -177,7 +181,7 @@ public class RemoteMySQLEngine {
     public static List<AskAIWithDataTablesAndFieldsRequest> getAskAIWithDataTablesAndFieldsRequests(StructDatabaseConfiguration structDatabaseConfiguration) throws SQLException {
         Connection connection = getConByConfig(structDatabaseConfiguration);
         List<AskAIWithDataTablesAndFieldsRequest> requests = new ArrayList<>();
-        if (connection!= null) {
+        if (connection != null) {
             try {
                 DatabaseMetaData metaData = connection.getMetaData();
                 // 获取所有表信息
@@ -218,36 +222,36 @@ public class RemoteMySQLEngine {
 
     /**
      * 第三方MySQL执行指定SQL，返回查询数据
+     *
      * @param structDatabaseConfiguration 第三方数据库的配置信息
      * @return 查询结果类
      * @throws SQLException 可能出现的SQL异常
      */
-    public CustomPage<Map<String, Object>> execSelectSqlToQueryAICustomSQLVO(StructDatabaseConfiguration structDatabaseConfiguration, String sql, Integer pageNo) throws SQLException {
+    public CustomPage<Map<String, Object>> execSelectSqlToQueryAICustomSQLVO(StructDatabaseConfiguration structDatabaseConfiguration, String sql, Integer pageNo,Integer pageSize) throws SQLException {
         try (Connection connection = getConByConfig(structDatabaseConfiguration)) {
             // 分页查询数据
-            return pageQuery(sql, pageNo, connection);
+            return pageQuery(sql, pageNo, pageSize,connection);
         }
     }
 
     /**
      * 分页查询数据
+     *
      * @param originalSql 原始查询数据
-     * @param pageNo 页下标
-     * @param connection 数据库连接
+     * @param pageNo      页下标
+     * @param connection  数据库连接
      * @return 分页数据
      * @throws SQLException SQL异常
      */
-    public CustomPage<Map<String, Object>> pageQuery(String originalSql, int pageNo, Connection connection) throws SQLException {
+    public CustomPage<Map<String, Object>> pageQuery(String originalSql, int pageNo, int pageSize, Connection connection) throws SQLException {
         int count = getSelectCount(originalSql, connection);
-        String pageQuerySql = getPageQuerySql(originalSql, pageNo);
-        PreparedStatement preparedStatement = connection.prepareStatement(pageQuerySql);
-        List<Map<String, Object>> res = new ArrayList<>();
-        List<String> columns = new ArrayList<>();
-        ResultSet rs = preparedStatement.executeQuery();
+        ResultSet rs = getData(originalSql, pageNo, pageSize, connection);
         // Execute the query or update
         // 处理查询结果
         ResultSetMetaData metaData = rs.getMetaData();
         int columnCount = metaData.getColumnCount();
+        List<Map<String, Object>> res = new ArrayList<>();
+        List<String> columns = new ArrayList<>();
         for (int i = 1; i <= columnCount; i++) {
             columns.add(metaData.getColumnName(i));
         }
@@ -268,10 +272,17 @@ public class RemoteMySQLEngine {
                 .build();
     }
 
+    public ResultSet getData(String originalSql, int pageNo, int pageSize, Connection connection) throws SQLException {
+        String pageQuerySql = getPageQuerySql(originalSql, pageNo, pageSize);
+        PreparedStatement preparedStatement = connection.prepareStatement(pageQuerySql);
+        return preparedStatement.executeQuery();
+    }
+
     /**
      * 获取查询记录数
+     *
      * @param originalSql 查询sql
-     * @param connection 数据库连接
+     * @param connection  数据库连接
      * @return 查询记录数
      * @throws SQLException SQL异常
      */
@@ -293,6 +304,7 @@ public class RemoteMySQLEngine {
 
     /**
      * 获取统计记录sql
+     *
      * @param originalSql 原始sql
      * @return 统计记录sql
      */
@@ -303,11 +315,12 @@ public class RemoteMySQLEngine {
 
     /**
      * 获取分页查询 Sql
+     *
      * @param originalSql 查询sql
-     * @param pageNo 查询的页下标
+     * @param pageNo      查询的页下标
      * @return 获取分页查询的sql
      */
-    public String getPageQuerySql(String originalSql, int pageNo) {
+    public String getPageQuerySql(String originalSql, int pageNo, int pageSize) {
         pageNo = (pageNo - 1) * pageSize;
         return "select tmp.* from (" + originalSql + ") as tmp LIMIT " + pageNo + "," + pageSize;
     }
@@ -324,7 +337,7 @@ public class RemoteMySQLEngine {
         String password = structDatabaseConfiguration.getPassword();
         // 构造URL
         StringBuilder url = new StringBuilder();
-        url.append("jdbc:mysql://" )
+        url.append("jdbc:mysql://")
                 .append(host)
                 .append(":")
                 .append(port)

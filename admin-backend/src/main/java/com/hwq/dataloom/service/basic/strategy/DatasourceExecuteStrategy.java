@@ -25,6 +25,7 @@ import java.util.Map;
 public interface DatasourceExecuteStrategy<REQ> {
     /**
      * 执行策略标识
+     *
      * @return
      */
     String mark();
@@ -42,6 +43,7 @@ public interface DatasourceExecuteStrategy<REQ> {
 
     /**
      * 校验数据
+     *
      * @param req 数据源
      * @return 是否通过校验
      */
@@ -50,6 +52,7 @@ public interface DatasourceExecuteStrategy<REQ> {
 
     /**
      * 获取数据源所有表信息
+     *
      * @param coreDatasource 数据源信息
      * @return 表信息
      */
@@ -57,21 +60,24 @@ public interface DatasourceExecuteStrategy<REQ> {
 
     /**
      * 获取数据源指定表的所有字段信息
+     *
      * @param coreDatasource 数据源
-     * @param tableName 表名
+     * @param tableName      表名
      * @return 所有字段信息
      */
     List<CoreDatasetTableField> getTableFields(CoreDatasource coreDatasource, String tableName);
 
     /**
      * 根据sql从数据源中获取数据
+     *
      * @param datasourceId 数据源ID
      * @return 数据封装类
      */
-    CustomPage<Map<String, Object>> getDataFromDatasourceBySql(CoreDatasource datasourceId, String sql, Integer pageNo) throws SQLException;
+    CustomPage<Map<String, Object>> getDataFromDatasourceBySql(CoreDatasource datasourceId, String sql, Integer pageNo, Integer pageSize) throws SQLException;
 
     /**
      * 获取表和字段信息
+     *
      * @param coreDatasource 数据源
      * @return 表和字段信息
      */

@@ -174,8 +174,8 @@ public class ExcelDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
     }
 
     @Override
-    public CustomPage<Map<String, Object>> getDataFromDatasourceBySql(CoreDatasource datasource, String sql, Integer pageNo) throws SQLException {
-        return datasourceEngine.execSelectSqlToQueryAICustomSQLVO(datasource.getId(), sql, pageNo);
+    public CustomPage<Map<String, Object>> getDataFromDatasourceBySql(CoreDatasource datasource, String sql, Integer pageNo, Integer pageSize) throws SQLException {
+        return datasourceEngine.execSelectSqlToQueryAICustomSQLVO(datasource.getId(), sql, pageNo,pageSize);
     }
 
     @Override

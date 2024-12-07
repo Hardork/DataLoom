@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * @Author:HWQ
@@ -215,6 +216,21 @@ public class AiController {
         User loginUser = userService.getLoginUser(request);
         CustomPage<Map<String, Object>> page = aiService.queryUserChatForSQL(chatForSQLPageRequest, loginUser);
         return ResultUtils.success(page);
+    }
+
+    @Operation(summary = "智能问数excel导出")
+    @ReduceRewardPoint
+    @CheckPoint
+    @AiService
+    @PostMapping("/chat/sql/export_excel")
+    public BaseResponse<Boolean> exportExcel(@RequestBody ChatExportExcelRequest chatExportExcelRequest, HttpServletRequest request,HttpServletResponse response) {
+        // 数据校验
+        ThrowUtils.throwIf(chatExportExcelRequest == null, ErrorCode.PARAMS_ERROR);
+        Long chatHistoryId = chatExportExcelRequest.getChatHistoryId();
+        ThrowUtils.throwIf(chatHistoryId == null, ErrorCode.PARAMS_ERROR, "id不得为空");
+        User loginUser = userService.getLoginUser(request);
+        aiService.exportExcel(chatExportExcelRequest, response);
+        return ResultUtils.success(true);
     }
 
     @Operation(summary = "查询用户选择对话的信息")

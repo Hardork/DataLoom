@@ -1,11 +1,11 @@
 package com.hwq.dataloom.utils.datasource;
+
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.model.dto.newdatasource.TableField;
 import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.enums.TableFieldTypeEnum;
-import com.hwq.dataloom.model.json.ai.UserChatForSQLRes;
 import com.hwq.dataloom.model.vo.dashboard.GetChartDataVO;
 import com.hwq.dataloom.model.vo.dashboard.SeriesData;
 import com.hwq.dataloom.model.vo.dashboard.XArrayData;
@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
 import javax.annotation.Resource;
 import javax.sql.DataSource;
 import java.sql.*;
@@ -36,9 +37,10 @@ public class DatasourceEngine {
 
     /**
      * 执行查询数据源SQL
+     *
      * @param datasourceId 数据源id
-     * @param sql 执行SQL
-     * @param parameters SQL占位符参数
+     * @param sql          执行SQL
+     * @param parameters   SQL占位符参数
      * @return 结果集
      */
     @SneakyThrows
@@ -59,17 +61,18 @@ public class DatasourceEngine {
 
     /**
      * 执行SQL语句并将列集合和记录犯规
+     *
      * @param datasourceId 数据源id
-     * @param parameters 参数
+     * @param parameters   参数
      * @return 查询结果
      */
-    public CustomPage<Map<String, Object>> execSelectSqlToQueryAICustomSQLVO(Long datasourceId, String sql, Integer pageNo, Object... parameters) throws SQLException {
+    public CustomPage<Map<String, Object>> execSelectSqlToQueryAICustomSQLVO(Long datasourceId, String sql, Integer pageNo, Integer pageSize, Object... parameters) throws SQLException {
         int dsIndex = (int) (datasourceId % (dataSourceMap.size()));
         // 获取对应连接池
         DataSource dataSource = dataSourceMap.get(dsIndex);
         try (Connection connection = dataSource.getConnection()) {
             // 分页查询数据
-            return pageQuery(sql, pageNo, connection);
+            return pageQuery(sql, pageNo, pageSize, connection);
         } catch (SQLException e) {
             log.error(e.getMessage(), e);
             throw e;
@@ -78,19 +81,18 @@ public class DatasourceEngine {
 
     /**
      * 分页查询数据
+     *
      * @param originalSql 原始查询数据
-     * @param pageNo 页下标
-     * @param connection 数据库连接
+     * @param pageNo      页下标
+     * @param connection  数据库连接
      * @return 分页数据
      * @throws SQLException SQL异常
      */
-    public CustomPage<Map<String, Object>> pageQuery(String originalSql, int pageNo, Connection connection) throws SQLException {
+    public CustomPage<Map<String, Object>> pageQuery(String originalSql, int pageNo, int pageSize, Connection connection) throws SQLException {
         int count = getSelectCount(originalSql, connection);
-        String pageQuerySql = getPageQuerySql(originalSql, pageNo);
-        PreparedStatement preparedStatement = connection.prepareStatement(pageQuerySql);
+        ResultSet rs = getData(originalSql, pageNo, pageSize, connection);
         List<Map<String, Object>> res = new ArrayList<>();
         List<String> columns = new ArrayList<>();
-        ResultSet rs = preparedStatement.executeQuery();
         // Execute the query or update
         // 处理查询结果
         ResultSetMetaData metaData = rs.getMetaData();
@@ -115,10 +117,18 @@ public class DatasourceEngine {
                 .build();
     }
 
+    public ResultSet getData(String originalSql, int pageNo, int pageSize, Connection connection) throws SQLException {
+        String pageQuerySql = getPageQuerySql(originalSql, pageNo, pageSize);
+        PreparedStatement preparedStatement = connection.prepareStatement(pageQuerySql);
+        return preparedStatement.executeQuery();
+    }
+
+
     /**
      * 获取查询记录数
+     *
      * @param originalSql 查询sql
-     * @param connection 数据库连接
+     * @param connection  数据库连接
      * @return 查询记录数
      * @throws SQLException SQL异常
      */
@@ -140,6 +150,7 @@ public class DatasourceEngine {
 
     /**
      * 获取统计记录sql
+     *
      * @param originalSql 原始sql
      * @return 统计记录sql
      */
@@ -150,11 +161,12 @@ public class DatasourceEngine {
 
     /**
      * 获取分页查询 Sql
+     *
      * @param originalSql 查询sql
-     * @param pageNo 查询的页下标
+     * @param pageNo      查询的页下标
      * @return 获取分页查询的sql
      */
-    public String getPageQuerySql(String originalSql, int pageNo) {
+    public String getPageQuerySql(String originalSql, int pageNo, int pageSize) {
         pageNo = (pageNo - 1) * pageSize;
         return "select tmp.* from (" + originalSql + ") as tmp LIMIT " + pageNo + "," + pageSize;
     }
@@ -162,8 +174,9 @@ public class DatasourceEngine {
 
     /**
      * 执行SQL语句获取图表数据
+     *
      * @param datasourceId 数据源id
-     * @param selectSql 执行SQL
+     * @param selectSql    执行SQL
      * @return 图表数据
      */
     public GetChartDataVO execSelectSqlForGetChartDataVO(Long datasourceId, String selectSql) {
@@ -217,9 +230,10 @@ public class DatasourceEngine {
 
     /**
      * 根据id执行更新数据源SQL
+     *
      * @param datasourceId 数据源id
-     * @param sql 执行SQL
-     * @param parameters 参数
+     * @param sql          执行SQL
+     * @param parameters   参数
      * @return 影响行数
      */
     @SneakyThrows
@@ -243,11 +257,12 @@ public class DatasourceEngine {
 
     /**
      * 执行insert语句
+     *
      * @param datasourceId 数据源id
-     * @param name 表名
-     * @param dataList 所有行数据
-     * @param page 当前插入页
-     * @param pageNumber 一页插入数量
+     * @param name         表名
+     * @param dataList     所有行数据
+     * @param page         当前插入页
+     * @param pageNumber   一页插入数量
      * @return 影响行数
      */
     @SneakyThrows
@@ -265,6 +280,7 @@ public class DatasourceEngine {
 
     /**
      * 执行增量更新insert语句
+     *
      * @param datasourceId 数据源ID
      * @param name
      * @param dataList
@@ -275,12 +291,12 @@ public class DatasourceEngine {
      * @return
      */
     @SneakyThrows
-    public int execInsertAndUpdate(Long datasourceId, String name, List<String[]> dataList, int page, int pageNumber,String[] columns ,TableField tableField) {
+    public int execInsertAndUpdate(Long datasourceId, String name, List<String[]> dataList, int page, int pageNumber, String[] columns, TableField tableField) {
         int dsIndex = (int) (datasourceId % (dataSourceMap.size()));
         // 获取对应连接池
         DataSource dataSource = dataSourceMap.get(dsIndex);
         String primaryKey = tableField.getOriginName();
-        String insertSql = insertDuplicateSql(name, dataList, page, pageNumber, columns , primaryKey);
+        String insertSql = insertDuplicateSql(name, dataList, page, pageNumber, columns, primaryKey);
         try (Connection connection = dataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(insertSql)) {
             // Execute the query or update
@@ -290,9 +306,10 @@ public class DatasourceEngine {
 
     /**
      * 执行create建表语句
+     *
      * @param datasourceId 数据源id
-     * @param tableName 表名
-     * @param tableFields 字段列表
+     * @param tableName    表名
+     * @param tableFields  字段列表
      */
     @SneakyThrows
     public void exeCreateTable(Long datasourceId, String tableName, List<CoreDatasetTableField> tableFields) {
@@ -310,6 +327,7 @@ public class DatasourceEngine {
 
     /**
      * 执行drop table语句
+     *
      * @param datasourceId
      * @param tableName
      */
@@ -342,9 +360,10 @@ public class DatasourceEngine {
 
     /**
      * 创建insert语句
-     * @param name 表名
-     * @param dataList 所有行记录
-     * @param page 当前插入页
+     *
+     * @param name       表名
+     * @param dataList   所有行记录
+     * @param page       当前插入页
      * @param pageNumber 一页插入数量
      * @return insert语句S
      */
@@ -371,6 +390,7 @@ public class DatasourceEngine {
 
     /**
      * 创建增量insert语句
+     *
      * @param name
      * @param dataList
      * @param page
@@ -416,9 +436,9 @@ public class DatasourceEngine {
     }
 
 
-
     /**
-     *  创建建表语句
+     * 创建建表语句
+     *
      * @param tableName
      * @param tableFields
      * @return
@@ -431,6 +451,7 @@ public class DatasourceEngine {
 
     /**
      * 创建字段部分SQL
+     *
      * @param tableFields 表字段信息
      * @return 建表字段语句
      * 示例:
@@ -482,6 +503,7 @@ public class DatasourceEngine {
 
     /**
      * ResultSet转List
+     *
      * @param resultSet
      * @return
      * @throws Exception
@@ -502,7 +524,6 @@ public class DatasourceEngine {
         }
         return resultList;
     }
-
 
 
 }
