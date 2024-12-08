@@ -1,8 +1,7 @@
 package com.hwq.dataloom.model.enums.workflow;
 
-import com.hwq.dataloom.core.workflow.entitys.node.answer.AnswerNodeData;
-import com.hwq.dataloom.core.workflow.entitys.node.data.*;
-import com.thoughtworks.xstream.io.binary.Token;
+import com.hwq.dataloom.core.workflow.node.answer.AnswerNodeData;
+import com.hwq.dataloom.core.workflow.node.data.*;
 import org.apache.commons.lang3.ObjectUtils;
 
 /**

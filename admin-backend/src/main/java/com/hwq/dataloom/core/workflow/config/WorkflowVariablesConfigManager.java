@@ -1,6 +1,6 @@
 package com.hwq.dataloom.core.workflow.config;
 
-import com.hwq.dataloom.core.workflow.entitys.variable.VariableEntity;
+import com.hwq.dataloom.core.workflow.variable.VariableEntity;
 import com.hwq.dataloom.model.entity.Workflow;
 
 import java.util.List;

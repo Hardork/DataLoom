@@ -1,9 +1,9 @@
 package com.hwq.dataloom.core.workflow.factory;
 
 import com.hwq.dataloom.core.file.File;
-import com.hwq.dataloom.core.workflow.entitys.variable.*;
-import com.hwq.dataloom.core.workflow.entitys.variable.segment.*;
 import com.hwq.dataloom.core.workflow.enums.SegmentType;
+import com.hwq.dataloom.core.workflow.variable.*;
+import com.hwq.dataloom.core.workflow.variable.segment.*;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
 

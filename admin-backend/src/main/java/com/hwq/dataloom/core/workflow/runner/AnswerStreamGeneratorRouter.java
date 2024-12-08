@@ -1,9 +1,9 @@
 package com.hwq.dataloom.core.workflow.runner;
 
 import com.hwq.dataloom.model.enums.workflow.NodeTypeEnum;
-import com.hwq.dataloom.core.workflow.entitys.edge.GraphEdge;
-import com.hwq.dataloom.core.workflow.entitys.node.Node;
-import com.hwq.dataloom.core.workflow.entitys.node.answer.GenerateRouteChunk;
+import com.hwq.dataloom.core.workflow.edge.GraphEdge;
+import com.hwq.dataloom.core.workflow.node.Node;
+import com.hwq.dataloom.core.workflow.node.answer.GenerateRouteChunk;
 
 import java.util.HashMap;
 import java.util.List;

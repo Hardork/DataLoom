@@ -5,8 +5,7 @@ import java.util.stream.Collectors;
 import cn.hutool.core.lang.Pair;
 import cn.hutool.json.JSONUtil;
 import com.hwq.dataloom.core.workflow.entitys.SingleIterationRunEntity;
-import com.hwq.dataloom.core.workflow.entitys.node.data.BaseNodeData;
-import com.hwq.dataloom.core.workflow.entitys.variable.VariablePool;
+import com.hwq.dataloom.core.workflow.variable.VariablePool;
 import com.hwq.dataloom.core.workflow.entitys.WorkflowGenerateEntity;
 import com.hwq.dataloom.core.workflow.queue.WorkflowQueueManager;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
@@ -14,9 +13,9 @@ import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.model.entity.Workflow;
 
 import com.hwq.dataloom.model.enums.workflow.NodeTypeEnum;
-import com.hwq.dataloom.core.workflow.entitys.graph.Graph;
-import com.hwq.dataloom.core.workflow.entitys.edge.Edge;
-import com.hwq.dataloom.core.workflow.entitys.node.Node;
+import com.hwq.dataloom.core.workflow.graph.Graph;
+import com.hwq.dataloom.core.workflow.edge.Edge;
+import com.hwq.dataloom.core.workflow.node.Node;
 import org.springframework.stereotype.Component;
 
 /**

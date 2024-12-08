@@ -9,7 +9,7 @@ import java.util.*;
 
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
-import com.hwq.dataloom.core.workflow.entitys.graph.Graph;
+import com.hwq.dataloom.core.workflow.graph.Graph;
 import lombok.Data;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;

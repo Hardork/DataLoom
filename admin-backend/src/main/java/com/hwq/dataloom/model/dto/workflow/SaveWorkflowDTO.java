@@ -1,6 +1,6 @@
 package com.hwq.dataloom.model.dto.workflow;
 
-import com.hwq.dataloom.core.workflow.entitys.graph.Graph;
+import com.hwq.dataloom.core.workflow.graph.Graph;
 import lombok.Data;
 
 import java.util.List;
