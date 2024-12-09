@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hwq.dataloom.core.workflow.config.FileExtraConfig;
 import com.hwq.dataloom.core.workflow.enums.FileTransferMethod;
 import com.hwq.dataloom.core.workflow.enums.FileType;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,6 +17,8 @@ import java.util.Map;
  * @DateTime: 2024/11/25 15:59
  **/
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class File {
 
     private String id; // message file id
