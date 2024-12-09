@@ -1,42 +1,35 @@
 package com.hwq.dataloom.core.workflow.node.handler.test;
 
+import com.hwq.dataloom.utils.generator.Generator;
+
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.stream.Stream;
 
 /**
  * @author HWQ
  * @date 2024/12/8 20:31
- * @description
+ * @description 测试生成器方法
  */
 public class Test {
-}
-
-class NumberGenerator implements Iterator<Integer> {
-
-    private int current = 0;
-    private final int limit = 5;
-
-    @Override
-    public boolean hasNext() {
-        return current < limit;
-    }
-
-    @Override
-    public Integer next() {
-        if (hasNext()) {
-            int num = current;
-            current++;
-            System.out.println("hello");
-            return num;
-        }
-        throw new NoSuchElementException();
-    }
-
     public static void main(String[] args) {
-
-        NumberGenerator gen = new NumberGenerator();
-        while (gen.hasNext()) {
-            System.out.println(gen.next());
-        }
+        Stream<String> stream = Generator.stream(c -> {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            c.accept("start");
+            c.accept("end");
+        });
+        System.out.println("开始处理啦");
+        stream.forEach(integer -> {
+            if (integer.equals("start")) {
+                System.out.println("异常发生");
+                return;
+            }
+        });
     }
+
+
 }
