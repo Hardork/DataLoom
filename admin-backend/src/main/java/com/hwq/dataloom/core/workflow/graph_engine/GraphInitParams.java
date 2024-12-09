@@ -14,9 +14,9 @@ import java.util.Map;
 @Data
 public class GraphInitParams {
     private WorkflowTypeEnum workflowType;
-    private String workflowId;
+    private Long workflowId;
     private Map<String, Object> graphConfig;
-    private String userId;
+    private Long userId;
     private UserFrom userFrom;
     private int callDepth;
 }

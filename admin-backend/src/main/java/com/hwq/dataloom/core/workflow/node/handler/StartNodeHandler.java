@@ -3,6 +3,7 @@ package com.hwq.dataloom.core.workflow.node.handler;
 import com.hwq.dataloom.core.workflow.entitys.NodeRunResult;
 import com.hwq.dataloom.core.workflow.graph.Graph;
 import com.hwq.dataloom.core.workflow.graph_engine.GraphInitParams;
+import com.hwq.dataloom.core.workflow.graph_engine.entities.GraphRuntimeState;
 import com.hwq.dataloom.core.workflow.node.Node;
 import com.hwq.dataloom.model.enums.workflow.NodeTypeEnum;
 
@@ -16,8 +17,15 @@ import java.util.Map;
  */
 public class StartNodeHandler extends BaseNodeHandler {
 
-    public StartNodeHandler(String id, Map<String, Object> config, GraphInitParams graphInitParams, String graphRuntimeState, String threadPoolId) {
-        super(NodeTypeEnum.START, id, config, graphInitParams, graphRuntimeState, threadPoolId);
+    public StartNodeHandler(
+            String id, Map<String, Object> config,
+            Graph graph,
+            GraphInitParams graphInitParams,
+            GraphRuntimeState graphRuntimeState,
+            String previousNodeId,
+            String threadPoolId
+    ) {
+        super(NodeTypeEnum.START, id, config, graph, graphInitParams, graphRuntimeState, previousNodeId,threadPoolId);
     }
 
     @Override
@@ -27,6 +35,7 @@ public class StartNodeHandler extends BaseNodeHandler {
 
     @Override
     public NodeRunResult nodeRun() {
+//        this.
         return null;
     }
 
