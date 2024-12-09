@@ -31,7 +31,6 @@ import java.util.stream.StreamSupport;
 @Slf4j
 public abstract class BaseNodeHandler {
 
-
     private NodeTypeEnum nodeTypeEnum;
 
     private String id;
@@ -58,6 +57,8 @@ public abstract class BaseNodeHandler {
 
     private String nodeId;
 
+
+    public BaseNodeHandler(){}
 
     public BaseNodeHandler(
             NodeTypeEnum nodeTypeEnum,

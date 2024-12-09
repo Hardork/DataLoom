@@ -17,6 +17,9 @@ import java.util.Map;
  */
 public class StartNodeHandler extends BaseNodeHandler {
 
+    public StartNodeHandler() {
+    }
+
     public StartNodeHandler(
             String id, Map<String, Object> config,
             Graph graph,

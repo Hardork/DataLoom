@@ -1,10 +1,13 @@
 package com.hwq.dataloom.core.workflow.runner;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import cn.hutool.core.lang.Pair;
 import cn.hutool.json.JSONUtil;
 import com.hwq.dataloom.core.workflow.entitys.SingleIterationRunEntity;
+import com.hwq.dataloom.core.workflow.node.handler.BaseNodeHandler;
+import com.hwq.dataloom.core.workflow.node.handler.NodeHandlerMapping;
 import com.hwq.dataloom.core.workflow.variable.VariablePool;
 import com.hwq.dataloom.core.workflow.entitys.WorkflowGenerateEntity;
 import com.hwq.dataloom.core.workflow.queue.WorkflowQueueManager;
@@ -90,8 +93,10 @@ public class WorkflowRunner {
         // 获取节点类型
         Node node = iterationNode.get();
         NodeTypeEnum type = NodeTypeEnum.getEnumByValue(node.getData().get("type").toString());
-        // TODO: 根据不同类型的Node提取入参
-
+        // 根据不同类型的Node提取入参
+        BaseNodeHandler nodeHandlerByType = NodeHandlerMapping.getNodeClassByType(type);
+        Map<String, List<String>> variableMapping = nodeHandlerByType.extractVariableSelectorToVariableMapping(graph, node);
+        // 将用户的输入映射到变量池中
         return null;
     }
 
