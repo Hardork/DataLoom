@@ -1,4 +1,4 @@
-package com.hwq.dataloom.core.workflow.graph_engine.entities;
+package com.hwq.dataloom.core.workflow.graph_engine.entities.event;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

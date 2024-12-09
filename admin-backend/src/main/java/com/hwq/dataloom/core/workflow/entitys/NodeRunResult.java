@@ -4,7 +4,9 @@ import com.hwq.dataloom.core.model_runtime.entity.LLMUsage;
 import com.hwq.dataloom.core.workflow.enums.FileType;
 import com.hwq.dataloom.core.workflow.enums.NodeRunMetadataKey;
 import com.hwq.dataloom.core.workflow.enums.NodeRunStatus;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Map;
 
@@ -14,6 +16,8 @@ import java.util.Map;
  * @description 节点运行结果类
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class NodeRunResult {
 
     /**
@@ -46,4 +50,8 @@ public class NodeRunResult {
      */
     private String error;
 
+    public NodeRunResult(NodeRunStatus nodeRunStatus, String error){
+        this.status = nodeRunStatus;
+        this.error = error;
+    }
 }

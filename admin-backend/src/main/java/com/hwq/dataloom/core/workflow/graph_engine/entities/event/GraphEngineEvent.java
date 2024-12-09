@@ -1,4 +1,4 @@
-package com.hwq.dataloom.core.workflow.graph_engine.entities;
+package com.hwq.dataloom.core.workflow.graph_engine.entities.event;
 
 /**
  * 画布引擎事件基类

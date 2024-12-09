@@ -49,6 +49,11 @@ public class RouteNodeState {
         this.index = 1;
     }
 
+    public RouteNodeState(String nodeId, LocalDateTime startAt) {
+        this.nodeId = nodeId;
+        this.startAt = startAt;
+    }
+
     public void setFinished(NodeRunResult runResult) {
         if (status == Status.SUCCESS || status == Status.FAILED) {
             throw new RuntimeException("Route state " + id + " already finished");

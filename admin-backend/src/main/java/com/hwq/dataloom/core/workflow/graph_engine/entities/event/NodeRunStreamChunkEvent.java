@@ -1,7 +1,9 @@
-package com.hwq.dataloom.core.workflow.graph_engine.entities;
+package com.hwq.dataloom.core.workflow.graph_engine.entities.event;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -10,6 +12,8 @@ import java.util.List;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class NodeRunStreamChunkEvent extends BaseNodeEvent {
 
     /**

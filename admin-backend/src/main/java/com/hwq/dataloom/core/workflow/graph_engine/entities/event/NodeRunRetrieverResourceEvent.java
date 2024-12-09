@@ -1,7 +1,6 @@
-package com.hwq.dataloom.core.workflow.graph_engine.entities;
+package com.hwq.dataloom.core.workflow.graph_engine.entities.event;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 
 import java.util.List;
 import java.util.Map;
@@ -11,6 +10,8 @@ import java.util.Map;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class NodeRunRetrieverResourceEvent extends BaseNodeEvent {
 
     private List<Map<String, Object>> retrieverResources;

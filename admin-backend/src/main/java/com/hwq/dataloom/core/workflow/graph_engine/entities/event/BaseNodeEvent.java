@@ -1,5 +1,6 @@
-package com.hwq.dataloom.core.workflow.graph_engine.entities;
+package com.hwq.dataloom.core.workflow.graph_engine.entities.event;
 
+import com.hwq.dataloom.core.workflow.graph_engine.entities.RouteNodeState;
 import com.hwq.dataloom.core.workflow.node.data.BaseNodeData;
 import com.hwq.dataloom.model.enums.workflow.NodeTypeEnum;
 import lombok.Data;
@@ -12,7 +13,6 @@ import lombok.EqualsAndHashCode;
 @Data
 public class BaseNodeEvent extends GraphEngineEvent {
 
-    // Getters and setters
     private String id;
 
     private String nodeId;
