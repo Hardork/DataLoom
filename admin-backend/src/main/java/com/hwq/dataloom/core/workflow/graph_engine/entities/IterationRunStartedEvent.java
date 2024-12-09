@@ -11,7 +11,7 @@ import java.util.Map;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-class IterationRunStartedEvent extends BaseIterationEvent {
+public class IterationRunStartedEvent extends BaseIterationEvent {
 
     private Date startAt;
 

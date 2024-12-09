@@ -6,7 +6,7 @@ import lombok.Data;
  * 节点运行开始事件
  */
 @Data
-class NodeRunStartedEvent extends BaseNodeEvent {
+public class NodeRunStartedEvent extends BaseNodeEvent {
 
     private String predecessorNodeId;
 

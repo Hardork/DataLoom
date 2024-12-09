@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-class IterationRunNextEvent extends BaseIterationEvent {
+public class IterationRunNextEvent extends BaseIterationEvent {
 
     private int index;
 

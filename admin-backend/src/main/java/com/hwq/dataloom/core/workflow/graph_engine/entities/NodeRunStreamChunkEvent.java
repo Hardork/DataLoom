@@ -10,7 +10,7 @@ import java.util.List;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-class NodeRunStreamChunkEvent extends BaseNodeEvent {
+public class NodeRunStreamChunkEvent extends BaseNodeEvent {
 
     /**
      * 响应内容块

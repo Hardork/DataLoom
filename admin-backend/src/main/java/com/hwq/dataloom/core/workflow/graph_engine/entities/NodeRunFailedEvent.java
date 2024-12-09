@@ -6,6 +6,6 @@ import lombok.Data;
  * 节点运行失败事件
  */
 @Data
-class NodeRunFailedEvent extends BaseNodeEvent {
+public class NodeRunFailedEvent extends BaseNodeEvent {
     private String error;
 }

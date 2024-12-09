@@ -3,12 +3,14 @@ package com.hwq.dataloom.core.workflow.graph_engine.entities;
 import com.hwq.dataloom.core.workflow.node.data.BaseNodeData;
 import com.hwq.dataloom.model.enums.workflow.NodeTypeEnum;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * 节点事件基类
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
-class BaseNodeEvent extends GraphEngineEvent {
+public class BaseNodeEvent extends GraphEngineEvent {
 
     // Getters and setters
     private String id;

@@ -8,6 +8,6 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-class GraphRunFailedEvent extends BaseGraphEvent {
+public class GraphRunFailedEvent extends BaseGraphEvent {
     private String error;
 }

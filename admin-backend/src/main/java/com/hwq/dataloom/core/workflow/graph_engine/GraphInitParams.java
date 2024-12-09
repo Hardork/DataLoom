@@ -2,6 +2,7 @@ package com.hwq.dataloom.core.workflow.graph_engine;
 
 import com.hwq.dataloom.core.workflow.enums.UserFrom;
 import com.hwq.dataloom.model.enums.workflow.WorkflowTypeEnum;
+import lombok.Data;
 
 import java.util.Map;
 
@@ -10,6 +11,7 @@ import java.util.Map;
  * @date 2024/12/8 14:21
  * @description graph初始参数
  */
+@Data
 public class GraphInitParams {
     private WorkflowTypeEnum workflowType;
     private String workflowId;

@@ -1,7 +1,6 @@
 package com.hwq.dataloom.core.workflow.node.handler.test;
 
 import com.hwq.dataloom.core.workflow.graph_engine.entities.GraphEngineEvent;
-import com.hwq.dataloom.core.workflow.graph_engine.entities.NodeRunFailedEvent;
 import com.hwq.dataloom.core.workflow.graph_engine.entities.NodeRunStartedEvent;
 import com.hwq.dataloom.core.workflow.graph_engine.entities.RouteNodeState;
 import jdk.nashorn.internal.ir.BaseNode;

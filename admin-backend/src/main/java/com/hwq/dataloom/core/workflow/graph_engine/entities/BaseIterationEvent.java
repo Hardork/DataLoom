@@ -8,7 +8,7 @@ import lombok.Data;
  * 迭代事件基类
  */
 @Data
-class BaseIterationEvent extends GraphEngineEvent {
+public class BaseIterationEvent extends GraphEngineEvent {
 
     private String iterationId;
 

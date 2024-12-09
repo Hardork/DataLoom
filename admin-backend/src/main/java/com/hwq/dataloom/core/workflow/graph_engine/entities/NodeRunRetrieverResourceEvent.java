@@ -11,7 +11,7 @@ import java.util.Map;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-class NodeRunRetrieverResourceEvent extends BaseNodeEvent {
+public class NodeRunRetrieverResourceEvent extends BaseNodeEvent {
 
     private List<Map<String, Object>> retrieverResources;
 

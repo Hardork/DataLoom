@@ -9,8 +9,11 @@ import com.hwq.dataloom.core.workflow.enums.NodeRunStatus;
 import lombok.Data;
 import lombok.Getter;
 
+/**
+ * 路径节点状态
+ */
 @Data
-class RouteNodeState {
+public class RouteNodeState {
 
     enum Status {
         RUNNING,

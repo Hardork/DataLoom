@@ -3,7 +3,7 @@ package com.hwq.dataloom.core.workflow.graph_engine.entities;
 /**
  * 并行分支事件基类
  */
-class BaseParallelBranchEvent extends GraphEngineEvent {
+public class BaseParallelBranchEvent extends GraphEngineEvent {
 
     private String parallelId;
 

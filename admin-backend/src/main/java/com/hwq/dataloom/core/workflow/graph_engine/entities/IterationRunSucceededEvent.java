@@ -9,7 +9,7 @@ import java.util.Map;
  * 迭代运行成功事件
  */
 @Data
-class IterationRunSucceededEvent extends BaseIterationEvent {
+public class IterationRunSucceededEvent extends BaseIterationEvent {
 
     private Date startAt;
 

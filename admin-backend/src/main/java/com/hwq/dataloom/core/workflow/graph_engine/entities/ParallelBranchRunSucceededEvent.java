@@ -1,4 +1,4 @@
 package com.hwq.dataloom.core.workflow.graph_engine.entities;
 
-class ParallelBranchRunSucceededEvent extends BaseParallelBranchEvent {
+public class ParallelBranchRunSucceededEvent extends BaseParallelBranchEvent {
 }
