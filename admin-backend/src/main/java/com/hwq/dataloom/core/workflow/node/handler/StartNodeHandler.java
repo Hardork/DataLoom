@@ -1,10 +1,13 @@
 package com.hwq.dataloom.core.workflow.node.handler;
 
+import cn.hutool.json.JSONUtil;
 import com.hwq.dataloom.core.workflow.entitys.NodeRunResult;
 import com.hwq.dataloom.core.workflow.graph.Graph;
 import com.hwq.dataloom.core.workflow.graph_engine.GraphInitParams;
 import com.hwq.dataloom.core.workflow.graph_engine.entities.GraphRuntimeState;
 import com.hwq.dataloom.core.workflow.node.Node;
+import com.hwq.dataloom.core.workflow.node.data.BaseNodeData;
+import com.hwq.dataloom.core.workflow.node.data.StartNodeData;
 import com.hwq.dataloom.model.enums.workflow.NodeTypeEnum;
 
 import java.util.List;
@@ -37,8 +40,22 @@ public class StartNodeHandler extends BaseNodeHandler {
     }
 
     @Override
+    public BaseNodeData parseNodeDataFromMap() {
+        Map<String, Object> config = getConfig();
+        Object data = config.get("data");
+        StartNodeData nodeData = null;
+        try {
+            nodeData = JSONUtil.toBean(JSONUtil.toJsonStr(data), StartNodeData.class);
+        } catch (Exception e) {
+            //TODO: 停止执行，返回错误原因
+
+        }
+        return nodeData;
+    }
+
+    @Override
     public NodeRunResult nodeRun() {
-//        this.
+
         return null;
     }
 

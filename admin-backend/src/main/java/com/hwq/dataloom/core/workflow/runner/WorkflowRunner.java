@@ -1,5 +1,4 @@
 package com.hwq.dataloom.core.workflow.runner;
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -94,9 +93,12 @@ public class WorkflowRunner {
         Node node = iterationNode.get();
         NodeTypeEnum type = NodeTypeEnum.getEnumByValue(node.getData().get("type").toString());
         // 根据不同类型的Node提取入参
-        BaseNodeHandler nodeHandlerByType = NodeHandlerMapping.getNodeClassByType(type);
-        Map<String, List<String>> variableMapping = nodeHandlerByType.extractVariableSelectorToVariableMapping(graph, node);
-        // 将用户的输入映射到变量池中
+        BaseNodeHandler nodeHandler = NodeHandlerMapping.getNodeClassByType(type);
+        // 获取变量映射
+        Map<String, List<String>> variableMapping = nodeHandler.extractVariableSelectorToVariableMapping(graph, node);
+        // 初始化变量池
+        VariablePool variablePool = new VariablePool(new HashMap<>(), new HashMap<>(), workflow.getEnvVariablesFromJsonStr());
+
         return null;
     }
 

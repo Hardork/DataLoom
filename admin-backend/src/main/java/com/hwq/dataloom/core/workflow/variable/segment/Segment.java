@@ -1,25 +1,22 @@
 package com.hwq.dataloom.core.workflow.variable.segment;
 
 import com.hwq.dataloom.core.workflow.enums.SegmentType;
+import lombok.Data;
 
 import java.io.Serializable;
 
+@Data
 public abstract class Segment implements Serializable {
     private SegmentType valueType;
     private Object value;
+
+    public Segment() {}
 
     public Segment(SegmentType valueType, Object value) {
         this.valueType = valueType;
         this.value = value;
     }
 
-    public SegmentType getValueType() {
-        return valueType;
-    }
-
-    public Object getValue() {
-        return value;
-    }
 
     public String getText() {
         return String.valueOf(this.value);

@@ -7,10 +7,13 @@ import com.baomidou.mybatisplus.annotation.*;
 import java.io.Serializable;
 import java.util.*;
 
+import com.hwq.dataloom.core.workflow.factory.VariableBuilder;
+import com.hwq.dataloom.core.workflow.variable.Variable;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.core.workflow.graph.Graph;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -20,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 @TableName(value ="workflow")
 @Data
+@Slf4j
 public class Workflow implements Serializable {
     /**
      * 主键
@@ -147,6 +151,32 @@ public class Workflow implements Serializable {
             return JSONUtil.toBean(features, new TypeReference<Map<String, Object>>() {}, false);
         }
         return new HashMap<>();
+    }
+
+    /**
+     * 获取环境变量
+     * @return 环境变量列表
+     */
+    public List<Variable> getEnvVariablesFromJsonStr() {
+        // 如果环境变量未初始化，初始化为 "{}"
+        if (envVariables == null) {
+            envVariables = "{}";
+        }
+        try {
+            Map<String, Object> environmentVariablesDict = JSONUtil.toBean(envVariables, Map.class);
+            List<Variable> results = new ArrayList<>();
+            for (Object value : environmentVariablesDict.values()) {
+                // 根据映射构建变量的方法
+                Variable variable = VariableBuilder.buildVariableFromMapping((Map<String, Object>) value);
+                results.add(variable);
+            }
+            return results;
+        } catch (Exception e) {
+            // 处理异常
+            e.printStackTrace();
+            log.error("工作流 环境变量解析失败 envVariables: {}", envVariables);
+            return new ArrayList<>();
+        }
     }
 
     /**
