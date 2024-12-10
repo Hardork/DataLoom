@@ -1192,3 +1192,27 @@ CREATE TABLE `workflow_runs`
   DEFAULT CHARSET = utf8mb4 comment '工作流运行日志表';
 
 
+create table if not exists workflow_chart_info
+(
+    id bigint not null primary key,
+    chartName varchar(20) default '' null comment '图表名称',
+    chartDesc varchar(255)  default '' null comment '图表描述',
+    createTime    datetime      default CURRENT_TIMESTAMP not null comment '创建时间',
+    updateTime    datetime      default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    isDelete      tinyint       default 0                 not null comment '是否删除'
+) comment '工作流图表信息';
+
+create table if not exists workflow_chart_data
+(
+    id bigint not null primary key,
+    workflow_chart_id bigint not null comment '工作流图表信息id',
+    value bigint default 0 not null comment '图表数据',
+    collectionTime datetime default CURRENT_TIMESTAMP not null comment '数据收集时间',
+    createTime    datetime      default CURRENT_TIMESTAMP not null comment '创建时间',
+    updateTime    datetime      default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    isDelete      tinyint       default 0                 not null comment '是否删除'
+) comment '工作流图表数据';
+
+
+
+
