@@ -6,14 +6,15 @@ import com.hwq.dataloom.core.workflow.enums.UserFrom;
 import com.hwq.dataloom.core.workflow.graph.Graph;
 import com.hwq.dataloom.core.workflow.graph_engine.GraphInitParams;
 import com.hwq.dataloom.core.workflow.graph_engine.entities.GraphRuntimeState;
-import com.hwq.dataloom.core.workflow.graph_engine.entities.event.BaseNodeEvent;
 import com.hwq.dataloom.core.workflow.node.Node;
+import com.hwq.dataloom.core.workflow.node.data.BaseNodeData;
 import com.hwq.dataloom.core.workflow.node.event.RunCompletedEvent;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.utils.generator.Generator;
 import com.hwq.dataloom.utils.generator.Seq;
 import com.hwq.dataloom.model.enums.workflow.NodeTypeEnum;
+import javafx.beans.binding.ObjectExpression;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.yaml.snakeyaml.events.NodeEvent;
@@ -57,12 +58,15 @@ public abstract class BaseNodeHandler {
 
     private String nodeId;
 
+    private BaseNodeData nodeData;
+
 
     public BaseNodeHandler(){}
 
     public BaseNodeHandler(
             NodeTypeEnum nodeTypeEnum,
-            String id, Map<String, Object> config,
+            String id,
+            Map<String, Object> config,
             Graph graph,
             GraphInitParams graphInitParams,
             GraphRuntimeState graphRuntimeState,
@@ -84,7 +88,7 @@ public abstract class BaseNodeHandler {
         String nodeId = (String) config.get("id");
         ThrowUtils.throwIf(nodeId == null, ErrorCode.OPERATION_ERROR, "Node id 不得为空");
         this.nodeId = nodeId;
-
+        this.nodeData = this.parseNodeDataFromMap(config);
     }
 
     /**
@@ -94,6 +98,12 @@ public abstract class BaseNodeHandler {
      * @return Map
      */
     public abstract Map<String, List<String>> extractVariableSelectorToVariableMapping(Graph graph, Node node);
+
+    /**
+     * 从config中读取当前节点的data数据
+     * @return 当前节点data数据
+     */
+    public abstract BaseNodeData parseNodeDataFromMap(Map<String, Object> data);
 
 
     /**

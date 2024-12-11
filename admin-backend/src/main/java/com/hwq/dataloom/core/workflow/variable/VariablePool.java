@@ -10,6 +10,7 @@ import com.hwq.dataloom.core.workflow.enums.SystemVariableKey;
 import com.hwq.dataloom.core.workflow.factory.VariableBuilder;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
+import lombok.Data;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,39 +18,46 @@ import java.util.stream.Collectors;
 /**
  * 工作流变量池
  */
+@Data
 public class VariablePool {
     // variable_dictionary，使用嵌套的Map结构
-    private Map<String, Map<Integer, Segment>> variableDictionary = new HashMap<>();
+    private Map<String, Map<Integer, Segment>> variableDictionary;
     // user_inputs，使用Map来存储用户输入相关数据（简化结构，实际按业务完善）
-    private Map<String, Object> userInputs = new HashMap<>();
+    private Map<String, Object> userInputs;
     // system_variables，使用Map存储系统变量（按SystemVariableKey作为键，实际按业务完善）
-    private Map<SystemVariableKey, Object> systemVariables = new HashMap<>();
+    private Map<SystemVariableKey, Object> systemVariables;
     // environment_variables，使用List存储环境变量（简化为存储Variable实例，实际按业务完善）
-    private List<VariableEntity> environmentVariables = new ArrayList<>();
+    private List<Variable> environmentVariables;
     // conversation_variables，使用List存储会话变量（同样简化，按实际完善）
-    private List<VariableEntity> conversationVariables = new ArrayList<>();
+    private List<Variable> conversationVariables;
+
+    public VariablePool(Map<SystemVariableKey, Object> systemVariables, Map<String, Object> userInputs, List<Variable> environmentVariables) {
+        this.systemVariables = systemVariables;
+        this.userInputs = userInputs;
+        this.environmentVariables = environmentVariables;
+    }
 
     // 构造函数初始化逻辑
     public VariablePool(Map<SystemVariableKey, Object> system_variables, Map<String, Object> user_inputs,
-                        Collection<VariableEntity> environment_variables, Collection<VariableEntity> conversationVariables) {
+                        Collection<Variable> environment_variables, Collection<Variable> conversationVariables) {
         this.systemVariables = Optional.ofNullable(system_variables).orElse(MapUtil.empty());
         this.userInputs = Optional.ofNullable(user_inputs).orElse(MapUtil.empty());
         this.environmentVariables = new ArrayList<>(Optional.ofNullable(environment_variables).orElse(ListUtil.empty()));
         this.conversationVariables = new ArrayList<>(Optional.of(conversationVariables).orElse(ListUtil.empty()));
 
-        // 模拟Python中添加系统变量到变量池的逻辑
+        // 添加系统变量到变量池
         this.systemVariables.forEach((key, value) -> {
             add(Arrays.asList(WorkflowConstant.SYSTEM_VARIABLE_NODE_ID, key.name()), value);
         });
 
-        // 模拟添加环境变量到变量池的逻辑
+        // 添加环境变量到变量池
         this.environmentVariables.forEach(var -> {
-            add(Arrays.asList(WorkflowConstant.ENVIRONMENT_VARIABLE_NODE_ID, var.getLabel()), var);
+            add(Arrays.asList(WorkflowConstant.ENVIRONMENT_VARIABLE_NODE_ID, var.getName()), var);
         });
 
-        // 模拟添加会话变量到变量池的逻辑
+        // 添加会话变量到变量池
         this.conversationVariables.forEach(var -> {
-            add(Arrays.asList(WorkflowConstant.CONVERSATION_VARIABLE_NODE_ID, var.getLabel()), var);
+            add(Arrays.asList(WorkflowConstant.CONVERSATION_VARIABLE_NODE_ID, var.getName()), var);
         });
     }
 
@@ -63,12 +71,16 @@ public class VariablePool {
         variableDictionary.computeIfAbsent(selector.get(0), k -> new HashMap<>()).put(hash_key, v);
     }
 
-    // get方法逻辑
+
+    /**
+     * 获取变量片段
+     * @param selector 选择器
+     * @return 变量片段
+     */
     public Segment get(List<String> selector) {
         if (selector.size() < 2) {
             return null;
         }
-
         int hash_key = Objects.hash(selector.subList(1, selector.size()).toArray());
         Map<Integer, Segment> innerMap = variableDictionary.get(selector.get(0));
         if (innerMap == null) {
@@ -90,8 +102,7 @@ public class VariablePool {
             FileAttribute fileAttr = FileAttribute.valueOf(attr);
             // 这里假设存在获取文件属性值的方法（实际按业务完善逻辑，目前简单返回null示例）
             Object attrValue = null;
-            Segment resultSegment = VariableBuilder.buildSegment(attrValue);
-            return resultSegment;
+            return VariableBuilder.buildSegment(attrValue);
         }
 
         return value;
