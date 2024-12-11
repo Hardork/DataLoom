@@ -59,12 +59,15 @@ public class Graph {
      * @return Graph对象
      */
     public static Graph init(String graphConfig, String rootNodeId) {
-        // 1. parse str to bean
+        // 将JSON字符串转为Graph对象
         Graph graph = JSONUtil.toBean(graphConfig, Graph.class);
-        // 2.init edges config
+        // 初始化边配置
         List<Edge> edges = graph.getEdges();
+        // 出 - 入 边集合
         Map<String, List<GraphEdge>> sourceEdgeMapping = new HashMap<>();
+        // 入 - 出 边集合
         Map<String, List<GraphEdge>> endEdgeMapping = new HashMap<>();
+        // 所有目标节点集合
         Set<String> targetEdgeIds = new HashSet<>();
         for (Edge edge : edges) {
             String sourceNodeId = edge.getSource();
@@ -93,7 +96,6 @@ public class Graph {
                     .targetNodeId(targetNodeId)
                     .runCondition(runCondition)
                     .build();
-            // add edge to map
             sourceEdgeMapping.get(sourceNodeId).add(graphEdge);
             endEdgeMapping.get(targetNodeId).add(graphEdge);
         }
@@ -113,9 +115,8 @@ public class Graph {
                 .map(Node::getId)
                 .collect(Collectors.toList());
 
-        if (StringUtils.isEmpty(rootNodeId)) { // args no rootNodeId
-            // find start node as rootNode
-            // 2. find start node
+        if (StringUtils.isEmpty(rootNodeId)) { // 如果没有传rootNodeId
+            // 寻找startNode作为rootNode
             List<Node> startNode = graph.findStartNode();
             ThrowUtils.throwIf(startNode.isEmpty(), ErrorCode.OPERATION_ERROR, "任务缺少start节点");
             ThrowUtils.throwIf(startNode.size() >= 2, ErrorCode.OPERATION_ERROR, "start节点仅可有1个");
@@ -126,23 +127,25 @@ public class Graph {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "起始节点id" + rootNodeId + "在任务中未找到");
         }
 
-        // Check whether it is connected to the previous node
+        // 校验是否存在环，防止运行死循环
         List<String> route = new ArrayList<>();
         route.add(rootNodeId);
         checkCircle(route, sourceEdgeMapping);
-        // fetch all node ids from root node
+
+        // 从rootNode递归地遍历收集所有NodeId
         List<String> runNodeList = new ArrayList<>();
-        addRunNode2List(runNodeList, sourceEdgeMapping, rootNodeId);
+        addRunNode2ListRecursively(runNodeList, sourceEdgeMapping, rootNodeId);
 
         Map<String, Node> runNodeListMap = new HashMap<>();
         runNodeList.forEach(nodeId -> runNodeListMap.put(nodeId, allNodeMap.get(nodeId)));
 
-        // init parallel mapping (初始化并行节点)
+        // 初始化存储并行关系Map
         Map<String, GraphParallel> parallelMapping = new HashMap<>();
         Map<String, String> nodeParallelMap = new HashMap<>();
+        // 递归地遍历添加并行关系
         addParallelsRecursively(sourceEdgeMapping, endEdgeMapping, rootNodeId, parallelMapping, nodeParallelMap, null);
 
-        // Check if it exceeds N layers of parallel
+        // 校验并行是否超过了N层
         for (GraphParallel parallel : parallelMapping.values()) {
             if (parallel.getParentParallelId() != null) {
                 checkExceedParallelLimit(parallelMapping, 3, parallel.getParentParallelId(), 1);
@@ -204,17 +207,32 @@ public class Graph {
 
     }
 
-    public static void addRunNode2List(List<String> runNodeList, Map<String, List<GraphEdge>> sourceNodeMap, String nodeId) {
+    /**
+     * 递归地添加NodeId到集合
+     * @param runNodeList NodeId集合
+     * @param sourceNodeMap sourceNode关联边集合
+     * @param nodeId nodeId
+     */
+    public static void addRunNode2ListRecursively(List<String> runNodeList, Map<String, List<GraphEdge>> sourceNodeMap, String nodeId) {
         for (GraphEdge edge : sourceNodeMap.getOrDefault(nodeId, new ArrayList<>())) {
             String nextNodeId = edge.getTargetNodeId();
             if (runNodeList.contains(nextNodeId)) { // has circle
                 continue;
             }
             runNodeList.add(nextNodeId);
-            addRunNode2List(runNodeList, sourceNodeMap, nextNodeId);
+            addRunNode2ListRecursively(runNodeList, sourceNodeMap, nextNodeId);
         }
     }
 
+    /**
+     * 递归地添加并行关系
+     * @param sourceEdgeMapping 顺序边描述
+     * @param endEdgeMapping 逆序边描述
+     * @param rootNodeId rootNodeId
+     * @param parallelMapping 并行映射
+     * @param nodeParallelMapping
+     * @param parentParallel
+     */
     private static void addParallelsRecursively(
             Map<String, List<GraphEdge>> sourceEdgeMapping,
             Map<String, List<GraphEdge>> endEdgeMapping,
