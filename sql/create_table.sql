@@ -1191,7 +1191,7 @@ CREATE TABLE `workflow_runs`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4 comment '工作流运行日志表';
 
-
+DROP TABLE if exists workflow_chart_info;
 create table if not exists workflow_chart_info
 (
     id bigint not null primary key,
@@ -1202,10 +1202,12 @@ create table if not exists workflow_chart_info
     isDelete      tinyint       default 0                 not null comment '是否删除'
 ) comment '工作流图表信息';
 
+
+DROP TABLE if exists workflow_chart_data;
 create table if not exists workflow_chart_data
 (
     id bigint not null primary key,
-    workflow_chart_id bigint not null comment '工作流图表信息id',
+    workflowChartId bigint not null comment '工作流图表信息id',
     value bigint default 0 not null comment '图表数据',
     collectionTime datetime default CURRENT_TIMESTAMP not null comment '数据收集时间',
     createTime    datetime      default CURRENT_TIMESTAMP not null comment '创建时间',
