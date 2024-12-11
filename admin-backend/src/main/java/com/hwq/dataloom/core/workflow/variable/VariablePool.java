@@ -22,11 +22,11 @@ import java.util.stream.Collectors;
 public class VariablePool {
     // variable_dictionary，使用嵌套的Map结构
     private Map<String, Map<Integer, Segment>> variableDictionary;
-    // user_inputs，使用Map来存储用户输入相关数据（简化结构，实际按业务完善）
+    // userInputs，使用Map来存储用户输入相关数据（简化结构，实际按业务完善）
     private Map<String, Object> userInputs;
-    // system_variables，使用Map存储系统变量（按SystemVariableKey作为键，实际按业务完善）
+    // systemVariables，使用Map存储系统变量（按SystemVariableKey作为键，实际按业务完善）
     private Map<SystemVariableKey, Object> systemVariables;
-    // environment_variables，使用List存储环境变量（简化为存储Variable实例，实际按业务完善）
+    // environmentVariables，使用List存储环境变量（简化为存储Variable实例，实际按业务完善）
     private List<Variable> environmentVariables;
     // conversation_variables，使用List存储会话变量（同样简化，按实际完善）
     private List<Variable> conversationVariables;
@@ -37,12 +37,11 @@ public class VariablePool {
         this.environmentVariables = environmentVariables;
     }
 
-    // 构造函数初始化逻辑
-    public VariablePool(Map<SystemVariableKey, Object> system_variables, Map<String, Object> user_inputs,
-                        Collection<Variable> environment_variables, Collection<Variable> conversationVariables) {
-        this.systemVariables = Optional.ofNullable(system_variables).orElse(MapUtil.empty());
-        this.userInputs = Optional.ofNullable(user_inputs).orElse(MapUtil.empty());
-        this.environmentVariables = new ArrayList<>(Optional.ofNullable(environment_variables).orElse(ListUtil.empty()));
+    public VariablePool(Map<SystemVariableKey, Object> systemVariables, Map<String, Object> userInputs,
+                        Collection<Variable> environmentVariables, Collection<Variable> conversationVariables) {
+        this.systemVariables = Optional.ofNullable(systemVariables).orElse(MapUtil.empty());
+        this.userInputs = Optional.ofNullable(userInputs).orElse(MapUtil.empty());
+        this.environmentVariables = new ArrayList<>(Optional.ofNullable(environmentVariables).orElse(ListUtil.empty()));
         this.conversationVariables = new ArrayList<>(Optional.of(conversationVariables).orElse(ListUtil.empty()));
 
         // 添加系统变量到变量池
@@ -61,7 +60,11 @@ public class VariablePool {
         });
     }
 
-    // add方法逻辑
+    /**
+     * 添加变量
+     * @param selector 变量选择器
+     * @param value 值
+     */
     public void add(List<String> selector, Object value)  {
         if (selector.size() < 2) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "Invalid selector");

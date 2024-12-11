@@ -2,10 +2,13 @@ package com.hwq.dataloom.core.workflow.runner;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.lang.Pair;
 import cn.hutool.json.JSONUtil;
+import com.hwq.dataloom.core.file.File;
 import com.hwq.dataloom.core.workflow.WorkflowEntry;
 import com.hwq.dataloom.core.workflow.entitys.SingleIterationRunEntity;
+import com.hwq.dataloom.core.workflow.enums.SystemVariableKey;
 import com.hwq.dataloom.core.workflow.node.data.BaseNodeData;
 import com.hwq.dataloom.core.workflow.node.handler.BaseNodeHandler;
 import com.hwq.dataloom.core.workflow.node.handler.NodeHandlerMapping;
@@ -39,13 +42,26 @@ public class WorkflowRunner {
         if (singleIterationRunEntity != null) {
             Pair<Graph, VariablePool> graphVariablePoolPair = getGraphAndVariablePoolOfSingleIteration(workflow, singleIterationRunEntity.getNodeId(), workflowGenerateEntity.getInputs());
         } else {
+            Map<String, Object> inputs = workflowGenerateEntity.getInputs();
+            List<File> files = workflowGenerateEntity.getFiles();
+
+            // 创建一个变量池
+            Map<SystemVariableKey, Object> systemInputs = new HashMap<>();
+            systemInputs.put(SystemVariableKey.FILES, files);
+            systemInputs.put(SystemVariableKey.USER_ID, workflowGenerateEntity.getUserId());
+            systemInputs.put(SystemVariableKey.WORKFLOW_RUN_ID, workflowGenerateEntity.getWorkflowRunId());
+            systemInputs.put(SystemVariableKey.WORKFLOW_ID, workflowGenerateEntity.getWorkflowConfig().getWorkflowId());
+
+            VariablePool variablePool = new VariablePool(
+                    systemInputs,
+                    inputs,
+                    workflow.getEnvVariablesFromJsonStr(),
+                    ListUtil.empty()
+            );
+            // 初始化graph
             Graph graph = Graph.init(workflow.getGraph(), null);
         }
-
-        // init graph
-
-        // init end stream param
-
+        WorkflowEntry workflowEntry = new WorkflowEntry();
     }
 
     /**
