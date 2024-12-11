@@ -71,12 +71,16 @@ public class VariablePool {
         variableDictionary.computeIfAbsent(selector.get(0), k -> new HashMap<>()).put(hash_key, v);
     }
 
-    // get方法逻辑
+
+    /**
+     * 获取变量片段
+     * @param selector 选择器
+     * @return 变量片段
+     */
     public Segment get(List<String> selector) {
         if (selector.size() < 2) {
             return null;
         }
-
         int hash_key = Objects.hash(selector.subList(1, selector.size()).toArray());
         Map<Integer, Segment> innerMap = variableDictionary.get(selector.get(0));
         if (innerMap == null) {
@@ -98,8 +102,7 @@ public class VariablePool {
             FileAttribute fileAttr = FileAttribute.valueOf(attr);
             // 这里假设存在获取文件属性值的方法（实际按业务完善逻辑，目前简单返回null示例）
             Object attrValue = null;
-            Segment resultSegment = VariableBuilder.buildSegment(attrValue);
-            return resultSegment;
+            return VariableBuilder.buildSegment(attrValue);
         }
 
         return value;

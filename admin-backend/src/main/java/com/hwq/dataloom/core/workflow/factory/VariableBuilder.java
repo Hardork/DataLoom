@@ -5,7 +5,8 @@ import com.hwq.dataloom.core.workflow.enums.SegmentType;
 import com.hwq.dataloom.core.workflow.variable.*;
 import com.hwq.dataloom.core.workflow.variable.segment.*;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
-import com.hwq.dataloom.framework.exception.BusinessException;
+import com.hwq.dataloom.framework.exception.WorkflowException;
+import com.hwq.dataloom.framework.exception.WorkflowException;
 
 import java.util.*;
 
@@ -14,18 +15,24 @@ import java.util.*;
  */
 public class VariableBuilder {
 
-    // MAX_VARIABLE_SIZE的常量（按实际配置获取其值）
+    // 变量允许的最大长度
     private static final int MAX_VARIABLE_SIZE = 1024;
 
-    public static Variable buildVariableFromMapping(Map<String, Object> mapping) throws BusinessException {
+    /**
+     * 从Map中提取变量
+     * @param mapping 变量Map
+     * @return 变量
+     * @throws WorkflowException 业务异常
+     */
+    public static Variable buildVariableFromMapping(Map<String, Object> mapping) throws WorkflowException {
         if (!mapping.containsKey("value_type")) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "missing value type");
+            throw new WorkflowException(ErrorCode.OPERATION_ERROR, "missing value type");
         }
         if (!mapping.containsKey("name")) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR,"missing name");
+            throw new WorkflowException(ErrorCode.OPERATION_ERROR,"missing name");
         }
         if (!mapping.containsKey("value")) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR,"missing value");
+            throw new WorkflowException(ErrorCode.OPERATION_ERROR,"missing value");
         }
 
         SegmentType valueType = SegmentType.valueOf((String) mapping.get("value_type"));
@@ -42,48 +49,53 @@ public class VariableBuilder {
                 } else if (value instanceof Float) {
                     result = new FloatVariable(value, mapping);
                 } else {
-                    throw new BusinessException(ErrorCode.OPERATION_ERROR,"invalid number value " + value);
+                    throw new WorkflowException(ErrorCode.OPERATION_ERROR,"invalid number value " + value);
                 }
                 break;
             case OBJECT:
                 if (value instanceof Map) {
                     result = new ObjectVariable(value, mapping);
                 } else {
-                    throw new BusinessException(ErrorCode.OPERATION_ERROR,"invalid object value " + value);
+                    throw new WorkflowException(ErrorCode.OPERATION_ERROR,"invalid object value " + value);
                 }
                 break;
             case ARRAY_STRING:
                 if (value instanceof List) {
                     result = new ArrayStringVariable(value, mapping);
                 } else {
-                    throw new BusinessException(ErrorCode.OPERATION_ERROR,"invalid array string value " + value);
+                    throw new WorkflowException(ErrorCode.OPERATION_ERROR,"invalid array string value " + value);
                 }
                 break;
             case ARRAY_NUMBER:
                 if (value instanceof List) {
                     result = new ArrayNumberVariable(value, mapping);
                 } else {
-                    throw new BusinessException(ErrorCode.OPERATION_ERROR,"invalid array number value " + value);
+                    throw new WorkflowException(ErrorCode.OPERATION_ERROR,"invalid array number value " + value);
                 }
                 break;
             case ARRAY_OBJECT:
                 if (value instanceof List) {
                     result = new ArrayObjectVariable(value, mapping);
                 } else {
-                    throw new BusinessException(ErrorCode.OPERATION_ERROR,"invalid array object value " + value);
+                    throw new WorkflowException(ErrorCode.OPERATION_ERROR,"invalid array object value " + value);
                 }
                 break;
             default:
-                throw new BusinessException(ErrorCode.OPERATION_ERROR,"not supported value type " + valueType);
+                throw new WorkflowException(ErrorCode.OPERATION_ERROR,"not supported value type " + valueType);
         }
 
         if (result.getSize() > MAX_VARIABLE_SIZE) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR,"variable size " + result.getSize() + " exceeds limit " + MAX_VARIABLE_SIZE);
+            throw new WorkflowException(ErrorCode.OPERATION_ERROR,"variable size " + result.getSize() + " exceeds limit " + MAX_VARIABLE_SIZE);
         }
 
         return result;
     }
 
+    /**
+     * 构建数据片段
+     * @param value 数据
+     * @return 数据片段
+     */
     public static Segment buildSegment(Object value){
         if (value == null) {
             return new NoneSegment();
@@ -120,10 +132,10 @@ public class VariableBuilder {
                 case FILE:
                     return new ArrayFileSegment((List<File>) value);
                 default:
-                    throw new BusinessException(ErrorCode.OPERATION_ERROR, "not supported value " + value);
+                    throw new WorkflowException(ErrorCode.OPERATION_ERROR, "not supported value " + value);
             }
         } else {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "not supported value " + value);
+            throw new WorkflowException(ErrorCode.OPERATION_ERROR, "not supported value " + value);
         }
     }
 }

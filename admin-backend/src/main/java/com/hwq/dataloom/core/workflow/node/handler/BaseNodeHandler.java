@@ -14,6 +14,7 @@ import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.utils.generator.Generator;
 import com.hwq.dataloom.utils.generator.Seq;
 import com.hwq.dataloom.model.enums.workflow.NodeTypeEnum;
+import javafx.beans.binding.ObjectExpression;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.yaml.snakeyaml.events.NodeEvent;
@@ -87,7 +88,7 @@ public abstract class BaseNodeHandler {
         String nodeId = (String) config.get("id");
         ThrowUtils.throwIf(nodeId == null, ErrorCode.OPERATION_ERROR, "Node id 不得为空");
         this.nodeId = nodeId;
-        this.nodeData = this.parseNodeDataFromMap();
+        this.nodeData = this.parseNodeDataFromMap(config);
     }
 
     /**
@@ -102,7 +103,7 @@ public abstract class BaseNodeHandler {
      * 从config中读取当前节点的data数据
      * @return 当前节点data数据
      */
-    public abstract BaseNodeData parseNodeDataFromMap();
+    public abstract BaseNodeData parseNodeDataFromMap(Map<String, Object> data);
 
 
     /**

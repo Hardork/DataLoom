@@ -4,7 +4,9 @@ import java.util.stream.Collectors;
 
 import cn.hutool.core.lang.Pair;
 import cn.hutool.json.JSONUtil;
+import com.hwq.dataloom.core.workflow.WorkflowEntry;
 import com.hwq.dataloom.core.workflow.entitys.SingleIterationRunEntity;
+import com.hwq.dataloom.core.workflow.node.data.BaseNodeData;
 import com.hwq.dataloom.core.workflow.node.handler.BaseNodeHandler;
 import com.hwq.dataloom.core.workflow.node.handler.NodeHandlerMapping;
 import com.hwq.dataloom.core.workflow.variable.VariablePool;
@@ -50,10 +52,10 @@ public class WorkflowRunner {
      * 获取单次迭代的图和变量池
      * @param workflow 工作流实体
      * @param nodeId 起始节点
-     * @param inputs 输入参数
+     * @param userInputs 输入参数
      * @return 图和变量池
      */
-    private Pair<Graph, VariablePool> getGraphAndVariablePoolOfSingleIteration(Workflow workflow, String nodeId, Map<String, Object> inputs) {
+    private Pair<Graph, VariablePool> getGraphAndVariablePoolOfSingleIteration(Workflow workflow, String nodeId, Map<String, Object> userInputs) {
         // 校验
         Map<String, Object> graphDict = workflow.graphDict();
         ThrowUtils.throwIf(graphDict == null, ErrorCode.OPERATION_ERROR, "工作流配置为空");
@@ -91,15 +93,23 @@ public class WorkflowRunner {
 
         // 获取节点类型
         Node node = iterationNode.get();
-        NodeTypeEnum type = NodeTypeEnum.getEnumByValue(node.getData().get("type").toString());
+        NodeTypeEnum nodeType = NodeTypeEnum.getEnumByValue(node.getData().get("type").toString());
+
         // 根据不同类型的Node提取入参
-        BaseNodeHandler nodeHandler = NodeHandlerMapping.getNodeClassByType(type);
+        BaseNodeHandler nodeHandler = NodeHandlerMapping.getNodeClassByType(nodeType);
+
         // 获取变量映射
         Map<String, List<String>> variableMapping = nodeHandler.extractVariableSelectorToVariableMapping(graph, node);
+
         // 初始化变量池
         VariablePool variablePool = new VariablePool(new HashMap<>(), new HashMap<>(), workflow.getEnvVariablesFromJsonStr());
 
-        return null;
+        // 节点数据Map转换为节点数据对象
+        BaseNodeData nodeData = nodeHandler.parseNodeDataFromMap(node.getData());
+
+        // 将用户输入的参数填入变量池
+        WorkflowEntry.mappingUserInputsToVariablePool(variableMapping, userInputs, variablePool, nodeType, nodeData);
+        return new Pair<>(graph, variablePool);
     }
 
 
