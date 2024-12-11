@@ -230,8 +230,8 @@ public class Graph {
      * @param endEdgeMapping 逆序边描述
      * @param rootNodeId rootNodeId
      * @param parallelMapping 并行映射
-     * @param nodeParallelMapping
-     * @param parentParallel
+     * @param nodeParallelMapping 节点并行关系映射
+     * @param parentParallel 父并行关系
      */
     private static void addParallelsRecursively(
             Map<String, List<GraphEdge>> sourceEdgeMapping,
@@ -313,7 +313,7 @@ public class Graph {
                         for (String nodeId : nodeIds) {
                             boolean inParentParallel = true;
                             // 如果存在父并行结构，则需要进一步判断当前节点是否在父并行结构内
-                            if (parentParallelId!= null) {
+                            if (parentParallelId != null) {
                                 inParentParallel = false;
                                 // 遍历节点与并行结构的映射，检查当前节点是否属于父并行结构
                                 for (Map.Entry<String, String> mappingEntry : nodeParallelMapping.entrySet()) {
@@ -451,6 +451,14 @@ public class Graph {
         }
     }
 
+    /**
+     * 获取当前的并行关系
+     * @param parallelMapping 并行关系映射
+     * @param graphEdge 边
+     * @param parallel 当前并行关系
+     * @param parentParallel 父并行关系
+     * @return 父并行关系
+     */
     private static GraphParallel getCurrentParallel(
             Map<String, GraphParallel> parallelMapping,
             GraphEdge graphEdge,
@@ -464,10 +472,17 @@ public class Graph {
             if (parentParallel.getEndToNodeId() == null || !graphEdge.getTargetNodeId().equals(parentParallel.getEndToNodeId())) {
                 currentParallel = parentParallel;
             } else {
-
+                // 获取父并行关系的父并行关系
+                String grandParentParallelId = parentParallel.getParentParallelId();
+                if (!StringUtils.isEmpty(grandParentParallelId)) {
+                    GraphParallel grandParentParallel = parallelMapping.get(parentParallel.getEndToNodeId());
+                    if (grandParentParallel != null && (grandParentParallel.getEndToNodeId() == null || !graphEdge.getTargetNodeId().equals(grandParentParallel.getEndToNodeId()))) {
+                        currentParallel = grandParentParallel;
+                    }
+                }
             }
         }
-        return null;
+        return currentParallel;
     }
 
     /**
@@ -477,7 +492,7 @@ public class Graph {
      * @param parallelBranchNodeIds 并行分支节点Id集合
      * @return 并行分支中所有节点的ID信息
      */
-    public static  Map<String, List<String>> fetchAllNodeIdsInParallels(
+    public static Map<String, List<String>> fetchAllNodeIdsInParallels(
             Map<String, List<GraphEdge>> edgeMapping,
             Map<String, List<GraphEdge>> reverseEdgeMapping,
             List<String> parallelBranchNodeIds
@@ -558,13 +573,9 @@ public class Graph {
             String nodeId = nodeIds[0];
             String nodeId2 = nodeIds[1];
             if (isNode2AfterNode1(nodeId, nodeId2, edgeMapping)) {
-                if (mergeBranchNodeIds.containsKey(nodeId2)) {
-                    mergeBranchNodeIds.remove(nodeId2);
-                }
+                mergeBranchNodeIds.remove(nodeId2);
             } else if (isNode2AfterNode1(nodeId2, nodeId, edgeMapping)) {
-                if (mergeBranchNodeIds.containsKey(nodeId)) {
-                    mergeBranchNodeIds.remove(nodeId);
-                }
+                mergeBranchNodeIds.remove(nodeId);
             }
         }
 
@@ -609,8 +620,28 @@ public class Graph {
         return inBranchNodeIds;
     }
 
+    /**
+     * 判断node2是否在node1之后
+     * @param nodeId node1Id
+     * @param nodeId2 node2Id
+     * @param edgeMapping 边映射
+     * @return node2是否在node1之后
+     */
     private static boolean isNode2AfterNode1(String nodeId, String nodeId2, Map<String, List<GraphEdge>> edgeMapping) {
-        // TODO:
+        if (!edgeMapping.containsKey(nodeId)) {
+            return false;
+        }
+
+        List<GraphEdge> graphEdges = edgeMapping.get(nodeId);
+        for (GraphEdge graphEdge : graphEdges) {
+            if (graphEdge.getTargetNodeId().equals(nodeId2)) {
+                return true;
+            }
+            // 递归寻找node2是否在node1之后
+            if (isNode2AfterNode1(graphEdge.getTargetNodeId(), nodeId2, edgeMapping)) {
+                return true;
+            }
+        }
         return false;
     }
 
@@ -629,9 +660,21 @@ public class Graph {
         }
     }
 
-    private static Map<String, List<String>> sortMergeBranchNodeIdsByLengthDesc(Map<String, List<String>> mergeBranchNodeIds) {
-        // TODO:
-        return null;
+    /**
+     * 对mergeBranchNodeIds按照其值（相关分支节点ID列表的长度）进行降序排序，返回一个有序的LinkedHashMap
+     * @param mergeBranchNodeIds 待排序Map
+     * @return 排序后的LinkedHashMap
+     */
+    public static Map<String, List<String>> sortMergeBranchNodeIdsByLengthDesc(Map<String, List<String>> mergeBranchNodeIds) {
+        return mergeBranchNodeIds.entrySet().stream()
+                // 按照值（即List<String>）的大小进行排序，这里使用比较器反转实现降序
+                .sorted((e1, e2) -> Integer.compare(e2.getValue().size(), e1.getValue().size()))
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (v1, v2) -> v1,  // 合并函数，这里不会有重复键冲突，所以直接返回第一个值即可
+                        LinkedHashMap::new  // 指定返回的是LinkedHashMap以保持插入顺序
+                ));
     }
 
     /**
@@ -646,16 +689,29 @@ public class Graph {
             String startNodeId,
             Map<String, List<String>> routesNodeIds
     ) {
-        // TODO: 判断node是否在routes中
         if (!reverseEdgeMapping.containsKey(startNodeId)) return false;
-
         Set<String> allRoutesNodeIds = new HashSet<>();
-
-        List<GraphEdge> graphEdges = reverseEdgeMapping.get(startNodeId);
-        graphEdges.forEach(graphEdge -> {
-            graphEdge.getTargetNodeId();
-        });
-
+        Map<String, List<String>> parallelStartNodeIds = new HashMap<>();
+        for (Map.Entry<String, List<String>> entry : routesNodeIds.entrySet()) {
+            String branchNodeId = entry.getKey();
+            List<String> nodeIds = entry.getValue();
+            allRoutesNodeIds.addAll(nodeIds);
+            if (reverseEdgeMapping.containsKey(branchNodeId)) {
+                reverseEdgeMapping.get(branchNodeId).forEach(edge -> {
+                    if (!parallelStartNodeIds.containsKey(edge.getSourceNodeId())) {
+                        parallelStartNodeIds.put(edge.getSourceNodeId(), new ArrayList<>());
+                    }
+                    parallelStartNodeIds.get(edge.getSourceNodeId()).add(branchNodeId);
+                });
+            }
+        }
+        for (Map.Entry<String, List<String>> entry : parallelStartNodeIds.entrySet()) {
+            List<String> branchNodeIds = entry.getValue();
+            // 所有branchNodeIds都在route的节点中能找到
+            if (new HashSet<>(branchNodeIds).containsAll(allRoutesNodeIds)) {
+                return true;
+            }
+        }
         return false;
     }
 
