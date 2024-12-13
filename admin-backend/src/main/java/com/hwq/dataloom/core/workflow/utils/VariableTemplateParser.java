@@ -15,8 +15,8 @@ public class VariableTemplateParser {
     // 正则表达式模式
     private static final Pattern REGEX = Pattern.compile("\\{\\{(#([a-zA-Z0-9_]{1,50}(\\.[a-zA-Z_][a-zA-Z0-9_]{0,29}){1,10}#))\\}\\}");
 
-    private String template;  // 原始模板字符串
-    private List<String> variableKeys;  // 提取的变量键列表
+    private final String template;  // 原始模板字符串
+    private final List<String> variableKeys;  // 提取的变量键列表
 
     /**
      * 构造函数，初始化模板字符串并提取变量键
