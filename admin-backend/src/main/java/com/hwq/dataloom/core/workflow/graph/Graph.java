@@ -152,9 +152,12 @@ public class Graph {
             }
         }
 
-        // init answer stream generate routes (初始化响应流生成节点)
+        // init answer stream generate routes (初始化响应流生成路由)
         AnswerStreamGeneratorRouter answerStreamGeneratorRouter = AnswerStreamGeneratorRouter.init(runNodeListMap, endEdgeMapping);
-        // TODO:
+
+        // init end stream param (初始化结束流参数)
+
+
         return null;
     }
 

@@ -11,6 +11,7 @@ import com.hwq.dataloom.model.enums.workflow.NodeTypeEnum;
 import com.hwq.dataloom.core.workflow.edge.GraphEdge;
 import com.hwq.dataloom.core.workflow.node.Node;
 import com.hwq.dataloom.core.workflow.node.answer.route_chunk.GenerateRouteChunk;
+import lombok.Data;
 
 import java.util.*;
 
@@ -19,7 +20,24 @@ import java.util.*;
  * @date 2024/11/24 20:23
  * @description 响应流编排
  */
+@Data
 public class AnswerStreamGeneratorRouter {
+
+    /**
+     * 响应生成路由
+     */
+    private Map<String, List<GenerateRouteChunk>> answerGenerateRoute;
+
+    /**
+     * 响应依赖
+     */
+    private Map<String, List<String>> answersDependencies;
+
+
+    public AnswerStreamGeneratorRouter(Map<String, List<GenerateRouteChunk>> answerGenerateRoute, Map<String, List<String>> answersDependencies) {
+        this.answerGenerateRoute = answerGenerateRoute;
+        this.answersDependencies = answersDependencies;
+    }
 
     /**
      * 提取生成路由选择器
@@ -43,7 +61,7 @@ public class AnswerStreamGeneratorRouter {
         List<String> answerNodeIds = new ArrayList<>(answerGenerateRoute.keySet());
         Map<String, List<String>> answersDependencies = fetchAnswersDependencies(answerNodeIds, endEdgeMapping, nodeIdConfigMapping);
 
-        return null;
+        return new AnswerStreamGeneratorRouter(answerGenerateRoute, answersDependencies);
     }
 
 
