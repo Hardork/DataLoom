@@ -16,7 +16,8 @@ public enum NodeTypeEnum {
     NOTIFY("notify", "notify", NotifyNodeData.class),
     CODE("code", "code", CodeNodeData.class),
     LLM("llm", "llm", LLMNodeData.class),
-    ANSWER("answer", "answer", AnswerNodeData.class);
+    ANSWER("answer", "answer", AnswerNodeData.class),
+    END("end", "end", AnswerNodeData.class);
 
     NodeTypeEnum(String text, String value, Class<? extends BaseNodeData> clazz) {
         this.text = text;
