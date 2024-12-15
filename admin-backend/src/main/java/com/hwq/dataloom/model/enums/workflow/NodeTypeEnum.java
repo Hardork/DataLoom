@@ -17,7 +17,10 @@ public enum NodeTypeEnum {
     CODE("code", "code", CodeNodeData.class),
     LLM("llm", "llm", LLMNodeData.class),
     ANSWER("answer", "answer", AnswerNodeData.class),
+    IF_ELSE("if_else", "if_else", AnswerNodeData.class),
+    QUESTION_CLASSIFIER("question_classifier", "question_classifier", AnswerNodeData.class),
     END("end", "end", AnswerNodeData.class);
+
 
     NodeTypeEnum(String text, String value, Class<? extends BaseNodeData> clazz) {
         this.text = text;

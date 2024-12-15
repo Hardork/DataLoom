@@ -9,6 +9,7 @@ import com.hwq.dataloom.core.file.File;
 import com.hwq.dataloom.core.workflow.WorkflowEntry;
 import com.hwq.dataloom.core.workflow.entitys.SingleIterationRunEntity;
 import com.hwq.dataloom.core.workflow.enums.SystemVariableKey;
+import com.hwq.dataloom.core.workflow.graph.GraphRunEntity;
 import com.hwq.dataloom.core.workflow.node.data.BaseNodeData;
 import com.hwq.dataloom.core.workflow.node.handler.BaseNodeHandler;
 import com.hwq.dataloom.core.workflow.node.handler.NodeHandlerMapping;
@@ -40,7 +41,7 @@ public class WorkflowRunner {
 
         SingleIterationRunEntity singleIterationRunEntity = workflowGenerateEntity.getSingleIterationRunEntity();
         if (singleIterationRunEntity != null) {
-            Pair<Graph, VariablePool> graphVariablePoolPair = getGraphAndVariablePoolOfSingleIteration(workflow, singleIterationRunEntity.getNodeId(), workflowGenerateEntity.getInputs());
+            Pair<GraphRunEntity, VariablePool> graphVariablePoolPair = getGraphAndVariablePoolOfSingleIteration(workflow, singleIterationRunEntity.getNodeId(), workflowGenerateEntity.getInputs());
         } else {
             Map<String, Object> inputs = workflowGenerateEntity.getInputs();
             List<File> files = workflowGenerateEntity.getFiles();
@@ -59,7 +60,7 @@ public class WorkflowRunner {
                     ListUtil.empty()
             );
             // 初始化graph
-            Graph graph = Graph.init(workflow.getGraph(), null);
+            GraphRunEntity graph = Graph.init(workflow.getGraph(), null);
         }
         WorkflowEntry workflowEntry = new WorkflowEntry();
     }
@@ -71,7 +72,7 @@ public class WorkflowRunner {
      * @param userInputs 输入参数
      * @return 图和变量池
      */
-    private Pair<Graph, VariablePool> getGraphAndVariablePoolOfSingleIteration(Workflow workflow, String nodeId, Map<String, Object> userInputs) {
+    private Pair<GraphRunEntity, VariablePool> getGraphAndVariablePoolOfSingleIteration(Workflow workflow, String nodeId, Map<String, Object> userInputs) {
         // 校验
         Map<String, Object> graphDict = workflow.graphDict();
         ThrowUtils.throwIf(graphDict == null, ErrorCode.OPERATION_ERROR, "工作流配置为空");
@@ -98,7 +99,7 @@ public class WorkflowRunner {
         String matchGraphDict = JSONUtil.toJsonStr(graphDict);
 
         // 初始化graph
-        Graph graph = Graph.init(matchGraphDict, nodeId);
+        GraphRunEntity graph = Graph.init(matchGraphDict, nodeId);
         ThrowUtils.throwIf(graph == null, ErrorCode.OPERATION_ERROR, "工作流初始化失败,请检查配置");
 
         // 寻找任务的头节点

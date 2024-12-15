@@ -11,9 +11,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class EndStreamGeneratorRouter {
+/**
+ * End流生成路由
+ */
+public class EndStreamGeneratorRouter {
 
-    // 初始化方法
+    /**
+     * 初始化方法
+     * @param nodeIdConfigMapping 节点配置映射
+     * @param reverseEdgeMapping 边映射
+     * @param nodeParallelMapping 节点并行关心映射
+     * @return End流参数
+     */
     public static EndStreamParam init(
             Map<String, Node> nodeIdConfigMapping,
             Map<String, List<GraphEdge>> reverseEdgeMapping,
@@ -37,25 +46,24 @@ class EndStreamGeneratorRouter {
 
         // 获取结束节点的依赖关系
         List<String> endNodeIds = new ArrayList<>(endStreamVariableSelectorsMapping.keySet());
-        // TODO
-//        Map<String, List<String>> endDependencies = fetchEndDependencies(
-//                endNodeIds,
-//                reverseEdgeMapping,
-//                nodeIdConfigMapping);
-//
-//        return new EndStreamParam(
-//                endStreamVariableSelectorsMapping,
-//                endDependencies);
-        return null;
+        Map<String, List<String>> endDependencies = fetchEndDependencies(
+                endNodeIds,
+                reverseEdgeMapping,
+                nodeIdConfigMapping);
+
+        return new EndStreamParam(
+                endStreamVariableSelectorsMapping,
+                endDependencies
+        );
     }
 
     // 从节点数据中提取流变量选择器
-    public static List<VariableSelector> extractStreamVariableSelectorFromNodeData(
+    public static List<List<String>> extractStreamVariableSelectorFromNodeData(
             Map<String, Node> nodeIdConfigMapping,
             EndNodeData nodeData) {
         List<VariableSelector> variableSelectors = nodeData.getOutputs();
 
-        List<VariableSelector> valueSelectors = new ArrayList<>();
+        List<List<String>> valueSelectors = new ArrayList<>();
         for (VariableSelector variableSelector : variableSelectors) {
             if (variableSelector == null) {
                 continue;
@@ -65,10 +73,10 @@ class EndStreamGeneratorRouter {
             if (!nodeId.equals("sys") && nodeIdConfigMapping.containsKey(nodeId)) {
                 Node node = nodeIdConfigMapping.get(nodeId);
                 String nodeType = (String) node.getData().getOrDefault("type", "");
-                if (!valueSelectors.contains(variableSelector)
+                if (!valueSelectors.contains(variableSelector.getValueSelector())
                         && nodeType.equals(NodeTypeEnum.LLM.getValue())
                         && variableSelector.getValueSelector().get(1).equals("text")) {
-                    valueSelectors.add(variableSelector);
+                    valueSelectors.add(variableSelector.getValueSelector());
                 }
             }
         }
@@ -80,21 +88,17 @@ class EndStreamGeneratorRouter {
             Map<String, Node> nodeIdConfigMapping,
             Node node) {
         EndNodeData endNodeData = JSONUtil.toBean(JSONUtil.toJsonStr(node.getData()), EndNodeData.class);
-//        return extractStreamVariableSelectorFromNodeData(nodeIdConfigMapping, endNodeData);
-        // TODO
-        return null;
+        return extractStreamVariableSelectorFromNodeData(nodeIdConfigMapping, endNodeData);
     }
 
     // 获取结束节点的依赖关系
     public static Map<String, List<String>> fetchEndDependencies(
             List<String> endNodeIds,
             Map<String, List<GraphEdge>> reverseEdgeMapping,
-            Map<String, Map<String, Object>> nodeIdConfigMapping) {
+            Map<String, Node> nodeIdConfigMapping) {
         Map<String, List<String>> endDependencies = new HashMap<>();
         for (String endNodeId : endNodeIds) {
-            if (endDependencies.get(endNodeId) == null) {
-                endDependencies.put(endNodeId, new ArrayList<>());
-            }
+            endDependencies.computeIfAbsent(endNodeId, k -> new ArrayList<>());
             recursiveFetchEndDependencies(
                     endNodeId,
                     endNodeId,
@@ -109,25 +113,25 @@ class EndStreamGeneratorRouter {
     public static void recursiveFetchEndDependencies(
             String currentNodeId,
             String endNodeId,
-            Map<String, Map<String, Object>> nodeIdConfigMapping,
+            Map<String, Node> nodeIdConfigMapping,
             Map<String, List<GraphEdge>> reverseEdgeMapping,
             Map<String, List<String>> endDependencies) {
         List<GraphEdge> reverseEdges = reverseEdgeMapping.getOrDefault(currentNodeId, new ArrayList<>());
-        // TODO
-//        for (GraphEdge edge : reverseEdges) {
-//            String sourceNodeId = edge.getSourceNodeId();
-//            String sourceNodeType = (String) nodeIdConfigMapping.getOrDefault(sourceNodeId, new HashMap<>()).getOrDefault("data", new HashMap<>()).getOrDefault("type", "");
-//            if (sourceNodeType.equals(NodeType.IF_ELSE.getValue())
-//                    || sourceNodeType.equals(NodeType.QUESTION_CLASSIFIER.getValue())) {
-//                endDependencies.get(endNodeId).add(sourceNodeId);
-//            } else {
-//                recursiveFetchEndDependencies(
-//                        sourceNodeId,
-//                        endNodeId,
-//                        nodeIdConfigMapping,
-//                        reverseEdgeMapping,
-//                        endDependencies);
-//            }
-//        }
+        for (GraphEdge edge : reverseEdges) {
+            String sourceNodeId = edge.getSourceNodeId();
+            Node node = nodeIdConfigMapping.get(sourceNodeId);
+            String sourceNodeType = node != null ? (String) node.getData().getOrDefault("type", "") : "";
+            if (sourceNodeType.equals(NodeTypeEnum.IF_ELSE.getValue())
+                    || sourceNodeType.equals(NodeTypeEnum.QUESTION_CLASSIFIER.getValue())) {
+                endDependencies.get(endNodeId).add(sourceNodeId);
+            } else {
+                recursiveFetchEndDependencies(
+                        sourceNodeId,
+                        endNodeId,
+                        nodeIdConfigMapping,
+                        reverseEdgeMapping,
+                        endDependencies);
+            }
+        }
     }
 }
