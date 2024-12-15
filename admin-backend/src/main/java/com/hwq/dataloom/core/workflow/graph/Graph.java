@@ -1,6 +1,8 @@
 package com.hwq.dataloom.core.workflow.graph;
 
 import cn.hutool.json.JSONUtil;
+import com.hwq.dataloom.core.workflow.node.end.EndStreamGeneratorRouter;
+import com.hwq.dataloom.core.workflow.node.end.EndStreamParam;
 import com.hwq.dataloom.core.workflow.runner.AnswerStreamGeneratorRouter;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
@@ -22,6 +24,7 @@ import java.util.stream.Collectors;
  */
 @Data
 public class Graph {
+
 
     /**
      * 节点集合
@@ -58,7 +61,7 @@ public class Graph {
      * @param rootNodeId 起始节点
      * @return Graph对象
      */
-    public static Graph init(String graphConfig, String rootNodeId) {
+    public static GraphRunEntity init(String graphConfig, String rootNodeId) {
         // 将JSON字符串转为Graph对象
         Graph graph = JSONUtil.toBean(graphConfig, Graph.class);
         // 初始化边配置
@@ -156,9 +159,20 @@ public class Graph {
         AnswerStreamGeneratorRouter answerStreamGeneratorRouter = AnswerStreamGeneratorRouter.init(runNodeListMap, endEdgeMapping);
 
         // init end stream param (初始化结束流参数)
+        EndStreamParam endStreamParam = EndStreamGeneratorRouter.init(runNodeListMap, endEdgeMapping, nodeParallelMap);
 
-
-        return null;
+        // 初始化graph
+        GraphRunEntity graphRunEntity = new GraphRunEntity(
+                rootNodeId,
+                runNodeList,
+                allNodeMap,
+                endEdgeMapping,
+                parallelMapping,
+                nodeParallelMap,
+                answerStreamGeneratorRouter,
+                endStreamParam
+        );
+        return graphRunEntity;
     }
 
     /**
