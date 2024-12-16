@@ -162,7 +162,7 @@ public class Graph {
         EndStreamParam endStreamParam = EndStreamGeneratorRouter.init(runNodeListMap, endEdgeMapping, nodeParallelMap);
 
         // 初始化graph
-        GraphRunEntity graphRunEntity = new GraphRunEntity(
+        return new GraphRunEntity(
                 rootNodeId,
                 runNodeList,
                 allNodeMap,
@@ -172,7 +172,6 @@ public class Graph {
                 answerStreamGeneratorRouter,
                 endStreamParam
         );
-        return graphRunEntity;
     }
 
     /**

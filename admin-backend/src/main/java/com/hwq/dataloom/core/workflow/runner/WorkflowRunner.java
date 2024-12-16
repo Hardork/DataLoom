@@ -40,8 +40,10 @@ public class WorkflowRunner {
     public void run(WorkflowGenerateEntity workflowGenerateEntity, WorkflowQueueManager workflowQueueManager, Workflow workflow) {
 
         SingleIterationRunEntity singleIterationRunEntity = workflowGenerateEntity.getSingleIterationRunEntity();
+        GraphRunEntity graphRunEntity = null;
         if (singleIterationRunEntity != null) {
             Pair<GraphRunEntity, VariablePool> graphVariablePoolPair = getGraphAndVariablePoolOfSingleIteration(workflow, singleIterationRunEntity.getNodeId(), workflowGenerateEntity.getInputs());
+            graphRunEntity = graphVariablePoolPair.getKey();
         } else {
             Map<String, Object> inputs = workflowGenerateEntity.getInputs();
             List<File> files = workflowGenerateEntity.getFiles();
@@ -60,9 +62,13 @@ public class WorkflowRunner {
                     ListUtil.empty()
             );
             // 初始化graph
-            GraphRunEntity graph = Graph.init(workflow.getGraph(), null);
+            graphRunEntity = Graph.init(workflow.getGraph(), null);
         }
-        WorkflowEntry workflowEntry = new WorkflowEntry();
+//        WorkflowEntry workflowEntry = new WorkflowEntry(
+//                workflow.getWorkflowId(),
+//                graphRunEntity,
+//                workflowGenerateEntity.getUserId()
+//        );
     }
 
     /**
@@ -100,7 +106,6 @@ public class WorkflowRunner {
 
         // 初始化graph
         GraphRunEntity graph = Graph.init(matchGraphDict, nodeId);
-        ThrowUtils.throwIf(graph == null, ErrorCode.OPERATION_ERROR, "工作流初始化失败,请检查配置");
 
         // 寻找任务的头节点
         Optional<Node> iterationNode = nodes.stream()
@@ -128,7 +133,5 @@ public class WorkflowRunner {
         WorkflowEntry.mappingUserInputsToVariablePool(variableMapping, userInputs, variablePool, nodeType, nodeData);
         return new Pair<>(graph, variablePool);
     }
-
-
 
 }

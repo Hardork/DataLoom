@@ -4,12 +4,18 @@ import com.hwq.dataloom.core.file.File;
 import com.hwq.dataloom.core.workflow.config.FileExtraConfig;
 import com.hwq.dataloom.core.workflow.enums.FileTransferMethod;
 import com.hwq.dataloom.core.workflow.enums.FileType;
+import com.hwq.dataloom.core.workflow.enums.UserFrom;
+import com.hwq.dataloom.core.workflow.graph.Graph;
+import com.hwq.dataloom.core.workflow.graph.GraphRunEntity;
 import com.hwq.dataloom.core.workflow.node.data.BaseNodeData;
 import com.hwq.dataloom.core.workflow.node.data.LLMNodeData;
 import com.hwq.dataloom.core.workflow.variable.VariablePool;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.WorkflowException;
 import com.hwq.dataloom.model.enums.workflow.NodeTypeEnum;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.*;
 
@@ -18,7 +24,27 @@ import java.util.*;
  * @date 2024/12/10 00:01
  * @description 工作流运行实体
  */
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class WorkflowEntry {
+
+    private Long workflowId;
+
+    private GraphRunEntity graphRunEntity;
+
+    private Long userId;
+
+    private Graph graph;
+
+    private UserFrom userFrom;
+
+    private long callDepth;
+
+    private VariablePool variablePool;
+
+    private String threadPoolId;
+
 
     /**
      * 将用户输入映射到变量池

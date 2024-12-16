@@ -3,6 +3,7 @@ package com.hwq.dataloom.core.workflow.node.handler;
 import cn.hutool.json.JSONUtil;
 import com.hwq.dataloom.core.workflow.entitys.NodeRunResult;
 import com.hwq.dataloom.core.workflow.graph.Graph;
+import com.hwq.dataloom.core.workflow.graph.GraphRunEntity;
 import com.hwq.dataloom.core.workflow.graph_engine.GraphInitParams;
 import com.hwq.dataloom.core.workflow.graph_engine.entities.GraphRuntimeState;
 import com.hwq.dataloom.core.workflow.node.Node;
@@ -38,7 +39,7 @@ public class StartNodeHandler extends BaseNodeHandler {
     }
 
     @Override
-    public Map<String, List<String>> extractVariableSelectorToVariableMapping(Graph graph, Node node) {
+    public Map<String, List<String>> extractVariableSelectorToVariableMapping(GraphRunEntity graph, Node node) {
         return new HashMap<String, List<String>>();
     }
 

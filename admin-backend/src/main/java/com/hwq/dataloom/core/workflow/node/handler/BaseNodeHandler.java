@@ -4,6 +4,7 @@ import com.hwq.dataloom.core.workflow.entitys.NodeRunResult;
 import com.hwq.dataloom.core.workflow.enums.NodeRunStatus;
 import com.hwq.dataloom.core.workflow.enums.UserFrom;
 import com.hwq.dataloom.core.workflow.graph.Graph;
+import com.hwq.dataloom.core.workflow.graph.GraphRunEntity;
 import com.hwq.dataloom.core.workflow.graph_engine.GraphInitParams;
 import com.hwq.dataloom.core.workflow.graph_engine.entities.GraphRuntimeState;
 import com.hwq.dataloom.core.workflow.node.Node;
@@ -12,16 +13,12 @@ import com.hwq.dataloom.core.workflow.node.event.RunCompletedEvent;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.utils.generator.Generator;
-import com.hwq.dataloom.utils.generator.Seq;
 import com.hwq.dataloom.model.enums.workflow.NodeTypeEnum;
-import javafx.beans.binding.ObjectExpression;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.yaml.snakeyaml.events.NodeEvent;
 
 import java.util.*;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * @Author: HWQ
@@ -97,7 +94,7 @@ public abstract class BaseNodeHandler {
      * @param node 当前节点
      * @return Map
      */
-    public abstract Map<String, List<String>> extractVariableSelectorToVariableMapping(Graph graph, Node node);
+    public abstract Map<String, List<String>> extractVariableSelectorToVariableMapping(GraphRunEntity graph, Node node);
 
     /**
      * 从config中读取当前节点的data数据
