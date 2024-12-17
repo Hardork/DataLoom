@@ -8,7 +8,7 @@ package com.hwq.dataloom.core.workflow.enums;
 public enum UserFrom {
 
     /**
-     * 系统
+     * 系统用户
      */
     ACCOUNT("account"),
     /**

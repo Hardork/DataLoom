@@ -3,6 +3,7 @@ package com.hwq.dataloom.core.workflow.entitys;
 import com.hwq.dataloom.core.file.File;
 import com.hwq.dataloom.core.ops.TraceQueueManager;
 import com.hwq.dataloom.core.workflow.config.WorkflowConfig;
+import com.hwq.dataloom.core.workflow.enums.UserFrom;
 import lombok.Builder;
 import lombok.Data;
 
@@ -68,4 +69,9 @@ public class WorkflowGenerateEntity {
      * 是否指定节点运行
      */
     private SingleIterationRunEntity singleIterationRunEntity;
+
+    /**
+     * 用户来源
+     */
+    private UserFrom userFrom;
 }

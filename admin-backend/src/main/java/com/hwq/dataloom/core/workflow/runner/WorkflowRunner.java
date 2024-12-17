@@ -67,7 +67,9 @@ public class WorkflowRunner {
 //        WorkflowEntry workflowEntry = new WorkflowEntry(
 //                workflow.getWorkflowId(),
 //                graphRunEntity,
-//                workflowGenerateEntity.getUserId()
+//                workflowGenerateEntity.getUserId(),
+//                workflow.getGraphFromStr(),
+//                User
 //        );
     }
 
