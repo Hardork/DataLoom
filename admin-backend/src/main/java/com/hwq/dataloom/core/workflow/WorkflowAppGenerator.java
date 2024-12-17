@@ -76,7 +76,7 @@ public class WorkflowAppGenerator {
         );
         // TODO: 改为线程池管理
         new Thread(() -> {
-            workflowThreadWorker(workflowGenerateEntity, workflowQueueManager, workflow);
+            workflowThreadWorker(workflowGenerateEntity, workflowQueueManager, workflow, threadPoolId);
         });
 
     }
@@ -87,8 +87,8 @@ public class WorkflowAppGenerator {
      * @param queueManager 工作流任务队列
      * @param workflow 工作流
      */
-    public void workflowThreadWorker(WorkflowGenerateEntity workflowGenerateEntity, WorkflowQueueManager queueManager, Workflow workflow) {
+    public void workflowThreadWorker(WorkflowGenerateEntity workflowGenerateEntity, WorkflowQueueManager queueManager, Workflow workflow, String threadPoolId) {
         // TODO：完善工作流工作线程
-        workflowBaseRunner.run(workflowGenerateEntity, queueManager, workflow);
+        workflowBaseRunner.run(workflowGenerateEntity, queueManager, workflow, threadPoolId);
     }
 }

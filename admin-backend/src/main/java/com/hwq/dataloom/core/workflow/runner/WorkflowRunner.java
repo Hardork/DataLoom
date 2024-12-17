@@ -9,6 +9,7 @@ import com.hwq.dataloom.core.file.File;
 import com.hwq.dataloom.core.workflow.WorkflowEntry;
 import com.hwq.dataloom.core.workflow.entitys.SingleIterationRunEntity;
 import com.hwq.dataloom.core.workflow.enums.SystemVariableKey;
+import com.hwq.dataloom.core.workflow.enums.UserFrom;
 import com.hwq.dataloom.core.workflow.graph.GraphRunEntity;
 import com.hwq.dataloom.core.workflow.node.data.BaseNodeData;
 import com.hwq.dataloom.core.workflow.node.handler.BaseNodeHandler;
@@ -37,13 +38,15 @@ public class WorkflowRunner {
 
 
     // TODO: 初始化Graph，包含寻找Start节点、
-    public void run(WorkflowGenerateEntity workflowGenerateEntity, WorkflowQueueManager workflowQueueManager, Workflow workflow) {
+    public void run(WorkflowGenerateEntity workflowGenerateEntity, WorkflowQueueManager workflowQueueManager, Workflow workflow, String threadPoolId) {
 
         SingleIterationRunEntity singleIterationRunEntity = workflowGenerateEntity.getSingleIterationRunEntity();
         GraphRunEntity graphRunEntity = null;
+        VariablePool variablePool = null;
         if (singleIterationRunEntity != null) {
             Pair<GraphRunEntity, VariablePool> graphVariablePoolPair = getGraphAndVariablePoolOfSingleIteration(workflow, singleIterationRunEntity.getNodeId(), workflowGenerateEntity.getInputs());
             graphRunEntity = graphVariablePoolPair.getKey();
+            variablePool = graphVariablePoolPair.getValue();
         } else {
             Map<String, Object> inputs = workflowGenerateEntity.getInputs();
             List<File> files = workflowGenerateEntity.getFiles();
@@ -55,7 +58,7 @@ public class WorkflowRunner {
             systemInputs.put(SystemVariableKey.WORKFLOW_RUN_ID, workflowGenerateEntity.getWorkflowRunId());
             systemInputs.put(SystemVariableKey.WORKFLOW_ID, workflowGenerateEntity.getWorkflowConfig().getWorkflowId());
 
-            VariablePool variablePool = new VariablePool(
+            variablePool = new VariablePool(
                     systemInputs,
                     inputs,
                     workflow.getEnvVariablesFromJsonStr(),
@@ -64,13 +67,17 @@ public class WorkflowRunner {
             // 初始化graph
             graphRunEntity = Graph.init(workflow.getGraph(), null);
         }
-//        WorkflowEntry workflowEntry = new WorkflowEntry(
-//                workflow.getWorkflowId(),
-//                graphRunEntity,
-//                workflowGenerateEntity.getUserId(),
-//                workflow.getGraphFromStr(),
-//                User
-//        );
+        WorkflowEntry workflowEntry = new WorkflowEntry(
+                workflow.getWorkflowId(),
+                graphRunEntity,
+                workflowGenerateEntity.getUserId(),
+                workflow.getGraphFromStr(),
+                UserFrom.ACCOUNT,
+                3,
+                variablePool,
+                threadPoolId
+        );
+        // TODO：执行workflowEntry.run方法
     }
 
     /**

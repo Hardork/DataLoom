@@ -7,13 +7,12 @@ import com.hwq.dataloom.core.workflow.enums.FileType;
 import com.hwq.dataloom.core.workflow.enums.UserFrom;
 import com.hwq.dataloom.core.workflow.graph.Graph;
 import com.hwq.dataloom.core.workflow.graph.GraphRunEntity;
+import com.hwq.dataloom.core.workflow.graph_engine.GraphEngine;
 import com.hwq.dataloom.core.workflow.node.data.BaseNodeData;
-import com.hwq.dataloom.core.workflow.node.data.LLMNodeData;
 import com.hwq.dataloom.core.workflow.variable.VariablePool;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.WorkflowException;
 import com.hwq.dataloom.model.enums.workflow.NodeTypeEnum;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -25,7 +24,6 @@ import java.util.*;
  * @description 工作流运行实体
  */
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 public class WorkflowEntry {
 
@@ -45,6 +43,28 @@ public class WorkflowEntry {
 
     private String threadPoolId;
 
+    private GraphEngine graphEngine;
+
+    public WorkflowEntry(
+            Long workflowId,
+            GraphRunEntity graphRunEntity,
+            Long userId,
+            Graph graph,
+            UserFrom userFrom,
+            long callDepth,
+            VariablePool variablePool,
+            String threadPoolId
+    ) {
+        this.workflowId = workflowId;
+        this.graphRunEntity = graphRunEntity;
+        this.userId = userId;
+        this.graph = graph;
+        this.userFrom = userFrom;
+        this.callDepth = callDepth;
+        this.variablePool = variablePool;
+        this.threadPoolId = threadPoolId;
+        // TODO: 初始化画布引擎GraphEngine
+    }
 
     /**
      * 将用户输入映射到变量池
