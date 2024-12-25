@@ -9,15 +9,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author HWQ
- * @date 2024/6/17 23:24
+ * @author HCJ
+ * @date 2024/11/29 23:24
  * @description 智能问数返回类
  */
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class QueryAICustomSQLVO {
+public class SaveAICustomSQLVO {
     /**
      * 数据列集合
      */
@@ -32,7 +32,7 @@ public class QueryAICustomSQLVO {
     private String sql;
 
     /**
-     * 记录对应的行数
+     * 数据条数 【数据分页时展示】
      */
-    private int count;
+    private Long total;
 }

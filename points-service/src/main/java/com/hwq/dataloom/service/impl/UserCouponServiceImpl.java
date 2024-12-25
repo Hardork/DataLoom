@@ -126,8 +126,6 @@ public class UserCouponServiceImpl extends ServiceImpl<UserCouponMapper, UserCou
                         .validStartTime(now)
                         .build();
                 userCouponService.save(userCoupon);
-
-                // TODO: 考虑将用户的优惠券详情放入到缓存中
             } catch (Exception e) {
                 action.setRollbackOnly();
                 // 识别异常

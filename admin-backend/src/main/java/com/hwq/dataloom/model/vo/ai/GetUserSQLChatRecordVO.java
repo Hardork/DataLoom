@@ -38,6 +38,11 @@ public class GetUserSQLChatRecordVO {
     private List<Map<String, Object>> res;
 
     /**
+     * 总记录数
+     */
+    private Long total;
+
+    /**
      * 对应的sql
      */
     private String sql;
@@ -57,4 +62,6 @@ public class GetUserSQLChatRecordVO {
      * 消息状态  0-正常 1-异常
      */
     private Integer status;
+
+    private boolean loading = false;
 }

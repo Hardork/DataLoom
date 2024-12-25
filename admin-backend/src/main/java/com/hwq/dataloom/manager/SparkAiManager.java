@@ -231,7 +231,7 @@ public class SparkAiManager extends WebSocketListener {
         chatHistory.setModelId(modelId);
         chatHistory.setContent(content);
         chatHistory.setExecMessage("");
-        chatHistory.setStatus(ChatHistoryStatusEnum.SUCCESS.getValue());
+        chatHistory.setStatus(ChatHistoryStatusEnum.END.getValue());
         boolean save = chatHistoryService.save(chatHistory);
         ThrowUtils.throwIf(!save, ErrorCode.SYSTEM_ERROR);
     }

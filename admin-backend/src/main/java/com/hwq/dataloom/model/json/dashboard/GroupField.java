@@ -1,4 +1,4 @@
-package com.hwq.dataloom.model.json;
+package com.hwq.dataloom.model.json.dashboard;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
