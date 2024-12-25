@@ -1,5 +1,6 @@
 package com.hwq.dataloom.websocket.vo;
 
+import com.hwq.dataloom.utils.datasource.CustomPage;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,15 +12,14 @@ import java.util.Map;
 /**
  * @author HWQ
  * @date 2024/6/18 20:25
- * @description
+ * @description 智能问数消息返回类
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class AskSQLWebSocketMsgVO {
-    private List<String> columns;
-    private List<Map<String, Object>> res;
-    private String sql;
-    private String type;
+    private CustomPage<Map<String, Object>> data;
+    private Integer type;
+    private String message;
 }

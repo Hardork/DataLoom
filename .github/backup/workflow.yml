@@ -52,6 +52,24 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/admin-backend:latest
 
+      # Step 7: 构建并推送 gateway 镜像
+      - name: Build and Push gateway Docker Image
+        uses: docker/build-push-action@v2
+        with:
+          context: ./gateway
+          file: ./gateway/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/gateway:latest
+
+      # Step 8: 构建并推送 points-service 镜像
+      - name: Build and Push points-service Docker Image
+        uses: docker/build-push-action@v2
+        with:
+          context: ./points-service
+          file: ./points-service/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/points-service:latest
+
       # Step 8: 部署到远程服务器
       - name: Deploy to Server
         uses: appleboy/ssh-action@v0.1.5
@@ -61,5 +79,11 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/admin-backend:latest
+            docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/gateway:latest
+            docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/points-service:latest
             docker stop admin-backend || true && docker rm admin-backend || true
+            docker stop gateway || true && docker rm gateway || true
+            docker stop points-service || true && docker rm points-service || true
             docker run -d --name admin-backend -p 8081:8081 ${{ secrets.DOCKER_HUB_USERNAME }}/admin-backend:latest
+            docker run -d --name gateway -p 8090:8090 ${{ secrets.DOCKER_HUB_USERNAME }}/gateway:latest
+            docker run -d --name points-service -p 8082:8082 ${{ secrets.DOCKER_HUB_USERNAME }}/points-service:latest

@@ -10,11 +10,13 @@ import com.hwq.dataloom.model.entity.*;
 import com.hwq.dataloom.model.vo.GetUserChatHistoryVO;
 import com.hwq.dataloom.service.*;
 import com.hwq.dataloom.mapper.ChatMapper;
+import com.hwq.dataloom.utils.datasource.CustomPage;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
 * @author HWQ
@@ -102,6 +104,11 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         boolean save = this.save(chat);
         ThrowUtils.throwIf(!save, ErrorCode.SYSTEM_ERROR);
         return true;
+    }
+
+    @Override
+    public CustomPage<Map<String, Object>> getSingleHistoryPageData(Long chatHistoryId, Integer pageNo, User loginUser) {
+        return null;
     }
 }
 

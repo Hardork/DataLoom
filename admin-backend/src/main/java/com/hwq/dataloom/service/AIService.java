@@ -2,10 +2,15 @@ package com.hwq.dataloom.service;
 
 import com.hwq.dataloom.framework.model.entity.User;
 import com.hwq.dataloom.model.dto.ai.AskAIWithDataTablesAndFieldsRequest;
+import com.hwq.dataloom.model.dto.ai.ChatExportExcelRequest;
+import com.hwq.dataloom.model.dto.ai.ChatForSQLPageRequest;
 import com.hwq.dataloom.model.dto.ai.ChatForSQLRequest;
-import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
+import com.hwq.dataloom.utils.datasource.CustomPage;
 
+import javax.servlet.http.HttpServletResponse;
+import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author HWQ
@@ -26,7 +31,7 @@ public interface AIService {
      * @param datasourceId 数据源id
      * @return 数据源所有表与字段信息
      */
-    List<AskAIWithDataTablesAndFieldsRequest> getAskAIWithDataTablesAndFieldsRequests(User loginUser, Long datasourceId);
+    List<AskAIWithDataTablesAndFieldsRequest> getAskAIWithDataTablesAndFieldsRequests(User loginUser, Long datasourceId) throws SQLException;
 
 
     /**
@@ -37,4 +42,12 @@ public interface AIService {
      */
     String buildAskAISQLInput(List<AskAIWithDataTablesAndFieldsRequest> dataTablesAndFieldsRequests, String question);
 
+    /**
+     * 智能问数分页查询
+     * @param chatForSQLPageRequest
+     * @param loginUser
+     */
+    CustomPage<Map<String, Object>> queryUserChatForSQL(ChatForSQLPageRequest chatForSQLPageRequest, User loginUser);
+
+    void exportExcel(ChatExportExcelRequest chatExportExcelRequest, HttpServletResponse response);
 }

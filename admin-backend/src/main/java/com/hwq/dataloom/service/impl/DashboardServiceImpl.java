@@ -24,10 +24,10 @@ import com.hwq.dataloom.model.entity.Dashboard;
 import com.hwq.dataloom.model.enums.DashboardStatusEnum;
 import com.hwq.dataloom.model.enums.SeriesArrayRollUpEnum;
 import com.hwq.dataloom.model.enums.SeriesArrayTypeEnum;
-import com.hwq.dataloom.model.json.AiGenChartDataOptions;
-import com.hwq.dataloom.model.json.GenChartGroup;
-import com.hwq.dataloom.model.json.GroupField;
-import com.hwq.dataloom.model.json.Series;
+import com.hwq.dataloom.model.json.dashboard.AiGenChartDataOptions;
+import com.hwq.dataloom.model.json.dashboard.GenChartGroup;
+import com.hwq.dataloom.model.json.dashboard.GroupField;
+import com.hwq.dataloom.model.json.dashboard.Series;
 import com.hwq.dataloom.model.vo.dashboard.GetChartAnalysisVO;
 import com.hwq.dataloom.model.vo.dashboard.GetChartDataVO;
 import com.hwq.dataloom.service.ChartOptionService;
@@ -37,16 +37,14 @@ import com.hwq.dataloom.service.DashboardService;
 import com.hwq.dataloom.mapper.DashboardMapper;
 import com.hwq.dataloom.utils.datasource.DatasourceEngine;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.executor.BatchExecutorException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 
 import static com.hwq.dataloom.constant.PromptConstants.MUL_CHART_SQL_ANALYSIS;
 import static com.hwq.dataloom.model.enums.SeriesArrayTypeEnum.FIELD_GROUP;
@@ -353,7 +351,12 @@ public class DashboardServiceImpl extends ServiceImpl<DashboardMapper, Dashboard
 //                    log.error("异步任务执行失败");
 //                    return null;
 //                });
-        String dataOptionsJsonStr = aiService.genChartByAi(dashboard.getDatasourceId(), loginUser);
+        String dataOptionsJsonStr = null;
+        try {
+            dataOptionsJsonStr = aiService.genChartByAi(dashboard.getDatasourceId(), loginUser);
+        } catch (SQLException e) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "数据源异常，无法访问");
+        }
         // 3. 反序列JSON
         List<AiGenChartDataOptions> aiGenChartDataOptions = JSON.parseObject(dataOptionsJsonStr, new TypeReference<List<AiGenChartDataOptions>>() {
         });

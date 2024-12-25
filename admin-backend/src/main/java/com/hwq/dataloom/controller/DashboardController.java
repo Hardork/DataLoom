@@ -84,7 +84,6 @@ public class DashboardController {
     @Operation(summary = "编辑图表")
     @PostMapping("/editChart")
     public BaseResponse<Boolean> editChart(@RequestBody @Valid EditDashboardChartRequestDTO editDashboardChartRequestDTO, HttpServletRequest request) {
-        // TODO:
         User loginUser = userService.getLoginUser(request);
         dashboardService.editChart(editDashboardChartRequestDTO, loginUser);
         return ResultUtils.success();

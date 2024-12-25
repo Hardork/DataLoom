@@ -63,6 +63,12 @@ public class ChatHistory implements Serializable {
     private Integer status;
 
     /**
+     * content中的 total 记录数是否超过了 pageSize
+     */
+    @TableField(value = "isOverSize")
+    private Boolean isOverSize;
+
+    /**
      * 
      */
     @TableField(value = "createTime")

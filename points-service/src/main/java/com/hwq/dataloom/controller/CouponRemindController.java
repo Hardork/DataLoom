@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/points-service/CouponRemind")
 @Tag(name = "优惠券预约提醒管理")
 public class CouponRemindController {
-    // TODO：优惠券预约
     private final CouponTemplateRemindService couponTemplateRemindService;
 
     @Operation(summary = "发出优惠券预约提醒请求")

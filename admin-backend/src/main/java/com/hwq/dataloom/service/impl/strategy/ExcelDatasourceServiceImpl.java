@@ -7,6 +7,7 @@ import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.exception.BusinessException;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
 import com.hwq.dataloom.framework.model.entity.User;
+import com.hwq.dataloom.model.dto.ai.AskAIWithDataTablesAndFieldsRequest;
 import com.hwq.dataloom.model.dto.datasource.TableFieldInfo;
 import com.hwq.dataloom.model.dto.datasource_tree.AddDatasourceDirRequest;
 import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
@@ -15,22 +16,30 @@ import com.hwq.dataloom.model.entity.CoreDatasetTableField;
 import com.hwq.dataloom.model.entity.CoreDatasource;
 import com.hwq.dataloom.model.enums.DataSourceTypeEnum;
 import com.hwq.dataloom.model.enums.DirTypeEnum;
-import com.hwq.dataloom.model.json.ExcelSheetData;
+import com.hwq.dataloom.model.json.ai.UserChatForSQLRes;
+import com.hwq.dataloom.model.json.datasource.ExcelSheetData;
+import com.hwq.dataloom.model.vo.data.QueryAICustomSQLVO;
 import com.hwq.dataloom.service.CoreDatasetTableFieldService;
 import com.hwq.dataloom.service.CoreDatasetTableService;
 import com.hwq.dataloom.service.CoreDatasourceService;
 import com.hwq.dataloom.service.DatasourceDirTreeService;
 import com.hwq.dataloom.service.basic.strategy.DatasourceExecuteStrategy;
+import com.hwq.dataloom.utils.datasource.CustomPage;
+import com.hwq.dataloom.utils.datasource.DatasourceEngine;
 import com.hwq.dataloom.utils.datasource.ExcelUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -56,6 +65,8 @@ public class ExcelDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
 
     @Resource
     private ExcelUtils excelUtils;
+    @Autowired
+    private DatasourceEngine datasourceEngine;
 
     @Override
     public String mark() {
@@ -160,6 +171,33 @@ public class ExcelDatasourceServiceImpl implements DatasourceExecuteStrategy<Dat
                 .eq(CoreDatasetTableField::getDatasourceId, datasourceId)
                 .eq(CoreDatasetTableField::getDatasetTableId, coreDatasetTable.getId());
         return coreDatasetTableFieldService.list(lambdaQueryWrapper);
+    }
+
+    @Override
+    public CustomPage<Map<String, Object>> getDataFromDatasourceBySql(CoreDatasource datasource, String sql, Integer pageNo, Integer pageSize) throws SQLException {
+        return datasourceEngine.execSelectSqlToQueryAICustomSQLVO(datasource.getId(), sql, pageNo,pageSize);
+    }
+
+    @Override
+    public List<AskAIWithDataTablesAndFieldsRequest> getAskAIWithDataTablesAndFieldsRequests(CoreDatasource coreDatasource, User loginUser) {
+        // 获取对应数据源所有表信息
+        List<CoreDatasetTable> tables = coreDatasourceService.getTablesByDatasourceId(coreDatasource.getId(), loginUser);
+        ThrowUtils.throwIf(tables.isEmpty(), ErrorCode.PARAMS_ERROR, "数据源暂无数据");
+        List<AskAIWithDataTablesAndFieldsRequest> dataTablesAndFieldsRequests = new ArrayList<>();
+        tables.forEach(table -> {
+            // 查询所有字段
+            LambdaQueryWrapper<CoreDatasetTableField> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(CoreDatasetTableField::getDatasetTableId, table.getId());
+            List<CoreDatasetTableField> tableFields = coreDatasetTableFieldService.list(wrapper);
+            AskAIWithDataTablesAndFieldsRequest askAIWithDataTablesAndFieldsRequest = AskAIWithDataTablesAndFieldsRequest.builder()
+                    .tableId(table.getId())
+                    .tableComment(table.getName())
+                    .tableName(table.getTableName())
+                    .coreDatasetTableFieldList(tableFields)
+                    .build();
+            dataTablesAndFieldsRequests.add(askAIWithDataTablesAndFieldsRequest);
+        });
+        return dataTablesAndFieldsRequests;
     }
 
     /**

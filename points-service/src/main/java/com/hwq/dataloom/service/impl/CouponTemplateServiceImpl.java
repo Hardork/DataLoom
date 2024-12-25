@@ -61,7 +61,6 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
 
     @Override
     public void createCouponTemplate(CouponTemplateSaveReqDTO requestParam) {
-        // TODO：使用责任链串联校验
         couponChainContext.handle(CREATE_COUPON_TEMPLATE_MASK, requestParam);
 
         // 新增优惠券模版信息到数据库
@@ -129,7 +128,6 @@ public class CouponTemplateServiceImpl extends ServiceImpl<CouponTemplateMapper,
 
     @Override
     public CouponTemplateQueryVO findCouponTemplateById(Long couponTemplateId) {
-        // TODO：布隆过滤器，过滤恶意请求
         CouponTemplate couponTemplate = this.getById(couponTemplateId);
         CouponTemplateQueryVO couponTemplateQueryVO = new CouponTemplateQueryVO();
         BeanUtils.copyProperties(couponTemplate, couponTemplateQueryVO);

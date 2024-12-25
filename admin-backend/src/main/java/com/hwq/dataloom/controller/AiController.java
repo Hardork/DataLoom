@@ -1,8 +1,8 @@
 package com.hwq.dataloom.controller;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.hwq.dataloom.annotation.AiService;
 import com.hwq.dataloom.annotation.CheckPoint;
@@ -13,7 +13,6 @@ import com.hwq.dataloom.framework.result.BaseResponse;
 import com.hwq.dataloom.framework.errorcode.ErrorCode;
 import com.hwq.dataloom.framework.result.ResultUtils;
 import com.hwq.dataloom.framework.exception.ThrowUtils;
-import com.hwq.dataloom.manager.AiManager;
 import com.hwq.dataloom.manager.SparkAiManager;
 import com.hwq.dataloom.model.dto.ai.*;
 import com.hwq.dataloom.model.dto.newdatasource.DatasourceDTO;
@@ -22,6 +21,7 @@ import com.hwq.dataloom.model.enums.ChatHistoryRoleEnum;
 import com.hwq.dataloom.model.vo.GetUserChatHistoryVO;
 import com.hwq.dataloom.model.vo.ai.GetUserSQLChatRecordVO;
 import com.hwq.dataloom.service.*;
+import com.hwq.dataloom.utils.datasource.CustomPage;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * @Author:HWQ
@@ -202,6 +203,36 @@ public class AiController {
         return ResultUtils.success(true);
     }
 
+    @Operation(summary = "智能问数分页查询")
+    @ReduceRewardPoint
+    @CheckPoint
+    @AiService
+    @PostMapping("/chat/sql/page")
+    public BaseResponse<CustomPage<Map<String, Object>>> queryUserChatForSQL(@RequestBody ChatForSQLPageRequest chatForSQLPageRequest, HttpServletRequest request) {
+        // 数据校验
+        ThrowUtils.throwIf(chatForSQLPageRequest == null, ErrorCode.PARAMS_ERROR);
+        Long chatHistoryId = chatForSQLPageRequest.getChatHistoryId();
+        ThrowUtils.throwIf(chatHistoryId == null, ErrorCode.PARAMS_ERROR, "id不得为空");
+        User loginUser = userService.getLoginUser(request);
+        CustomPage<Map<String, Object>> page = aiService.queryUserChatForSQL(chatForSQLPageRequest, loginUser);
+        return ResultUtils.success(page);
+    }
+
+    @Operation(summary = "智能问数excel导出")
+    @ReduceRewardPoint
+    @CheckPoint
+    @AiService
+    @PostMapping("/chat/sql/export_excel")
+    public BaseResponse<Boolean> exportExcel(@RequestBody ChatExportExcelRequest chatExportExcelRequest, HttpServletRequest request,HttpServletResponse response) {
+        // 数据校验
+        ThrowUtils.throwIf(chatExportExcelRequest == null, ErrorCode.PARAMS_ERROR);
+        Long chatHistoryId = chatExportExcelRequest.getChatHistoryId();
+        ThrowUtils.throwIf(chatHistoryId == null, ErrorCode.PARAMS_ERROR, "id不得为空");
+        User loginUser = userService.getLoginUser(request);
+        aiService.exportExcel(chatExportExcelRequest, response);
+        return ResultUtils.success(true);
+    }
+
     @Operation(summary = "查询用户选择对话的信息")
     @PostMapping("/get/chat")
     public BaseResponse<GetUserChatHistoryVO> getChatById(@RequestBody GetChatRequest getChatRequest, HttpServletRequest request) {
@@ -298,6 +329,16 @@ public class AiController {
         ThrowUtils.throwIf(modelId == null, ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(request);
         Boolean res = chatService.addUserChatHistory(modelId, loginUser);
+        return ResultUtils.success(res);
+    }
+
+    @Operation(summary = "智能问数单条对话分页查询")
+    @GetMapping("/get/singleHistory/pageData/{chatHistoryId}/{pageNo}")
+    public BaseResponse<CustomPage<Map<String, Object>>> getSingleHistoryPageData(@PathVariable Long chatHistoryId, @PathVariable Integer pageNo, HttpServletRequest request) {
+        ThrowUtils.throwIf(chatHistoryId == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        if (pageNo == null) pageNo = 1;
+        CustomPage<Map<String, Object>> res = chatService.getSingleHistoryPageData(chatHistoryId, pageNo, loginUser);
         return ResultUtils.success(res);
     }
 

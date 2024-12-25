@@ -7,7 +7,6 @@ package com.hwq.dataloom.constant;
  */
 public interface DatasourceConstant {
 
-
     /**
      * 数据库真实表名
      * DatasourceType_数据源id_表名
